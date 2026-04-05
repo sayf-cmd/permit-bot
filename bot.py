@@ -61,13 +61,14 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     row = result.iloc[0]
 
-    reply = (
+        reply = (
         f"Property Details\n\n"
-        f"Search Permit: {search_value}\n"
+        f"Permit Number: {search_value}\n"
         f"Building Name: {row[building_col]}\n"
         f"Unit Number: {row[unit_col]}\n"
         f"Bedroom: {row[bedroom_col]}"
     )
+
 
     await update.message.reply_text(reply)
 
