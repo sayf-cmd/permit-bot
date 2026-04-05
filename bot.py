@@ -38,16 +38,16 @@ async def reload_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = (
-        "Welcome to Permit Bot.\n\n"
-        "Send me a permit number and I will return:\n"
-        "Building Name\n"
-        "Unit Number\n"
-        "Bedroom\n\n"
-        "You can send both:\n"
-        "- full permit number\n"
-        "- short permit number"
+        "Welcome to Property Permit Finder.\n\n"
+        "This bot helps you find property details faster during your daily real estate work.\n\n"
+        "Send a permit number and I will show:\n"
+        "• Building Name\n"
+        "• Unit Number\n"
+        "• Bedroom\n\n"
+        "You can use either a full or short permit number."
     )
     await update.message.reply_text(text)
+
 
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
