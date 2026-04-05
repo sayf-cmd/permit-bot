@@ -54,17 +54,20 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     raw_text = update.message.text.strip()
     digits = re.sub(r"\D", "", raw_text)
 
-    if len(digits) > 4:
-        short_value = digits[2:-2]
-    else:
-        short_value = digits
+    variants = [digits]
 
-    result = df[(df[permit_col] == digits) | (df[permit_col] == short_value)]
+    if len(digits) > 2:
+        variants.append(digits[2:])
+
+    if len(digits) > 4:
+        variants.append(digits[2:-2])
+
+    result = df[df[permit_col].isin(variants)]
 
     if result.empty:
         await update.message.reply_text(
-            "No data found for this permit number.\n"
-            "Please check the number and try again."
+            "No matching property was found for this permit number.\n\n"
+            "Please verify the permit number and try again."
         )
         return
 
@@ -78,6 +81,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
     await update.message.reply_text(reply)
+
 
 app = ApplicationBuilder().token(TOKEN).build()
 app.add_handler(CommandHandler("start", start))
