@@ -32,43 +32,44 @@ df, permit_col, building_col, unit_col, bedroom_col = load_data()
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = (
-        "Welcome.\n\n"
+        "Welcome to Permit Bot.\n\n"
         "Send me a permit number and I will return:\n"
         "Building Name\n"
         "Unit Number\n"
-        "Bedroom"
+        "Bedroom\n\n"
+        "You can send both:\n"
+        "- full permit number\n"
+        "- short permit number"
     )
     await update.message.reply_text(text)
+
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     raw_text = update.message.text.strip()
     digits = re.sub(r"\D", "", raw_text)
 
     if len(digits) > 4:
-        search_value = digits[2:-2]
+        short_value = digits[2:-2]
     else:
-        search_value = digits
+        short_value = digits
 
-    result = df[df[permit_col] == search_value]
+    result = df[(df[permit_col] == digits) | (df[permit_col] == short_value)]
 
     if result.empty:
         await update.message.reply_text(
-            f"No data found.\n"
-            f"Input: {raw_text}\n"
-            f"Search Permit: {search_value}"
+            "No data found for this permit number.\n"
+            "Please check the number and try again."
         )
         return
 
     row = result.iloc[0]
 
-        reply = (
+    reply = (
         f"Property Details\n\n"
-        f"Permit Number: {search_value}\n"
         f"Building Name: {row[building_col]}\n"
         f"Unit Number: {row[unit_col]}\n"
         f"Bedroom: {row[bedroom_col]}"
     )
-
 
     await update.message.reply_text(reply)
 
