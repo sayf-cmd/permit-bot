@@ -29,6 +29,12 @@ def load_data():
     return df, permit_col, building_col, unit_col, bedroom_col
 
 df, permit_col, building_col, unit_col, bedroom_col = load_data()
+async def reload_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    global df, permit_col, building_col, unit_col, bedroom_col
+
+    df, permit_col, building_col, unit_col, bedroom_col = load_data()
+    await update.message.reply_text("Data reloaded successfully.")
+
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = (
@@ -75,6 +81,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 app = ApplicationBuilder().token(TOKEN).build()
 app.add_handler(CommandHandler("start", start))
+app.add_handler(CommandHandler("reload", reload_data))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
 if __name__ == "__main__":
