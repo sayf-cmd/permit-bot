@@ -13,6 +13,8 @@ PORT = int(os.environ.get("PORT", "10000"))
 def load_data():
     df = pd.read_csv(SHEET_CSV_URL)
     df.columns = [str(col).strip() for col in df.columns]
+    print(df.columns.tolist())
+
 
     permit_col = df.columns[0]
     building_col = df.columns[1]
