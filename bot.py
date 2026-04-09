@@ -17,6 +17,8 @@ def load_data():
     building_col = df.columns[1]
     unit_col = df.columns[2]
     bedroom_col = df.columns[3]
+    latest_phone_col = df.columns[17]
+
 
     df[permit_col] = (
         df[permit_col]
@@ -26,9 +28,9 @@ def load_data():
         .str.replace(r"\D", "", regex=True)
     )
 
-    return df, permit_col, building_col, unit_col, bedroom_col
+        return df, permit_col, building_col, unit_col, bedroom_col, latest_phone_col
 
-df, permit_col, building_col, unit_col, bedroom_col = load_data()
+df, permit_col, building_col, unit_col, bedroom_col, latest_phone_col = load_data()
 async def reload_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
     global df, permit_col, building_col, unit_col, bedroom_col
 
@@ -73,12 +75,14 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     row = result.iloc[0]
 
-    reply = (
-        f"Property Details\n\n"
-        f"Building Name: {row[building_col]}\n"
-        f"Unit Number: {row[unit_col]}\n"
-        f"Bedroom: {row[bedroom_col]}"
+        reply = (
+        f"🏠 Property Overview\n"
+        f"🏢 Unit Number: {row[unit_col]}\n"
+        f"🏛️ Building: {row[building_col]}\n\n"
+        f"👤 Public Owner Information:\n"
+        f"📞 Phone: {row[latest_phone_col]}"
     )
+
 
     await update.message.reply_text(reply)
 
