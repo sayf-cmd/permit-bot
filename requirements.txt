@@ -1,2 +1,4 @@
 pandas
 python-telegram-bot[webhooks]
+gspread
+google-auth
