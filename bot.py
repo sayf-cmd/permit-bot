@@ -10,6 +10,23 @@ WEBHOOK_URL = os.environ["WEBHOOK_URL"]
 PORT = int(os.environ.get("PORT", "10000"))
 
 
+def clean_phone(value):
+    if pd.isna(value):
+        return ""
+
+    value = str(value).strip()
+
+    if value.lower() == "null":
+        return ""
+
+    digits = re.sub(r"\D", "", value)
+
+    if len(digits) < 7:
+        return ""
+
+    return digits
+
+
 def load_data():
     df = pd.read_csv(SHEET_CSV_URL, low_memory=False)
     df.columns = [str(col).strip() for col in df.columns]
@@ -19,7 +36,9 @@ def load_data():
     building_col = "Building_name"
     unit_col = "Unit_number"
     bedroom_col = "Bedroom"
-    latest_phone_col = "Latest_phone"
+    latest_phone_1_col = "Latest_phone_1"
+    latest_phone_2_col = "Latest_phone_2"
+    latest_phone_3_col = "Latest_phone_3"
 
     df[permit_col] = (
         df[permit_col]
@@ -29,18 +48,31 @@ def load_data():
         .str.replace(r"\D", "", regex=True)
     )
 
-    df[latest_phone_col] = (
-        df[latest_phone_col]
-        .fillna("")
-        .astype(str)
-        .str.strip()
-        .str.replace(".0", "", regex=False)
+    for col in [latest_phone_1_col, latest_phone_2_col, latest_phone_3_col]:
+        df[col] = df[col].apply(clean_phone)
+
+    return (
+        df,
+        permit_col,
+        building_col,
+        unit_col,
+        bedroom_col,
+        latest_phone_1_col,
+        latest_phone_2_col,
+        latest_phone_3_col,
     )
 
-    return df, permit_col, building_col, unit_col, bedroom_col, latest_phone_col
 
-
-df, permit_col, building_col, unit_col, bedroom_col, latest_phone_col = load_data()
+(
+    df,
+    permit_col,
+    building_col,
+    unit_col,
+    bedroom_col,
+    latest_phone_1_col,
+    latest_phone_2_col,
+    latest_phone_3_col,
+) = load_data()
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -50,15 +82,26 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "Send a permit number and I will show:\n"
         "• Building Name\n"
         "• Unit Number\n"
-        "• Owner Phone\n\n"
+        "• Owner Phones\n\n"
     )
     await update.message.reply_text(text)
 
 
 async def reload_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    global df, permit_col, building_col, unit_col, bedroom_col, latest_phone_col
+    global df, permit_col, building_col, unit_col, bedroom_col
+    global latest_phone_1_col, latest_phone_2_col, latest_phone_3_col
 
-    df, permit_col, building_col, unit_col, bedroom_col, latest_phone_col = load_data()
+    (
+        df,
+        permit_col,
+        building_col,
+        unit_col,
+        bedroom_col,
+        latest_phone_1_col,
+        latest_phone_2_col,
+        latest_phone_3_col,
+    ) = load_data()
+
     await update.message.reply_text("Data reloaded successfully.")
 
 
@@ -91,14 +134,26 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
 
         row = result.iloc[0]
-        phone_value = str(row.get(latest_phone_col, "")).strip()
+
+        phones = [
+            row.get(latest_phone_1_col, ""),
+            row.get(latest_phone_2_col, ""),
+            row.get(latest_phone_3_col, ""),
+        ]
+
+        phones = [str(phone).strip() for phone in phones if str(phone).strip() != ""]
+
+        phone_lines = "\n".join([f"📞 Phone {i+1}: {phone}" for i, phone in enumerate(phones)])
+
+        if not phone_lines:
+            phone_lines = "📞 Phone: Not available"
 
         reply = (
             f"🏠 Property Overview\n"
             f"🏢 Unit Number: {row[unit_col]}\n"
             f"🏛️ Building: {row[building_col]}\n\n"
             f"👤 Public Owner Information:\n"
-            f"📞 Phone: {phone_value}"
+            f"{phone_lines}"
         )
 
         await update.message.reply_text(reply)
