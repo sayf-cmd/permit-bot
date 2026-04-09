@@ -189,16 +189,16 @@ async def reload_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
     tg_user = update.effective_user
-    _, row_number, record = find_or_create_user(tg_user.id, tg_user.username or "")
+    _, _, record = find_or_create_user(tg_user.id, tg_user.username or "")
 
     status, requests_used, request_limit = normalize_user_record(record)
     remaining = max(request_limit - requests_used, 0)
 
+    username_text = f"@{tg_user.username}" if tg_user.username else "Not set"
+
     text = (
         "👤 Profile\n\n"
-        f"Username: @{tg_user.username}\n" if tg_user.username else "👤 Profile\n\nUsername: Not set\n"
-    )
-    text += (
+        f"Username: {username_text}\n"
         f"User ID: {tg_user.id}\n"
         f"Status: {status}\n"
         f"Used searches: {requests_used}\n"
@@ -244,4 +244,82 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
 
         if requests_used >= request_limit:
-            keyboard =
+            keyboard = InlineKeyboardMarkup(
+                [[InlineKeyboardButton("Contact Admin", url=f"https://t.me/{ADMIN_USERNAME.lstrip('@')}")]]
+            )
+            await update.message.reply_text(
+                "You have reached your search limit.\nPlease contact the administrator for more access.",
+                reply_markup=keyboard
+            )
+            return
+
+        digits = re.sub(r"\D", "", user_text)
+
+        variants = [digits]
+        if len(digits) > 2:
+            variants.append(digits[2:])
+        if len(digits) > 4:
+            variants.append(digits[2:-2])
+
+        result = df[df[permit_col].isin(variants)]
+
+        if result.empty:
+            await update.message.reply_text(
+                "No matching property was found for this permit number.\n\n"
+                f"You have {request_limit - requests_used} free searches left.",
+                reply_markup=MENU_KEYBOARD
+            )
+            return
+
+        row = result.iloc[0]
+
+        phones = [
+            row.get(latest_phone_1_col, ""),
+            row.get(latest_phone_2_col, ""),
+            row.get(latest_phone_3_col, ""),
+        ]
+
+        phones = [str(phone).strip() for phone in phones if str(phone).strip() != ""]
+        phone_lines = "\n".join([f"📞 Phone {i+1}: {phone}" for i, phone in enumerate(phones)])
+
+        if not phone_lines:
+            phone_lines = "📞 Phone: Not available"
+
+        remaining_after_search = max(request_limit - requests_used - 1, 0)
+
+        reply = (
+            f"🔎 Property Overview\n"
+            f"🔗 Permit Number: {row[permit_col]}\n"
+            f"🏢 Unit Number: {row[unit_col]}\n"
+            f"🏛️ Building: {row[building_col]}\n\n"
+            f"👤 Public Owner Information:\n"
+            f"{phone_lines}\n\n"
+            f"You have {remaining_after_search} free searches left."
+        )
+
+        await update.message.reply_text(reply, reply_markup=MENU_KEYBOARD)
+        increment_user_usage(row_number, requests_used)
+
+    except Exception as e:
+        print(f"ERROR in handle_message: {e}")
+        await update.message.reply_text(
+            "Temporary error. Please try again.",
+            reply_markup=MENU_KEYBOARD
+        )
+
+
+app = ApplicationBuilder().token(TOKEN).build()
+app.add_handler(CommandHandler("start", start))
+app.add_handler(CommandHandler("reload", reload_data))
+app.add_handler(CommandHandler("profile", profile))
+app.add_handler(CommandHandler("contact", contact_admin))
+app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+
+
+if __name__ == "__main__":
+    app.run_webhook(
+        listen="0.0.0.0",
+        port=PORT,
+        url_path=TOKEN,
+        webhook_url=f"{WEBHOOK_URL}/{TOKEN}",
+    )
