@@ -58,37 +58,49 @@ async def reload_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    raw_text = update.message.text.strip()
-    digits = re.sub(r"\D", "", raw_text)
+    try:
+        raw_text = update.message.text.strip()
+        print(f"Incoming text: {raw_text}")
 
-    variants = [digits]
+        digits = re.sub(r"\D", "", raw_text)
+        print(f"Digits: {digits}")
 
-    if len(digits) > 2:
-        variants.append(digits[2:])
+        variants = [digits]
 
-    if len(digits) > 4:
-        variants.append(digits[2:-2])
+        if len(digits) > 2:
+            variants.append(digits[2:])
 
-    result = df[df[permit_col].isin(variants)]
+        if len(digits) > 4:
+            variants.append(digits[2:-2])
 
-    if result.empty:
-        await update.message.reply_text(
-            "No matching property was found for this permit number.\n\n"
-            "Please verify the permit number and try again."
+        print(f"Variants: {variants}")
+
+        result = df[df[permit_col].isin(variants)]
+        print(f"Matches found: {len(result)}")
+
+        if result.empty:
+            await update.message.reply_text(
+                "No matching property was found for this permit number.\n\n"
+                "Please verify the permit number and try again."
+            )
+            return
+
+        row = result.iloc[0]
+        phone_value = row.get(latest_phone_col, "")
+
+        reply = (
+            f"🏠 Property Overview\n"
+            f"🏢 Unit Number: {row[unit_col]}\n"
+            f"🏛️ Building: {row[building_col]}\n\n"
+            f"👤 Public Owner Information:\n"
+            f"📞 Phone: {phone_value}"
         )
-        return
 
-    row = result.iloc[0]
+        await update.message.reply_text(reply)
 
-    reply = (
-        f"🏠 Property Overview\n"
-        f"🏢 Unit Number: {row[unit_col]}\n"
-        f"🏛️ Building: {row[building_col]}\n\n"
-        f"👤 Public Owner Information:\n"
-        f"📞 Phone: {row[latest_phone_col]}"
-    )
-
-    await update.message.reply_text(reply)
+    except Exception as e:
+        print(f"ERROR in handle_message: {e}")
+        await update.message.reply_text("Temporary error. Please try again.")
 
 
 app = ApplicationBuilder().token(TOKEN).build()
