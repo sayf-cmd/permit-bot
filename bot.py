@@ -9,6 +9,7 @@ SHEET_CSV_URL = os.environ["SHEET_CSV_URL"]
 WEBHOOK_URL = os.environ["WEBHOOK_URL"]
 PORT = int(os.environ.get("PORT", "10000"))
 
+
 def load_data():
     df = pd.read_csv(SHEET_CSV_URL)
     df.columns = [str(col).strip() for col in df.columns]
@@ -19,7 +20,6 @@ def load_data():
     bedroom_col = df.columns[3]
     latest_phone_col = df.columns[17]
 
-
     df[permit_col] = (
         df[permit_col]
         .astype(str)
@@ -28,14 +28,10 @@ def load_data():
         .str.replace(r"\D", "", regex=True)
     )
 
-        return df, permit_col, building_col, unit_col, bedroom_col, latest_phone_col
+    return df, permit_col, building_col, unit_col, bedroom_col, latest_phone_col
+
 
 df, permit_col, building_col, unit_col, bedroom_col, latest_phone_col = load_data()
-async def reload_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    global df, permit_col, building_col, unit_col, bedroom_col
-
-    df, permit_col, building_col, unit_col, bedroom_col = load_data()
-    await update.message.reply_text("Data reloaded successfully.")
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -45,11 +41,17 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "Send a permit number and I will show:\n"
         "• Building Name\n"
         "• Unit Number\n"
-        "• Bedroom\n\n"
+        "• Latest Phone\n\n"
         "You can use either a full or short permit number."
     )
     await update.message.reply_text(text)
 
+
+async def reload_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    global df, permit_col, building_col, unit_col, bedroom_col, latest_phone_col
+
+    df, permit_col, building_col, unit_col, bedroom_col, latest_phone_col = load_data()
+    await update.message.reply_text("Data reloaded successfully.")
 
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -75,14 +77,13 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     row = result.iloc[0]
 
-        reply = (
+    reply = (
         f"🏠 Property Overview\n"
         f"🏢 Unit Number: {row[unit_col]}\n"
         f"🏛️ Building: {row[building_col]}\n\n"
         f"👤 Public Owner Information:\n"
         f"📞 Phone: {row[latest_phone_col]}"
     )
-
 
     await update.message.reply_text(reply)
 
@@ -91,6 +92,7 @@ app = ApplicationBuilder().token(TOKEN).build()
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("reload", reload_data))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+
 
 if __name__ == "__main__":
     app.run_webhook(
