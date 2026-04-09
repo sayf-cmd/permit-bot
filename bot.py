@@ -15,7 +15,7 @@ def load_data():
     df.columns = [str(col).strip() for col in df.columns]
     print("COLUMNS:", df.columns.tolist())
 
-    permit_col = "Permit number"
+    permit_col = "Permit_number"
     building_col = "Building_name"
     unit_col = "Unit_number"
     bedroom_col = "Bedroom"
@@ -50,8 +50,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "Send a permit number and I will show:\n"
         "• Building Name\n"
         "• Unit Number\n"
-        "• Latest Phone\n\n"
-        "You can use either a full or short permit number."
+        "• Owner Phone\n\n"
     )
     await update.message.reply_text(text)
 
