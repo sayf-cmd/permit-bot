@@ -18,7 +18,8 @@ def load_data():
     building_col = df.columns[1]
     unit_col = df.columns[2]
     bedroom_col = df.columns[3]
-    latest_phone_col = df.columns[17]
+    latest_phone_col = "Latest_phone"
+
 
     df[permit_col] = (
         df[permit_col]
