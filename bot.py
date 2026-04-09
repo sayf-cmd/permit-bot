@@ -11,17 +11,15 @@ PORT = int(os.environ.get("PORT", "10000"))
 
 
 def load_data():
-    df = pd.read_csv(SHEET_CSV_URL)
+    df = pd.read_csv(SHEET_CSV_URL, low_memory=False)
     df.columns = [str(col).strip() for col in df.columns]
-    print(df.columns.tolist())
+    print("COLUMNS:", df.columns.tolist())
 
-
-    permit_col = df.columns[0]
-    building_col = df.columns[1]
-    unit_col = df.columns[2]
-    bedroom_col = df.columns[3]
+    permit_col = "Permit number"
+    building_col = "Building_name"
+    unit_col = "Unit_number"
+    bedroom_col = "Bedroom"
     latest_phone_col = "Latest_phone"
-
 
     df[permit_col] = (
         df[permit_col]
@@ -29,6 +27,14 @@ def load_data():
         .str.strip()
         .str.replace(".0", "", regex=False)
         .str.replace(r"\D", "", regex=True)
+    )
+
+    df[latest_phone_col] = (
+        df[latest_phone_col]
+        .fillna("")
+        .astype(str)
+        .str.strip()
+        .str.replace(".0", "", regex=False)
     )
 
     return df, permit_col, building_col, unit_col, bedroom_col, latest_phone_col
@@ -86,7 +92,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
 
         row = result.iloc[0]
-        phone_value = row.get(latest_phone_col, "")
+        phone_value = str(row.get(latest_phone_col, "")).strip()
 
         reply = (
             f"🏠 Property Overview\n"
