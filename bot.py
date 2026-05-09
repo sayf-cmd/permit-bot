@@ -4,8 +4,19 @@ import json
 import pandas as pd
 import gspread
 from google.oauth2.service_account import Credentials
-from telegram import Update, ReplyKeyboardMarkup, InlineKeyboardMarkup, InlineKeyboardButton
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
+from telegram import (
+    Update,
+    ReplyKeyboardMarkup,
+    InlineKeyboardMarkup,
+    InlineKeyboardButton,
+)
+from telegram.ext import (
+    ApplicationBuilder,
+    CommandHandler,
+    MessageHandler,
+    ContextTypes,
+    filters,
+)
 
 TOKEN = os.environ["TELEGRAM_TOKEN"]
 SHEET_CSV_URL = os.environ["SHEET_CSV_URL"]
@@ -31,7 +42,10 @@ MENU_KEYBOARD = ReplyKeyboardMarkup(
 
 def get_gspread_client():
     creds_dict = json.loads(GOOGLE_SERVICE_ACCOUNT_JSON)
-    creds = Credentials.from_service_account_info(creds_dict, scopes=SCOPES)
+    creds = Credentials.from_service_account_info(
+        creds_dict,
+        scopes=SCOPES
+    )
     return gspread.authorize(creds)
 
 
@@ -60,16 +74,19 @@ def clean_phone(value):
 
 def load_data():
     df = pd.read_csv(SHEET_CSV_URL, low_memory=False)
+
     df.columns = [str(col).strip() for col in df.columns]
+
     print("COLUMNS:", df.columns.tolist())
 
     permit_col = "Permit_number"
     building_col = "Building_name"
     unit_col = "Unit_number"
-    bedroom_col = "Bedroom"
+
     latest_phone_1_col = "Latest_phone_1"
     latest_phone_2_col = "Latest_phone_2"
     latest_phone_3_col = "Latest_phone_3"
+    latest_phone_4_col = "Latest_phone_4"
 
     df[permit_col] = (
         df[permit_col]
@@ -79,7 +96,12 @@ def load_data():
         .str.replace(r"\D", "", regex=True)
     )
 
-    for col in [latest_phone_1_col, latest_phone_2_col, latest_phone_3_col]:
+    for col in [
+        latest_phone_1_col,
+        latest_phone_2_col,
+        latest_phone_3_col,
+        latest_phone_4_col,
+    ]:
         df[col] = df[col].apply(clean_phone)
 
     return (
@@ -87,10 +109,10 @@ def load_data():
         permit_col,
         building_col,
         unit_col,
-        bedroom_col,
         latest_phone_1_col,
         latest_phone_2_col,
         latest_phone_3_col,
+        latest_phone_4_col,
     )
 
 
@@ -112,6 +134,7 @@ def find_or_create_user(user_id, username):
         return sheet, row_number, record
 
     new_row = [str(user_id), username or "", 0, 5, "active"]
+
     sheet.append_row(new_row)
 
     return get_user_record(user_id)
@@ -143,58 +166,82 @@ def normalize_user_record(record):
     permit_col,
     building_col,
     unit_col,
-    bedroom_col,
     latest_phone_1_col,
     latest_phone_2_col,
     latest_phone_3_col,
+    latest_phone_4_col,
 ) = load_data()
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     tg_user = update.effective_user
-    _, _, record = find_or_create_user(tg_user.id, tg_user.username or "")
+
+    _, _, record = find_or_create_user(
+        tg_user.id,
+        tg_user.username or ""
+    )
+
     status, requests_used, request_limit = normalize_user_record(record)
+
     remaining = max(request_limit - requests_used, 0)
 
     text = (
         "Welcome to Property Permit Finder.\n\n"
-        "Send a permit number and I will show:\n"
-        "• Permit Number\n"
-        "• Unit Number\n"
-        "• Building\n"
-        "• Latest Phones\n\n"
+        "Send a permit number to search property information.\n\n"
         f"You currently have {remaining} free searches left."
     )
 
-    await update.message.reply_text(text, reply_markup=MENU_KEYBOARD)
+    await update.message.reply_text(
+        text,
+        reply_markup=MENU_KEYBOARD
+    )
 
 
 async def reload_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    global df, permit_col, building_col, unit_col, bedroom_col
-    global latest_phone_1_col, latest_phone_2_col, latest_phone_3_col
+    global df
+    global permit_col
+    global building_col
+    global unit_col
+
+    global latest_phone_1_col
+    global latest_phone_2_col
+    global latest_phone_3_col
+    global latest_phone_4_col
 
     (
         df,
         permit_col,
         building_col,
         unit_col,
-        bedroom_col,
         latest_phone_1_col,
         latest_phone_2_col,
         latest_phone_3_col,
+        latest_phone_4_col,
     ) = load_data()
 
-    await update.message.reply_text("Data reloaded successfully.", reply_markup=MENU_KEYBOARD)
+    await update.message.reply_text(
+        "Data reloaded successfully.",
+        reply_markup=MENU_KEYBOARD
+    )
 
 
 async def profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
     tg_user = update.effective_user
-    _, _, record = find_or_create_user(tg_user.id, tg_user.username or "")
+
+    _, _, record = find_or_create_user(
+        tg_user.id,
+        tg_user.username or ""
+    )
 
     status, requests_used, request_limit = normalize_user_record(record)
+
     remaining = max(request_limit - requests_used, 0)
 
-    username_text = f"@{tg_user.username}" if tg_user.username else "Not set"
+    username_text = (
+        f"@{tg_user.username}"
+        if tg_user.username
+        else "Not set"
+    )
 
     text = (
         "👤 Profile\n\n"
@@ -205,13 +252,24 @@ async def profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"Free searches left: {remaining}"
     )
 
-    await update.message.reply_text(text, reply_markup=MENU_KEYBOARD)
+    await update.message.reply_text(
+        text,
+        reply_markup=MENU_KEYBOARD
+    )
 
 
 async def contact_admin(update: Update, context: ContextTypes.DEFAULT_TYPE):
     admin_link = f"https://t.me/{ADMIN_USERNAME.lstrip('@')}"
+
     keyboard = InlineKeyboardMarkup(
-        [[InlineKeyboardButton("Contact Admin", url=admin_link)]]
+        [
+            [
+                InlineKeyboardButton(
+                    "Contact Admin",
+                    url=admin_link
+                )
+            ]
+        ]
     )
 
     await update.message.reply_text(
@@ -233,7 +291,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
 
         tg_user = update.effective_user
-        _, row_number, record = find_or_create_user(tg_user.id, tg_user.username or "")
+
+        _, row_number, record = find_or_create_user(
+            tg_user.id,
+            tg_user.username or ""
+        )
+
         status, requests_used, request_limit = normalize_user_record(record)
 
         if status != "active":
@@ -245,8 +308,16 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         if requests_used >= request_limit:
             keyboard = InlineKeyboardMarkup(
-                [[InlineKeyboardButton("Contact Admin", url=f"https://t.me/{ADMIN_USERNAME.lstrip('@')}")]]
+                [
+                    [
+                        InlineKeyboardButton(
+                            "Contact Admin",
+                            url=f"https://t.me/{ADMIN_USERNAME.lstrip('@')}"
+                        )
+                    ]
+                ]
             )
+
             await update.message.reply_text(
                 "You have reached your search limit.\nPlease contact the administrator for more access.",
                 reply_markup=keyboard
@@ -256,8 +327,10 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         digits = re.sub(r"\D", "", user_text)
 
         variants = [digits]
+
         if len(digits) > 2:
             variants.append(digits[2:])
+
         if len(digits) > 4:
             variants.append(digits[2:-2])
 
@@ -265,7 +338,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         if result.empty:
             await update.message.reply_text(
-                "No matching property was found for this permit number.\n\n"
+                "No matching property was found.\n\n"
                 f"You have {request_limit - requests_used} free searches left.",
                 reply_markup=MENU_KEYBOARD
             )
@@ -277,31 +350,41 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             row.get(latest_phone_1_col, ""),
             row.get(latest_phone_2_col, ""),
             row.get(latest_phone_3_col, ""),
+            row.get(latest_phone_4_col, ""),
         ]
 
-        phones = [str(phone).strip() for phone in phones if str(phone).strip() != ""]
-        phone_lines = "\n".join([f"📞 Phone {i+1}: {phone}" for i, phone in enumerate(phones)])
+        phones = [
+            str(phone).strip()
+            for phone in phones
+            if str(phone).strip() != ""
+        ]
 
-        if not phone_lines:
-            phone_lines = "📞 Phone: Not available"
-
-        remaining_after_search = max(request_limit - requests_used - 1, 0)
-
-        reply = (
-            f"🔎 Property Overview\n"
-            f"🔗 Permit Number: {row[permit_col]}\n"
-            f"🏢 Unit Number: {row[unit_col]}\n"
-            f"🏛️ Building: {row[building_col]}\n\n"
-            f"👤 Public Owner Information:\n"
-            f"{phone_lines}\n\n"
-            f"You have {remaining_after_search} free searches left."
+        remaining_after_search = max(
+            request_limit - requests_used - 1,
+            0
         )
 
-        await update.message.reply_text(reply, reply_markup=MENU_KEYBOARD)
+        reply = (
+            "🏠 Property Overview\n\n"
+            f"🏢 Unit Number: {row[unit_col]}\n"
+            f"🏛️ Building: {row[building_col]}\n"
+            f"📍 Zone: {row['Area_name']}\n\n"
+            "👤 Public Owner Information:\n"
+            f"Name: {row['Latest_owner']}\n"
+            f"📞 Phone: {', '.join(phones) if phones else 'Not available'}\n\n"
+            f"❗ You have {remaining_after_search} free searches left."
+        )
+
+        await update.message.reply_text(
+            reply,
+            reply_markup=MENU_KEYBOARD
+        )
+
         increment_user_usage(row_number, requests_used)
 
     except Exception as e:
         print(f"ERROR in handle_message: {e}")
+
         await update.message.reply_text(
             "Temporary error. Please try again.",
             reply_markup=MENU_KEYBOARD
@@ -309,12 +392,18 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 app = ApplicationBuilder().token(TOKEN).build()
+
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("reload", reload_data))
 app.add_handler(CommandHandler("profile", profile))
 app.add_handler(CommandHandler("contact", contact_admin))
-app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
+app.add_handler(
+    MessageHandler(
+        filters.TEXT & ~filters.COMMAND,
+        handle_message
+    )
+)
 
 if __name__ == "__main__":
     app.run_webhook(
