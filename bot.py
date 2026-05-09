@@ -35,6 +35,7 @@ SCOPES = [
 MENU_KEYBOARD = ReplyKeyboardMarkup(
     [
         ["👤 My Profile", "📩 Contact Admin"],
+        ["💳 Tariffs", "📍 Available Areas"],
     ],
     resize_keyboard=True
 )
@@ -42,17 +43,27 @@ MENU_KEYBOARD = ReplyKeyboardMarkup(
 
 def get_gspread_client():
     creds_dict = json.loads(GOOGLE_SERVICE_ACCOUNT_JSON)
+
     creds = Credentials.from_service_account_info(
         creds_dict,
         scopes=SCOPES
     )
+
     return gspread.authorize(creds)
 
 
 def get_users_sheet():
     client = get_gspread_client()
     spreadsheet = client.open_by_url(GOOGLE_SHEET_URL)
+
     return spreadsheet.worksheet("Users")
+
+
+def get_summary_sheet():
+    client = get_gspread_client()
+    spreadsheet = client.open_by_url(GOOGLE_SHEET_URL)
+
+    return spreadsheet.worksheet("summary")
 
 
 def clean_phone(value):
@@ -118,6 +129,7 @@ def load_data():
 
 def get_user_record(user_id):
     sheet = get_users_sheet()
+
     records = sheet.get_all_records()
 
     for idx, record in enumerate(records, start=2):
@@ -142,6 +154,7 @@ def find_or_create_user(user_id, username):
 
 def increment_user_usage(row_number, current_used):
     sheet = get_users_sheet()
+
     sheet.update_cell(row_number, 3, int(current_used) + 1)
 
 
@@ -278,6 +291,81 @@ async def contact_admin(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
+async def tariffs(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    admin_link = f"https://t.me/{ADMIN_USERNAME.lstrip('@')}"
+
+    keyboard = InlineKeyboardMarkup(
+        [
+            [
+                InlineKeyboardButton(
+                    "Buy / Contact Admin",
+                    url=admin_link
+                )
+            ]
+        ]
+    )
+
+    text = (
+        "💳 Tariffs\n\n"
+        "🔹 50 Searches — 200 AED\n"
+        "🔹 100 Searches — 300 AED\n"
+        "🔹 300 Searches — 500 AED\n\n"
+        "📩 To purchase access, contact the administrator."
+    )
+
+    await update.message.reply_text(
+        text,
+        reply_markup=keyboard
+    )
+
+
+async def available_areas(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    sheet = get_summary_sheet()
+
+    rows = sheet.get_all_values()
+
+    lines = []
+    total_line = ""
+
+    for row in rows:
+        if len(row) < 2:
+            continue
+
+        area = str(row[0]).strip()
+        count_raw = str(row[1]).replace(",", "").strip()
+
+        if not area or not count_raw.isdigit():
+            continue
+
+        count = int(count_raw)
+
+        if area.upper() == "TOTAL":
+            total_line = f"\n📊 Total — {count:,} units"
+            continue
+
+        if count >= 80000:
+            indicator = "🟩"
+        elif count >= 30000:
+            indicator = "🟨"
+        elif count >= 10000:
+            indicator = "🟧"
+        else:
+            indicator = "🟥"
+
+        lines.append(f"{indicator} {area} — {count:,} units")
+
+    text = (
+        "📍 Available Areas\n\n"
+        + "\n".join(lines)
+        + total_line
+    )
+
+    await update.message.reply_text(
+        text,
+        reply_markup=MENU_KEYBOARD
+    )
+
+
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         user_text = update.message.text.strip()
@@ -288,6 +376,14 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         if user_text == "📩 Contact Admin":
             await contact_admin(update, context)
+            return
+
+        if user_text == "💳 Tariffs":
+            await tariffs(update, context)
+            return
+
+        if user_text == "📍 Available Areas":
+            await available_areas(update, context)
             return
 
         tg_user = update.effective_user
@@ -322,6 +418,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 "You have reached your search limit.\nPlease contact the administrator for more access.",
                 reply_markup=keyboard
             )
+
             return
 
         digits = re.sub(r"\D", "", user_text)
@@ -342,6 +439,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 f"You have {request_limit - requests_used} free searches left.",
                 reply_markup=MENU_KEYBOARD
             )
+
             return
 
         row = result.iloc[0]
@@ -369,8 +467,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"🏢 Unit Number: {row[unit_col]}\n"
             f"🏛️ Building: {row[building_col]}\n"
             f"📍 Zone: {row['Area_name']}\n\n"
-            "👤 Public Owner Information:\n"
-            f"Name: {row['Latest_owner']}\n"
+            "👤 Public Owner Information\n"
+            f"🧑 Name: {str(row['Latest_owner']).title()}\n"
             f"📞 Phone: {', '.join(phones) if phones else 'Not available'}\n\n"
             f"❗ You have {remaining_after_search} free searches left."
         )
@@ -397,6 +495,8 @@ app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("reload", reload_data))
 app.add_handler(CommandHandler("profile", profile))
 app.add_handler(CommandHandler("contact", contact_admin))
+app.add_handler(CommandHandler("tariffs", tariffs))
+app.add_handler(CommandHandler("areas", available_areas))
 
 app.add_handler(
     MessageHandler(
