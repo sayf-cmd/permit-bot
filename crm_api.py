@@ -51,13 +51,13 @@ def find_master_match(permit_number):
 
 
 def insert_owner(row):
-    url = f"{SUPABASE_URL}/rest/v1/owners"
+    url = f"{SUPABASE_URL}/rest/v1/owners?on_conflict=permit_number"
 
     headers = {
         "apikey": SUPABASE_SERVICE_ROLE_KEY,
         "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
         "Content-Type": "application/json",
-        "Prefer": "return=representation",
+        "Prefer": "resolution=merge-duplicates,return=representation",
     }
 
     response = requests.post(url, headers=headers, json=row, timeout=30)
@@ -86,38 +86,56 @@ def import_bayut():
 
     match = find_master_match(permit_number)
 
+    base_listing_data = {
+        "permit_number": permit_number,
+
+        "room": clean_text(data.get("room")),
+        "bedrooms": clean_text(data.get("bedrooms")),
+
+        "price": clean_text(data.get("price")),
+        "price_aed": clean_text(data.get("price_aed")),
+
+        "size": clean_text(data.get("size")),
+        "size_sqft": clean_text(data.get("size_sqft")),
+
+        "rent_frequency": clean_text(data.get("rent_frequency")),
+        "added_date": clean_text(data.get("added_date")),
+        "listing_url": clean_text(data.get("listing_url")),
+        "listing_type": clean_text(data.get("listing_type")),
+
+        "parse_status": clean_text(data.get("parse_status")),
+
+        "building": clean_text(data.get("building")),
+        "area": clean_text(data.get("area")),
+
+        "source": "Bayut",
+        "parser_id": str(uuid.uuid4()),
+        "contact_status": "new",
+    }
+
     if match is None:
         owner_row = {
-            "permit_number": permit_number,
-            "area_name": clean_text(data.get("area")),
-            "building_name": clean_text(data.get("building_name")),
-            "room": clean_text(data.get("room")),
-            "price": clean_text(data.get("price")),
-            "added_date": clean_text(data.get("added_date")),
-            "listing_url": clean_text(data.get("listing_url")),
-            "source": "Bayut",
-            "parser_id": str(uuid.uuid4()),
-            "contact_status": "new",
+            **base_listing_data,
+
+            "area_name": clean_text(data.get("area")) or clean_text(data.get("area_name")),
+            "building_name": clean_text(data.get("building_name")) or clean_text(data.get("building")),
+
             "listing_status": "not_matched",
         }
     else:
         owner_row = {
-            "permit_number": permit_number,
-            "area_name": clean_text(match.get("Area_name")) or clean_text(data.get("area")),
-            "building_name": clean_text(match.get("Building_name")) or clean_text(data.get("building_name")),
+            **base_listing_data,
+
+            "area_name": clean_text(match.get("Area_name")) or clean_text(data.get("area")) or clean_text(data.get("area_name")),
+            "building_name": clean_text(match.get("Building_name")) or clean_text(data.get("building_name")) or clean_text(data.get("building")),
             "unit_number": clean_text(match.get("Unit_number")),
+
             "owner_name": clean_text(match.get("Latest_owner")),
             "phone_1": clean_phone(match.get("Latest_phone_1")),
             "phone_2": clean_phone(match.get("Latest_phone_2")),
             "phone_3": clean_phone(match.get("Latest_phone_3")),
             "phone_4": clean_phone(match.get("Latest_phone_4")),
-            "room": clean_text(data.get("room")),
-            "price": clean_text(data.get("price")),
-            "added_date": clean_text(data.get("added_date")),
-            "listing_url": clean_text(data.get("listing_url")),
-            "source": "Bayut",
-            "parser_id": str(uuid.uuid4()),
-            "contact_status": "new",
+
             "listing_status": "matched",
         }
 
