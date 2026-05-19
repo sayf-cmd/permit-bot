@@ -1,20 +1,18 @@
 import os
 import re
 import uuid
-import pandas as pd
 import requests
 from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
-MASTER_CSV_URL = os.environ["MASTER_CSV_URL"]
 SUPABASE_URL = os.environ["SUPABASE_URL"]
 SUPABASE_SERVICE_ROLE_KEY = os.environ["SUPABASE_SERVICE_ROLE_KEY"]
 IMPORT_SECRET = os.environ["IMPORT_SECRET"]
 
 
 def clean_text(value):
-    if pd.isna(value):
+    if value is None:
         return ""
     return str(value).strip()
 
@@ -27,27 +25,6 @@ def clean_phone(value):
 
 def normalize_permit(value):
     return re.sub(r"\D", "", str(value or "").strip())
-
-
-def load_master():
-    df = pd.read_csv(MASTER_CSV_URL, low_memory=False)
-    df.columns = [str(col).strip() for col in df.columns]
-    df["Permit_number_clean"] = df["Permit_number"].apply(normalize_permit)
-    return df
-
-
-def find_master_match(permit_number):
-    permit = normalize_permit(permit_number)
-    if not permit:
-        return None
-
-    df = load_master()
-    result = df[df["Permit_number_clean"] == permit]
-
-    if result.empty:
-        return None
-
-    return result.iloc[0]
 
 
 def insert_owner(row):
@@ -84,10 +61,19 @@ def import_bayut():
     if not permit_number:
         return jsonify({"error": "permit_number is required"}), 400
 
-    match = find_master_match(permit_number)
-
-    base_listing_data = {
+    owner_row = {
         "permit_number": permit_number,
+
+        "owner_name": clean_text(data.get("owner_name")),
+        "unit_number": clean_text(data.get("unit_number")),
+
+        "phone_1": clean_phone(data.get("phone_1")),
+        "phone_2": clean_phone(data.get("phone_2")),
+        "phone_3": clean_phone(data.get("phone_3")),
+        "phone_4": clean_phone(data.get("phone_4")),
+
+        "area_name": clean_text(data.get("area_name")) or clean_text(data.get("area")),
+        "building_name": clean_text(data.get("building_name")) or clean_text(data.get("building")),
 
         "room": clean_text(data.get("room")),
         "bedrooms": clean_text(data.get("bedrooms")),
@@ -104,45 +90,17 @@ def import_bayut():
         "listing_type": clean_text(data.get("listing_type")),
 
         "parse_status": clean_text(data.get("parse_status")),
-
-        "building": clean_text(data.get("building")),
-        "area": clean_text(data.get("area")),
-
         "source": "Bayut",
         "parser_id": str(uuid.uuid4()),
         "contact_status": "new",
+        "listing_status": "matched" if data.get("owner_name") or data.get("phone_1") else "not_matched",
+
+        "raw_data": data,
     }
-
-    if match is None:
-        owner_row = {
-            **base_listing_data,
-
-            "area_name": clean_text(data.get("area")) or clean_text(data.get("area_name")),
-            "building_name": clean_text(data.get("building_name")) or clean_text(data.get("building")),
-
-            "listing_status": "not_matched",
-        }
-    else:
-        owner_row = {
-            **base_listing_data,
-
-            "area_name": clean_text(match.get("Area_name")) or clean_text(data.get("area")) or clean_text(data.get("area_name")),
-            "building_name": clean_text(match.get("Building_name")) or clean_text(data.get("building_name")) or clean_text(data.get("building")),
-            "unit_number": clean_text(match.get("Unit_number")),
-
-            "owner_name": clean_text(match.get("Latest_owner")),
-            "phone_1": clean_phone(match.get("Latest_phone_1")),
-            "phone_2": clean_phone(match.get("Latest_phone_2")),
-            "phone_3": clean_phone(match.get("Latest_phone_3")),
-            "phone_4": clean_phone(match.get("Latest_phone_4")),
-
-            "listing_status": "matched",
-        }
 
     inserted = insert_owner(owner_row)
 
     return jsonify({
         "ok": True,
-        "matched": match is not None,
         "inserted": inserted,
     })
