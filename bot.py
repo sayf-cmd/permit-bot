@@ -7,7 +7,7 @@ import pandas as pd
 import gspread
 from google.oauth2.service_account import Credentials
 
-from owner_deep_search import (
+from owner_db_search import (
     search_owner_everywhere,
     format_results_for_telegram,
 )
