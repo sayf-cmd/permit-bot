@@ -1,14 +1,78 @@
 import asyncio
 import re
-import pandas as pd
+import time
+import requests
 from playwright.async_api import async_playwright
+from openpyxl import load_workbook
+
+# =========================
+# CONFIG
+# =========================
 
 MAX_LISTINGS = 30
+
+FILE_PATH = FILE_PATH = "/Users/wawirealestate/Desktop/Launcher.xlsx"
+SHEET_NAME = "Leads"
+
+BOT_TOKEN = "7986344001:AAEMjLIRPzDXzzJk5ryK0xiZv7ALPLO4pps"
+CHAT_ID = "816494430"
+
+semaphore = asyncio.Semaphore(3)
+
+
+# =========================
+# TELEGRAM
+# =========================
+
+def send_telegram(message):
+    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+    try:
+        requests.post(url, data={
+            "chat_id": CHAT_ID,
+            "text": message
+        })
+    except:
+        pass
+
+
+# =========================
+# FORMAT MESSAGE (CRM STYLE)
+# =========================
+
+def format_data_message(data):
+    if not data:
+        return "🏠 Property Overview\n\nNo new data found."
+
+    msg = ""
+
+    for item in data:
+        msg += "🏠 Property Overview\n\n"
+
+        msg += f"🏢 Permit Number: {item.get('permit','')}\n"
+        msg += f"🏢 Building: {item.get('building','')}\n"
+        msg += f"🏢 Unit Number: {item.get('unit_number','')}\n"
+        msg += f"🛏️ Bedrooms: {item.get('beds','')}\n"
+        msg += f"📐 Size: {item.get('size','')}\n"
+        msg += f"💰 Price: {item.get('price','')}\n"
+        msg += f"📅 Data Added: {item.get('date_added','')}\n\n"
+
+        msg += "🔗 URL:\n"
+        msg += f"{item.get('url','')}\n\n"
+
+        msg += "⚡ Status: Completed\n"
+        msg += "--------------------------\n\n"
+
+    return msg
+
+
+# =========================
+# COLLECT URLS
+# =========================
 
 async def collect_urls(page):
     urls = set()
 
-    for _ in range(10):
+    for _ in range(8):
         links = page.locator("a[href*='/property/details-']")
         count = await links.count()
 
@@ -26,91 +90,159 @@ async def collect_urls(page):
         if len(urls) >= MAX_LISTINGS:
             break
 
-        await page.mouse.wheel(0, 3000)
-        await page.wait_for_timeout(1200)
+        await page.mouse.wheel(0, 4000)
+        await page.wait_for_timeout(700)
 
     return list(urls)[:MAX_LISTINGS]
 
 
-async def parse_listing(page, url):
-    await page.goto(url)
-    await page.wait_for_timeout(3000)
+# =========================
+# PARSE WORKER (FAST)
+# =========================
 
-    body = await page.locator("body").inner_text()
+async def parse_worker(page, url):
+    async with semaphore:
+        try:
+            await page.goto(url, wait_until="domcontentloaded")
+            await page.wait_for_timeout(1200)
 
-    price = ""
-    m = re.search(r"AED[\s,]*([\d,]+)", body)
-    if m:
-        price = m.group(1)
+            body = await page.inner_text("body")
 
-    beds = ""
-    m = re.search(r"(\d+)\s*Beds?", body, re.IGNORECASE)
-    if m:
-        beds = m.group(1)
-    elif re.search(r"Studio", body, re.IGNORECASE):
-        beds = "Studio"
+            price = ""
+            beds = ""
+            sqft = ""
+            permit = ""
 
-    sqft = ""
-    m = re.search(r"([\d,]+)\s*(sqft|sq\.ft)", body, re.IGNORECASE)
-    if m:
-        sqft = m.group(1)
+            m = re.search(r"AED[\s,]*([\d,]+)", body)
+            if m:
+                price = m.group(1)
 
-    permit = ""
-    m = re.search(r"Permit(?: Number| No)?\s*[:#-]?\s*(\d+)", body, re.IGNORECASE)
-    if m:
-        permit = m.group(1)
+            m = re.search(r"(\d+)\s*Beds?", body, re.IGNORECASE)
+            if m:
+                beds = m.group(1)
+            elif "Studio" in body:
+                beds = "Studio"
 
-    return {
-        "url": url,
-        "permit": permit,
-        "beds": beds,
-        "price_aed": price,
-        "size_sqft": sqft
-    }
+            m = re.search(r"([\d,]+)\s*(sqft|sq\.ft)", body, re.IGNORECASE)
+            if m:
+                sqft = m.group(1)
+
+            m = re.search(r"(Permit Number|RERA Permit|Permit)\s*[:\-]?\s*(\d+)", body, re.IGNORECASE)
+            if m:
+                permit = m.group(2)
+
+            if not permit:
+                return None
+
+            return {
+                "permit": permit,
+                "beds": beds,
+                "price": price,
+                "size": sqft,
+                "url": url
+            }
+
+        except:
+            return None
 
 
-async def run():
+# =========================
+# SCRAPER
+# =========================
+
+async def run_scraper():
+
     data = []
 
     building_name = input("Введи название билдинга: ").strip()
 
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=False)
+        browser = await p.chromium.launch(
+            headless=False,
+            args=["--disable-blink-features=AutomationControlled"]
+        )
+
         page = await browser.new_page()
 
-        print("Открой Bayut и настрой:")
-        print("- Rent")
-        print("- 1 building")
-        print("- Newest")
-        print("- Filters if needed")
-        print("Когда будешь готов, нажми ENTER здесь")
+        print("👉 Настрой фильтр на Bayut и нажми ENTER")
         input()
 
         urls = await collect_urls(page)
         print(f"Найдено: {len(urls)}")
 
-        for i, url in enumerate(urls, 1):
-            print(f"{i}/{len(urls)}")
-            try:
-                item = await parse_listing(page, url)
-                item["building"] = building_name
-                data.append(item)
-            except:
-                pass
+        tasks = [parse_worker(page, url) for url in urls]
+        results = await asyncio.gather(*tasks)
+
+        data = [r for r in results if r]
 
         await browser.close()
 
-    df = pd.DataFrame(data, columns=[
-        "url",
-        "permit",
-        "building",
-        "beds",
-        "price_aed",
-        "size_sqft"
-    ])
+    # =========================
+    # EXCEL APPEND + ANTI DUPLICATE
+    # =========================
 
-    df.to_excel("result.xlsx", index=False)
-    print("ГОТОВО -> result.xlsx")
+    wb = load_workbook(FILE_PATH)
+    ws = wb[SHEET_NAME]
+
+    existing = set()
+
+    for row in range(2, ws.max_row + 1):
+        val = ws[f"B{row}"].value
+        if val:
+            existing.add(str(val))
+
+    next_row = ws.max_row + 1
+
+    new_data = []
+
+    for item in data:
+        permit = item["permit"]
+
+        if permit in existing:
+            continue
+
+        ws[f"A{next_row}"] = ""  # date_added (if you use formula in Excel)
+        ws[f"B{next_row}"] = permit
+        ws[f"C{next_row}"] = building_name
+        ws[f"E{next_row}"] = item["beds"]
+        ws[f"F{next_row}"] = item["size"]
+        ws[f"G{next_row}"] = item["price"]
+        ws[f"I{next_row}"] = item["url"]
+
+        existing.add(permit)
+        next_row += 1
+
+        new_data.append(item)
+
+    wb.save(FILE_PATH)
+
+    print(f"⚡ Добавлено: {len(new_data)} новых записей")
+
+    # =========================
+    # TELEGRAM REPORT
+    # =========================
+
+    message = format_data_message(new_data)
+    send_telegram(message)
+
+    print("📲 Telegram sent")
 
 
-asyncio.run(run())
+# =========================
+# LOOP (EVERY 30 MIN)
+# =========================
+
+async def main_loop():
+    while True:
+        print("🚀 START CYCLE")
+
+        try:
+            await run_scraper()
+        except Exception as e:
+            print("ERROR:", e)
+
+        print("😴 sleep 30 min")
+        time.sleep(1800)
+
+
+asyncio.run(main_loop())

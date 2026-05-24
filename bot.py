@@ -1,11 +1,31 @@
 import os
 import re
 import json
+from datetime import datetime
+
 import pandas as pd
 import gspread
 from google.oauth2.service_account import Credentials
-from telegram import Update, ReplyKeyboardMarkup, InlineKeyboardMarkup, InlineKeyboardButton
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
+
+from owner_deep_search import (
+    search_owner_everywhere,
+    format_results_for_telegram,
+)
+
+from telegram import (
+    Update,
+    ReplyKeyboardMarkup,
+    InlineKeyboardMarkup,
+    InlineKeyboardButton,
+)
+from telegram.ext import (
+    ApplicationBuilder,
+    CommandHandler,
+    MessageHandler,
+    ContextTypes,
+    filters,
+)
+
 
 TOKEN = os.environ["TELEGRAM_TOKEN"]
 SHEET_CSV_URL = os.environ["SHEET_CSV_URL"]
@@ -24,9 +44,14 @@ SCOPES = [
 MENU_KEYBOARD = ReplyKeyboardMarkup(
     [
         ["👤 My Profile", "📩 Contact Admin"],
+        ["💳 Tariffs", "📍 Available Areas"],
     ],
-    resize_keyboard=True
+    resize_keyboard=True,
 )
+
+
+def now_text():
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
 def get_gspread_client():
@@ -35,10 +60,21 @@ def get_gspread_client():
     return gspread.authorize(creds)
 
 
-def get_users_sheet():
+def get_spreadsheet():
     client = get_gspread_client()
-    spreadsheet = client.open_by_url(GOOGLE_SHEET_URL)
-    return spreadsheet.worksheet("Users")
+    return client.open_by_url(GOOGLE_SHEET_URL)
+
+
+def get_users_sheet():
+    return get_spreadsheet().worksheet("Users")
+
+
+def get_history_sheet():
+    return get_spreadsheet().worksheet("SearchHistory")
+
+
+def get_summary_sheet():
+    return get_spreadsheet().worksheet("summary")
 
 
 def clean_phone(value):
@@ -47,7 +83,7 @@ def clean_phone(value):
 
     value = str(value).strip()
 
-    if value.lower() == "null":
+    if value.lower() in ["null", "nan", "none"]:
         return ""
 
     digits = re.sub(r"\D", "", value)
@@ -61,15 +97,15 @@ def clean_phone(value):
 def load_data():
     df = pd.read_csv(SHEET_CSV_URL, low_memory=False)
     df.columns = [str(col).strip() for col in df.columns]
-    print("COLUMNS:", df.columns.tolist())
 
     permit_col = "Permit_number"
     building_col = "Building_name"
     unit_col = "Unit_number"
-    bedroom_col = "Bedroom"
+
     latest_phone_1_col = "Latest_phone_1"
     latest_phone_2_col = "Latest_phone_2"
     latest_phone_3_col = "Latest_phone_3"
+    latest_phone_4_col = "Latest_phone_4"
 
     df[permit_col] = (
         df[permit_col]
@@ -79,7 +115,12 @@ def load_data():
         .str.replace(r"\D", "", regex=True)
     )
 
-    for col in [latest_phone_1_col, latest_phone_2_col, latest_phone_3_col]:
+    for col in [
+        latest_phone_1_col,
+        latest_phone_2_col,
+        latest_phone_3_col,
+        latest_phone_4_col,
+    ]:
         df[col] = df[col].apply(clean_phone)
 
     return (
@@ -87,19 +128,30 @@ def load_data():
         permit_col,
         building_col,
         unit_col,
-        bedroom_col,
         latest_phone_1_col,
         latest_phone_2_col,
         latest_phone_3_col,
+        latest_phone_4_col,
     )
 
 
 def get_user_record(user_id):
     sheet = get_users_sheet()
-    records = sheet.get_all_records()
+    user_ids = sheet.col_values(1)
 
-    for idx, record in enumerate(records, start=2):
-        if str(record.get("user_id", "")).strip() == str(user_id):
+    for idx, existing_user_id in enumerate(user_ids[1:], start=2):
+        if str(existing_user_id).strip() == str(user_id):
+            row = sheet.row_values(idx)
+
+            record = {
+                "user_id": row[0] if len(row) > 0 else "",
+                "username": row[1] if len(row) > 1 else "",
+                "requests_used": row[2] if len(row) > 2 else 0,
+                "request_limit": row[3] if len(row) > 3 else 5,
+                "status": row[4] if len(row) > 4 else "active",
+                "last_used_at": row[5] if len(row) > 5 else "",
+            }
+
             return sheet, idx, record
 
     return sheet, None, None
@@ -111,15 +163,21 @@ def find_or_create_user(user_id, username):
     if record is not None:
         return sheet, row_number, record
 
-    new_row = [str(user_id), username or "", 0, 5, "active"]
-    sheet.append_row(new_row)
+    user_ids = sheet.col_values(1)
+    next_row = max(len(user_ids) + 1, 2)
+
+    new_row = [
+        str(user_id),
+        username or "",
+        0,
+        5,
+        "active",
+        "",
+    ]
+
+    sheet.update(f"A{next_row}:F{next_row}", [new_row])
 
     return get_user_record(user_id)
-
-
-def increment_user_usage(row_number, current_used):
-    sheet = get_users_sheet()
-    sheet.update_cell(row_number, 3, int(current_used) + 1)
 
 
 def normalize_user_record(record):
@@ -138,31 +196,84 @@ def normalize_user_record(record):
     return status, requests_used, request_limit
 
 
+def increment_user_usage(row_number, current_used):
+    sheet = get_users_sheet()
+    sheet.update_cell(row_number, 3, int(current_used) + 1)
+
+
+def update_last_used(row_number):
+    sheet = get_users_sheet()
+    sheet.update_cell(row_number, 6, now_text())
+
+
+def normalize_permit(value):
+    return re.sub(r"\D", "", str(value or "").strip())
+
+
+def already_searched(user_id, permit_number):
+    sheet = get_history_sheet()
+    rows = sheet.get_all_values()
+
+    user_id = str(user_id).strip()
+    permit_number = normalize_permit(permit_number)
+
+    for row in rows[1:]:
+        if len(row) < 4:
+            continue
+
+        history_user_id = str(row[1]).strip()
+        history_permit = normalize_permit(row[3])
+
+        if history_user_id == user_id and history_permit == permit_number:
+            return True
+
+    return False
+
+
+def add_search_history(user_id, username, permit_number, result, charged):
+    sheet = get_history_sheet()
+
+    sheet.append_row(
+        [
+            now_text(),
+            str(user_id),
+            username or "",
+            str(permit_number),
+            result,
+            "yes" if charged else "no",
+        ],
+        value_input_option="USER_ENTERED",
+    )
+
+
 (
     df,
     permit_col,
     building_col,
     unit_col,
-    bedroom_col,
     latest_phone_1_col,
     latest_phone_2_col,
     latest_phone_3_col,
+    latest_phone_4_col,
 ) = load_data()
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     tg_user = update.effective_user
-    _, _, record = find_or_create_user(tg_user.id, tg_user.username or "")
+
+    _, row_number, record = find_or_create_user(
+        tg_user.id,
+        tg_user.username or "",
+    )
+
+    update_last_used(row_number)
+
     status, requests_used, request_limit = normalize_user_record(record)
     remaining = max(request_limit - requests_used, 0)
 
     text = (
         "Welcome to Property Permit Finder.\n\n"
-        "Send a permit number and I will show:\n"
-        "• Permit Number\n"
-        "• Unit Number\n"
-        "• Building\n"
-        "• Latest Phones\n\n"
+        "Send a permit number to search property information.\n\n"
         f"You currently have {remaining} free searches left."
     )
 
@@ -170,26 +281,41 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def reload_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    global df, permit_col, building_col, unit_col, bedroom_col
-    global latest_phone_1_col, latest_phone_2_col, latest_phone_3_col
+    global df
+    global permit_col
+    global building_col
+    global unit_col
+    global latest_phone_1_col
+    global latest_phone_2_col
+    global latest_phone_3_col
+    global latest_phone_4_col
 
     (
         df,
         permit_col,
         building_col,
         unit_col,
-        bedroom_col,
         latest_phone_1_col,
         latest_phone_2_col,
         latest_phone_3_col,
+        latest_phone_4_col,
     ) = load_data()
 
-    await update.message.reply_text("Data reloaded successfully.", reply_markup=MENU_KEYBOARD)
+    await update.message.reply_text(
+        "Data reloaded successfully.",
+        reply_markup=MENU_KEYBOARD,
+    )
 
 
 async def profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
     tg_user = update.effective_user
-    _, _, record = find_or_create_user(tg_user.id, tg_user.username or "")
+
+    _, row_number, record = find_or_create_user(
+        tg_user.id,
+        tg_user.username or "",
+    )
+
+    update_last_used(row_number)
 
     status, requests_used, request_limit = normalize_user_record(record)
     remaining = max(request_limit - requests_used, 0)
@@ -210,14 +336,104 @@ async def profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def contact_admin(update: Update, context: ContextTypes.DEFAULT_TYPE):
     admin_link = f"https://t.me/{ADMIN_USERNAME.lstrip('@')}"
+
     keyboard = InlineKeyboardMarkup(
         [[InlineKeyboardButton("Contact Admin", url=admin_link)]]
     )
 
     await update.message.reply_text(
         "📩 If you need more searches or support, contact the administrator:",
-        reply_markup=keyboard
+        reply_markup=keyboard,
     )
+
+
+async def tariffs(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    admin_link = f"https://t.me/{ADMIN_USERNAME.lstrip('@')}"
+
+    keyboard = InlineKeyboardMarkup(
+        [[InlineKeyboardButton("Buy / Contact Admin", url=admin_link)]]
+    )
+
+    text = (
+        "💳 Tariffs\n\n"
+        "🔹 50 Searches — 200 AED\n"
+        "🔹 100 Searches — 300 AED\n"
+        "🔹 300 Searches — 500 AED\n\n"
+        "📩 To purchase access, contact the administrator."
+    )
+
+    await update.message.reply_text(text, reply_markup=keyboard)
+
+
+async def available_areas(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    sheet = get_summary_sheet()
+    rows = sheet.get_all_values()
+
+    lines = []
+    total_line = ""
+
+    for row in rows:
+        if len(row) < 2:
+            continue
+
+        area = str(row[0]).strip()
+        count_raw = str(row[1]).replace(",", "").strip()
+
+        if not area or not count_raw.isdigit():
+            continue
+
+        count = int(count_raw)
+
+        if area.upper() == "TOTAL":
+            total_line = f"\n📊 Total — {count:,} units"
+            continue
+
+        if count >= 80000:
+            indicator = "🟩"
+        elif count >= 30000:
+            indicator = "🟨"
+        elif count >= 10000:
+            indicator = "🟧"
+        else:
+            indicator = "🟥"
+
+        lines.append(f"{indicator} {area} — {count:,} units")
+
+    text = "📍 Available Areas\n\n" + "\n".join(lines) + total_line
+
+    await update.message.reply_text(text, reply_markup=MENU_KEYBOARD)
+
+
+async def handle_name_search(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        owner_name = " ".join(context.args).strip()
+
+        if not owner_name:
+            await update.message.reply_text(
+                "Напиши так:\n/name Sayf Nazarov",
+                reply_markup=MENU_KEYBOARD,
+            )
+            return
+
+        await update.message.reply_text("Ищу по всем Excel файлам...")
+
+        results = search_owner_everywhere(owner_name)
+
+        text = format_results_for_telegram(results)
+
+        if len(text) > 3900:
+            for i in range(0, len(text), 3900):
+                await update.message.reply_text(text[i:i + 3900])
+        else:
+            await update.message.reply_text(text)
+
+    except Exception as e:
+        print("NAME SEARCH ERROR:", e)
+
+        await update.message.reply_text(
+            "Search error.",
+            reply_markup=MENU_KEYBOARD,
+        )
 
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -232,42 +448,80 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await contact_admin(update, context)
             return
 
+        if user_text == "💳 Tariffs":
+            await tariffs(update, context)
+            return
+
+        if user_text == "📍 Available Areas":
+            await available_areas(update, context)
+            return
+
         tg_user = update.effective_user
-        _, row_number, record = find_or_create_user(tg_user.id, tg_user.username or "")
+
+        _, row_number, record = find_or_create_user(
+            tg_user.id,
+            tg_user.username or "",
+        )
+
+        update_last_used(row_number)
+
         status, requests_used, request_limit = normalize_user_record(record)
 
         if status != "active":
             await update.message.reply_text(
                 "Your access is currently inactive.\nPlease contact the administrator.",
-                reply_markup=MENU_KEYBOARD
+                reply_markup=MENU_KEYBOARD,
             )
             return
 
-        if requests_used >= request_limit:
-            keyboard = InlineKeyboardMarkup(
-                [[InlineKeyboardButton("Contact Admin", url=f"https://t.me/{ADMIN_USERNAME.lstrip('@')}")]]
+        digits = normalize_permit(user_text)
+
+        if not digits:
+            await update.message.reply_text(
+                "Please send a valid permit number.",
+                reply_markup=MENU_KEYBOARD,
             )
+            return
+
+        is_duplicate = already_searched(tg_user.id, digits)
+
+        if requests_used >= request_limit and not is_duplicate:
+            keyboard = InlineKeyboardMarkup(
+                [[InlineKeyboardButton(
+                    "Contact Admin",
+                    url=f"https://t.me/{ADMIN_USERNAME.lstrip('@')}",
+                )]]
+            )
+
             await update.message.reply_text(
                 "You have reached your search limit.\nPlease contact the administrator for more access.",
-                reply_markup=keyboard
+                reply_markup=keyboard,
             )
             return
 
-        digits = re.sub(r"\D", "", user_text)
-
         variants = [digits]
+
         if len(digits) > 2:
             variants.append(digits[2:])
+
         if len(digits) > 4:
             variants.append(digits[2:-2])
 
         result = df[df[permit_col].isin(variants)]
 
         if result.empty:
+            add_search_history(
+                tg_user.id,
+                tg_user.username or "",
+                digits,
+                "not_found",
+                False,
+            )
+
             await update.message.reply_text(
-                "No matching property was found for this permit number.\n\n"
+                "No matching property was found.\n\n"
                 f"You have {request_limit - requests_used} free searches left.",
-                reply_markup=MENU_KEYBOARD
+                reply_markup=MENU_KEYBOARD,
             )
             return
 
@@ -277,44 +531,74 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             row.get(latest_phone_1_col, ""),
             row.get(latest_phone_2_col, ""),
             row.get(latest_phone_3_col, ""),
+            row.get(latest_phone_4_col, ""),
         ]
 
-        phones = [str(phone).strip() for phone in phones if str(phone).strip() != ""]
-        phone_lines = "\n".join([f"📞 Phone {i+1}: {phone}" for i, phone in enumerate(phones)])
+        phones = [
+            str(phone).strip()
+            for phone in phones
+            if str(phone).strip()
+        ]
 
-        if not phone_lines:
-            phone_lines = "📞 Phone: Not available"
+        charged = not is_duplicate
 
-        remaining_after_search = max(request_limit - requests_used - 1, 0)
+        if charged:
+            increment_user_usage(row_number, requests_used)
+            remaining_after_search = max(request_limit - requests_used - 1, 0)
+        else:
+            remaining_after_search = max(request_limit - requests_used, 0)
+
+        add_search_history(
+            tg_user.id,
+            tg_user.username or "",
+            digits,
+            "found",
+            charged,
+        )
+
+        duplicate_note = ""
+        if is_duplicate:
+            duplicate_note = "\n♻️ Repeated search — no search was charged.\n"
 
         reply = (
-            f"🔎 Property Overview\n"
-            f"🔗 Permit Number: {row[permit_col]}\n"
+            "🏠 Property Overview\n\n"
             f"🏢 Unit Number: {row[unit_col]}\n"
-            f"🏛️ Building: {row[building_col]}\n\n"
-            f"👤 Public Owner Information:\n"
-            f"{phone_lines}\n\n"
-            f"You have {remaining_after_search} free searches left."
+            f"🏛️ Building: {row[building_col]}\n"
+            f"📍 Zone: {row['Area_name']}\n\n"
+            "👤 Public Owner Information\n"
+            f"🧑 Name: {str(row['Latest_owner']).title()}\n"
+            f"📞 Phone: {', '.join(phones) if phones else 'Not available'}\n"
+            f"{duplicate_note}\n"
+            f"❗ You have {remaining_after_search} free searches left."
         )
 
         await update.message.reply_text(reply, reply_markup=MENU_KEYBOARD)
-        increment_user_usage(row_number, requests_used)
 
     except Exception as e:
         print(f"ERROR in handle_message: {e}")
+
         await update.message.reply_text(
             "Temporary error. Please try again.",
-            reply_markup=MENU_KEYBOARD
+            reply_markup=MENU_KEYBOARD,
         )
 
 
 app = ApplicationBuilder().token(TOKEN).build()
+
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("reload", reload_data))
 app.add_handler(CommandHandler("profile", profile))
 app.add_handler(CommandHandler("contact", contact_admin))
-app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+app.add_handler(CommandHandler("tariffs", tariffs))
+app.add_handler(CommandHandler("areas", available_areas))
+app.add_handler(CommandHandler("name", handle_name_search))
 
+app.add_handler(
+    MessageHandler(
+        filters.TEXT & ~filters.COMMAND,
+        handle_message,
+    )
+)
 
 if __name__ == "__main__":
     app.run_webhook(
