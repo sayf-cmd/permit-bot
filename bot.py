@@ -225,6 +225,32 @@ def normalize_user_record(record):
     return status, requests_used, request_limit
 
 
+def has_special_access(record):
+    status = str(record.get("status", "active")).strip().lower()
+    return status in ["premium", "admin"]
+
+
+async def require_special_access(update: Update):
+    tg_user = update.effective_user
+
+    _, row_number, record = find_or_create_user(
+        tg_user.id,
+        tg_user.username or "",
+    )
+
+    update_last_used(row_number)
+
+    if not has_special_access(record):
+        await update.message.reply_text(
+            "🔒 This feature is available only for premium users.\n\n"
+            "Please contact admin to unlock advanced owner search.",
+            reply_markup=MENU_KEYBOARD,
+        )
+        return False
+
+    return True
+
+
 def increment_user_usage(row_number, current_used):
     sheet = get_users_sheet()
     sheet.update_cell(row_number, 3, int(current_used) + 1)
@@ -317,11 +343,14 @@ async def profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         username_text = f"@{tg_user.username}" if tg_user.username else "Not set"
 
+        access_text = "Premium" if status in ["premium", "admin"] else "Basic"
+
         text = (
             "👤 Profile\n\n"
             f"Username: {username_text}\n"
             f"User ID: {tg_user.id}\n"
             f"Status: {status}\n"
+            f"Access: {access_text}\n"
             f"Used searches: {requests_used}\n"
             f"Free searches left: {remaining}"
         )
@@ -414,6 +443,9 @@ async def available_areas(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def handle_name_search(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
+        if not await require_special_access(update):
+            return
+
         owner_name = " ".join(context.args).strip()
 
         if not owner_name:
@@ -445,6 +477,9 @@ async def handle_name_search(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 async def handle_phone_search(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
+        if not await require_special_access(update):
+            return
+
         phone = " ".join(context.args).strip()
 
         if not phone:
@@ -476,6 +511,9 @@ async def handle_phone_search(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 async def handle_project_search(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
+        if not await require_special_access(update):
+            return
+
         query = " ".join(context.args).strip()
 
         if not query:
@@ -507,6 +545,9 @@ async def handle_project_search(update: Update, context: ContextTypes.DEFAULT_TY
 
 async def handle_export(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
+        if not await require_special_access(update):
+            return
+
         owner_name = " ".join(context.args).strip()
 
         if not owner_name:
@@ -606,7 +647,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if df is None:
             await update.message.reply_text(
                 "Permit search is disabled in local SQLite test mode.\n\n"
-                "Use:\n/name OWNER NAME\n/phone PHONE\n/project PROJECT UNIT\n/export OWNER NAME",
+                "Use permit number to search property details.",
                 reply_markup=MENU_KEYBOARD,
             )
             return
@@ -622,7 +663,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         status, requests_used, request_limit = normalize_user_record(record)
 
-        if status != "active":
+        if status == "blocked":
             await update.message.reply_text(
                 "Your access is currently inactive.\nPlease contact the administrator.",
                 reply_markup=MENU_KEYBOARD,
