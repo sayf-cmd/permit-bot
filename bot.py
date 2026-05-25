@@ -1,6 +1,7 @@
 import os
 import re
 import json
+import uuid
 from datetime import datetime
 
 import pandas as pd
@@ -9,6 +10,8 @@ from google.oauth2.service_account import Credentials
 
 from owner_db_search import (
     search_owner_everywhere,
+    search_phone_everywhere,
+    search_project_unit,
     format_results_for_telegram,
 )
 
@@ -28,11 +31,10 @@ from telegram.ext import (
 
 
 TOKEN = os.environ["TELEGRAM_TOKEN"]
-SHEET_CSV_URL = os.environ["SHEET_CSV_URL"]
-GOOGLE_SHEET_URL = os.environ["GOOGLE_SHEET_URL"]
-GOOGLE_SERVICE_ACCOUNT_JSON = os.environ["GOOGLE_SERVICE_ACCOUNT_JSON"]
-WEBHOOK_URL = os.environ["WEBHOOK_URL"]
-PORT = int(os.environ.get("PORT", "10000"))
+
+SHEET_CSV_URL = os.environ.get("SHEET_CSV_URL", "")
+GOOGLE_SHEET_URL = os.environ.get("GOOGLE_SHEET_URL", "")
+GOOGLE_SERVICE_ACCOUNT_JSON = os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON", "")
 
 ADMIN_USERNAME = "@Sayf_Jr"
 
@@ -133,6 +135,33 @@ def load_data():
         latest_phone_3_col,
         latest_phone_4_col,
     )
+
+
+try:
+    if SHEET_CSV_URL and SHEET_CSV_URL != "test":
+        (
+            df,
+            permit_col,
+            building_col,
+            unit_col,
+            latest_phone_1_col,
+            latest_phone_2_col,
+            latest_phone_3_col,
+            latest_phone_4_col,
+        ) = load_data()
+    else:
+        raise Exception("Permit CSV disabled locally")
+except Exception as e:
+    print("PERMIT DATA DISABLED:", e)
+
+    df = None
+    permit_col = ""
+    building_col = ""
+    unit_col = ""
+    latest_phone_1_col = ""
+    latest_phone_2_col = ""
+    latest_phone_3_col = ""
+    latest_phone_4_col = ""
 
 
 def get_user_record(user_id):
@@ -246,92 +275,58 @@ def add_search_history(user_id, username, permit_number, result, charged):
     )
 
 
-(
-    df,
-    permit_col,
-    building_col,
-    unit_col,
-    latest_phone_1_col,
-    latest_phone_2_col,
-    latest_phone_3_col,
-    latest_phone_4_col,
-) = load_data()
-
-
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    tg_user = update.effective_user
-
-    _, row_number, record = find_or_create_user(
-        tg_user.id,
-        tg_user.username or "",
-    )
-
-    update_last_used(row_number)
-
-    status, requests_used, request_limit = normalize_user_record(record)
-    remaining = max(request_limit - requests_used, 0)
-
-    text = (
+    await update.message.reply_text(
         "Welcome to Property Permit Finder.\n\n"
-        "Send a permit number to search property information.\n\n"
-        f"You currently have {remaining} free searches left."
+        "Commands:\n"
+        "/name OWNER NAME\n"
+        "/phone PHONE NUMBER\n"
+        "/project PROJECT UNIT\n"
+        "/export OWNER NAME\n\n"
+        "Or send permit number.",
+        reply_markup=MENU_KEYBOARD,
     )
-
-    await update.message.reply_text(text, reply_markup=MENU_KEYBOARD)
 
 
 async def reload_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    global df
-    global permit_col
-    global building_col
-    global unit_col
-    global latest_phone_1_col
-    global latest_phone_2_col
-    global latest_phone_3_col
-    global latest_phone_4_col
-
-    (
-        df,
-        permit_col,
-        building_col,
-        unit_col,
-        latest_phone_1_col,
-        latest_phone_2_col,
-        latest_phone_3_col,
-        latest_phone_4_col,
-    ) = load_data()
-
     await update.message.reply_text(
-        "Data reloaded successfully.",
+        "Reload disabled for SQLite owner search.",
         reply_markup=MENU_KEYBOARD,
     )
 
 
 async def profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    tg_user = update.effective_user
+    try:
+        tg_user = update.effective_user
 
-    _, row_number, record = find_or_create_user(
-        tg_user.id,
-        tg_user.username or "",
-    )
+        _, row_number, record = find_or_create_user(
+            tg_user.id,
+            tg_user.username or "",
+        )
 
-    update_last_used(row_number)
+        update_last_used(row_number)
 
-    status, requests_used, request_limit = normalize_user_record(record)
-    remaining = max(request_limit - requests_used, 0)
+        status, requests_used, request_limit = normalize_user_record(record)
+        remaining = max(request_limit - requests_used, 0)
 
-    username_text = f"@{tg_user.username}" if tg_user.username else "Not set"
+        username_text = f"@{tg_user.username}" if tg_user.username else "Not set"
 
-    text = (
-        "👤 Profile\n\n"
-        f"Username: {username_text}\n"
-        f"User ID: {tg_user.id}\n"
-        f"Status: {status}\n"
-        f"Used searches: {requests_used}\n"
-        f"Free searches left: {remaining}"
-    )
+        text = (
+            "👤 Profile\n\n"
+            f"Username: {username_text}\n"
+            f"User ID: {tg_user.id}\n"
+            f"Status: {status}\n"
+            f"Used searches: {requests_used}\n"
+            f"Free searches left: {remaining}"
+        )
 
-    await update.message.reply_text(text, reply_markup=MENU_KEYBOARD)
+        await update.message.reply_text(text, reply_markup=MENU_KEYBOARD)
+
+    except Exception:
+        await update.message.reply_text(
+            "Profile is unavailable in local test mode.",
+            reply_markup=MENU_KEYBOARD,
+        )
 
 
 async def contact_admin(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -366,42 +361,49 @@ async def tariffs(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def available_areas(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    sheet = get_summary_sheet()
-    rows = sheet.get_all_values()
+    try:
+        sheet = get_summary_sheet()
+        rows = sheet.get_all_values()
 
-    lines = []
-    total_line = ""
+        lines = []
+        total_line = ""
 
-    for row in rows:
-        if len(row) < 2:
-            continue
+        for row in rows:
+            if len(row) < 2:
+                continue
 
-        area = str(row[0]).strip()
-        count_raw = str(row[1]).replace(",", "").strip()
+            area = str(row[0]).strip()
+            count_raw = str(row[1]).replace(",", "").strip()
 
-        if not area or not count_raw.isdigit():
-            continue
+            if not area or not count_raw.isdigit():
+                continue
 
-        count = int(count_raw)
+            count = int(count_raw)
 
-        if area.upper() == "TOTAL":
-            total_line = f"\n📊 Total — {count:,} units"
-            continue
+            if area.upper() == "TOTAL":
+                total_line = f"\n📊 Total — {count:,} units"
+                continue
 
-        if count >= 80000:
-            indicator = "🟩"
-        elif count >= 30000:
-            indicator = "🟨"
-        elif count >= 10000:
-            indicator = "🟧"
-        else:
-            indicator = "🟥"
+            if count >= 80000:
+                indicator = "🟩"
+            elif count >= 30000:
+                indicator = "🟨"
+            elif count >= 10000:
+                indicator = "🟧"
+            else:
+                indicator = "🟥"
 
-        lines.append(f"{indicator} {area} — {count:,} units")
+            lines.append(f"{indicator} {area} — {count:,} units")
 
-    text = "📍 Available Areas\n\n" + "\n".join(lines) + total_line
+        text = "📍 Available Areas\n\n" + "\n".join(lines) + total_line
 
-    await update.message.reply_text(text, reply_markup=MENU_KEYBOARD)
+        await update.message.reply_text(text, reply_markup=MENU_KEYBOARD)
+
+    except Exception:
+        await update.message.reply_text(
+            "Areas are unavailable in local test mode.",
+            reply_markup=MENU_KEYBOARD,
+        )
 
 
 async def handle_name_search(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -410,15 +412,14 @@ async def handle_name_search(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
         if not owner_name:
             await update.message.reply_text(
-                "Напиши так:\n/name Sayf Nazarov",
+                "Напиши так:\n/name LEONID MINKOV",
                 reply_markup=MENU_KEYBOARD,
             )
             return
 
-        await update.message.reply_text("Ищу по всем Excel файлам...")
+        await update.message.reply_text("Ищу по имени...")
 
         results = search_owner_everywhere(owner_name)
-
         text = format_results_for_telegram(results)
 
         if len(text) > 3900:
@@ -431,7 +432,146 @@ async def handle_name_search(update: Update, context: ContextTypes.DEFAULT_TYPE)
         print("NAME SEARCH ERROR:", e)
 
         await update.message.reply_text(
-            "Search error.",
+            "Name search error.",
+            reply_markup=MENU_KEYBOARD,
+        )
+
+
+async def handle_phone_search(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        phone = " ".join(context.args).strip()
+
+        if not phone:
+            await update.message.reply_text(
+                "Напиши так:\n/phone 971585071125",
+                reply_markup=MENU_KEYBOARD,
+            )
+            return
+
+        await update.message.reply_text("Ищу по номеру...")
+
+        results = search_phone_everywhere(phone)
+        text = format_results_for_telegram(results)
+
+        if len(text) > 3900:
+            for i in range(0, len(text), 3900):
+                await update.message.reply_text(text[i:i + 3900])
+        else:
+            await update.message.reply_text(text)
+
+    except Exception as e:
+        print("PHONE SEARCH ERROR:", e)
+
+        await update.message.reply_text(
+            "Phone search error.",
+            reply_markup=MENU_KEYBOARD,
+        )
+
+
+async def handle_project_search(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        query = " ".join(context.args).strip()
+
+        if not query:
+            await update.message.reply_text(
+                "Напиши так:\n/project THE EDGE A2506",
+                reply_markup=MENU_KEYBOARD,
+            )
+            return
+
+        await update.message.reply_text("Ищу по project / unit...")
+
+        results = search_project_unit(query)
+        text = format_results_for_telegram(results)
+
+        if len(text) > 3900:
+            for i in range(0, len(text), 3900):
+                await update.message.reply_text(text[i:i + 3900])
+        else:
+            await update.message.reply_text(text)
+
+    except Exception as e:
+        print("PROJECT SEARCH ERROR:", e)
+
+        await update.message.reply_text(
+            "Project search error.",
+            reply_markup=MENU_KEYBOARD,
+        )
+
+
+async def handle_export(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        owner_name = " ".join(context.args).strip()
+
+        if not owner_name:
+            await update.message.reply_text(
+                "Напиши так:\n/export LEONID MINKOV",
+                reply_markup=MENU_KEYBOARD,
+            )
+            return
+
+        await update.message.reply_text("Готовлю Excel файл...")
+
+        results = search_owner_everywhere(owner_name)
+
+        if not results:
+            await update.message.reply_text(
+                "Ничего не найдено.",
+                reply_markup=MENU_KEYBOARD,
+            )
+            return
+
+        MAX_EXPORT_ROWS = 5000
+
+        if len(results) > MAX_EXPORT_ROWS:
+            await update.message.reply_text(
+                f"Слишком много результатов ({len(results)}).\n"
+                f"Максимум для экспорта: {MAX_EXPORT_ROWS}",
+                reply_markup=MENU_KEYBOARD,
+            )
+            return
+
+        export_rows = []
+
+        for r in results:
+            export_rows.append(
+                {
+                    "Building": r.get("building_name"),
+                    "Unit": r.get("unit_number"),
+                    "Owner": r.get("owner_name"),
+                    "Phones": ", ".join(r.get("phones", [])),
+                    "Price": r.get("price"),
+                    "Date": r.get("date"),
+                    "Source Folder": r.get("source_folder"),
+                    "Source File": r.get("file_name"),
+                }
+            )
+
+        export_df = pd.DataFrame(export_rows)
+
+        temp_file_name = f"export_{uuid.uuid4().hex}.xlsx"
+        export_df.to_excel(temp_file_name, index=False)
+
+        safe_owner_name = re.sub(r"[^A-Za-z0-9_ -]", "", owner_name).strip()
+        if not safe_owner_name:
+            safe_owner_name = "owner"
+
+        telegram_file_name = f"{safe_owner_name}_export.xlsx"
+
+        with open(temp_file_name, "rb") as file:
+            await update.message.reply_document(
+                document=file,
+                filename=telegram_file_name,
+                caption=f"Excel export for {owner_name}",
+            )
+
+        os.remove(temp_file_name)
+
+    except Exception as e:
+        print("EXPORT ERROR:", e)
+
+        await update.message.reply_text(
+            "Export error.",
             reply_markup=MENU_KEYBOARD,
         )
 
@@ -454,6 +594,14 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         if user_text == "📍 Available Areas":
             await available_areas(update, context)
+            return
+
+        if df is None:
+            await update.message.reply_text(
+                "Permit search is disabled in local SQLite test mode.\n\n"
+                "Use:\n/name OWNER NAME\n/phone PHONE\n/project PROJECT UNIT\n/export OWNER NAME",
+                reply_markup=MENU_KEYBOARD,
+            )
             return
 
         tg_user = update.effective_user
@@ -487,10 +635,14 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         if requests_used >= request_limit and not is_duplicate:
             keyboard = InlineKeyboardMarkup(
-                [[InlineKeyboardButton(
-                    "Contact Admin",
-                    url=f"https://t.me/{ADMIN_USERNAME.lstrip('@')}",
-                )]]
+                [
+                    [
+                        InlineKeyboardButton(
+                            "Contact Admin",
+                            url=f"https://t.me/{ADMIN_USERNAME.lstrip('@')}",
+                        )
+                    ]
+                ]
             )
 
             await update.message.reply_text(
@@ -592,6 +744,9 @@ app.add_handler(CommandHandler("contact", contact_admin))
 app.add_handler(CommandHandler("tariffs", tariffs))
 app.add_handler(CommandHandler("areas", available_areas))
 app.add_handler(CommandHandler("name", handle_name_search))
+app.add_handler(CommandHandler("phone", handle_phone_search))
+app.add_handler(CommandHandler("project", handle_project_search))
+app.add_handler(CommandHandler("export", handle_export))
 
 app.add_handler(
     MessageHandler(
@@ -600,10 +755,7 @@ app.add_handler(
     )
 )
 
+
 if __name__ == "__main__":
-    app.run_webhook(
-        listen="0.0.0.0",
-        port=PORT,
-        url_path=TOKEN,
-        webhook_url=f"{WEBHOOK_URL}/{TOKEN}",
-    )
+    print("BOT STARTED IN LOCAL POLLING MODE")
+    app.run_polling()

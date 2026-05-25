@@ -1,6 +1,5 @@
 venv/
 __pycache__/
-.DS_Store
-result.xlsx
+*.pyc
 owners_index.db
-owners_index.db
+.env
