@@ -276,14 +276,20 @@ def add_search_history(user_id, username, permit_number, result, charged):
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    text = (
+        "👋 Welcome to Rockstar Property Intelligence Bot\n\n"
+        "💎 You currently have 5 free requests available.\n\n"
+        "🏠 Send any Permit Number / Trakheesi Number from Property Finder or Bayut "
+        "to instantly access:\n\n"
+        "• Unit Number\n"
+        "• Building Information\n"
+        "• Owner Data\n"
+        "• Property Details\n\n"
+        "⚡ Dubai Secondary Market Intelligence Tool"
+    )
+
     await update.message.reply_text(
-        "Welcome to Property Permit Finder.\n\n"
-        "Commands:\n"
-        "/name OWNER NAME\n"
-        "/phone PHONE NUMBER\n"
-        "/project PROJECT UNIT\n"
-        "/export OWNER NAME\n\n"
-        "Or send permit number.",
+        text,
         reply_markup=MENU_KEYBOARD,
     )
 
@@ -417,7 +423,7 @@ async def handle_name_search(update: Update, context: ContextTypes.DEFAULT_TYPE)
             )
             return
 
-        await update.message.reply_text("Ищу по имени...")
+        await update.message.reply_text("Searching owner database...")
 
         results = search_owner_everywhere(owner_name)
         text = format_results_for_telegram(results)
@@ -448,7 +454,7 @@ async def handle_phone_search(update: Update, context: ContextTypes.DEFAULT_TYPE
             )
             return
 
-        await update.message.reply_text("Ищу по номеру...")
+        await update.message.reply_text("Searching phone database...")
 
         results = search_phone_everywhere(phone)
         text = format_results_for_telegram(results)
@@ -474,12 +480,12 @@ async def handle_project_search(update: Update, context: ContextTypes.DEFAULT_TY
 
         if not query:
             await update.message.reply_text(
-                "Напиши так:\n/project THE EDGE A2506",
+                "Напиши так:\n/project THE EDGE A1807",
                 reply_markup=MENU_KEYBOARD,
             )
             return
 
-        await update.message.reply_text("Ищу по project / unit...")
+        await update.message.reply_text("Searching project database...")
 
         results = search_project_unit(query)
         text = format_results_for_telegram(results)
@@ -510,7 +516,7 @@ async def handle_export(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
             return
 
-        await update.message.reply_text("Готовлю Excel файл...")
+        await update.message.reply_text("Preparing Excel export...")
 
         results = search_owner_everywhere(owner_name)
 
@@ -525,8 +531,8 @@ async def handle_export(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         if len(results) > MAX_EXPORT_ROWS:
             await update.message.reply_text(
-                f"Слишком много результатов ({len(results)}).\n"
-                f"Максимум для экспорта: {MAX_EXPORT_ROWS}",
+                f"Too many results ({len(results)}).\n"
+                f"Maximum export limit: {MAX_EXPORT_ROWS}",
                 reply_markup=MENU_KEYBOARD,
             )
             return
@@ -553,6 +559,7 @@ async def handle_export(update: Update, context: ContextTypes.DEFAULT_TYPE):
         export_df.to_excel(temp_file_name, index=False)
 
         safe_owner_name = re.sub(r"[^A-Za-z0-9_ -]", "", owner_name).strip()
+
         if not safe_owner_name:
             safe_owner_name = "owner"
 
