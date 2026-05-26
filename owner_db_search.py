@@ -3,7 +3,7 @@ import re
 import sqlite3
 from pathlib import Path
 
-DB_PATH = "/var/data/owners_index.db")
+DB_PATH = Path("/var/data/owners_index.db")
 
 PHONE_COLUMNS = [
     "mobile",
