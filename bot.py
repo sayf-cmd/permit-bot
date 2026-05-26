@@ -15,6 +15,7 @@ from owner_db_search import (
     format_results_for_telegram,
 )
 
+from dxb_interact_scraper import get_dxb_current_page_result
 from telegram import (
     Update,
     ReplyKeyboardMarkup,
@@ -624,6 +625,34 @@ async def handle_export(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 
+
+
+async def handle_dxb(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        if not await require_special_access(update):
+            return
+
+        msg = await update.message.reply_text(
+            "🔍 Reading current DXB Interact page..."
+        )
+
+        result = await get_dxb_current_page_result()
+
+        if len(result) > 3900:
+            for i in range(0, len(result), 3900):
+                await update.message.reply_text(result[i:i + 3900])
+        else:
+            await msg.edit_text(result)
+
+    except Exception as e:
+        print("DXB ERROR:", e)
+
+        await update.message.reply_text(
+            "DXB search error. Make sure DXB Interact page is already opened in browser.",
+            reply_markup=MENU_KEYBOARD,
+        )
+
+
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         user_text = update.message.text.strip()
@@ -795,6 +824,7 @@ app.add_handler(CommandHandler("name", handle_name_search))
 app.add_handler(CommandHandler("phone", handle_phone_search))
 app.add_handler(CommandHandler("project", handle_project_search))
 app.add_handler(CommandHandler("export", handle_export))
+app.add_handler(CommandHandler("dxb", handle_dxb))
 
 app.add_handler(
     MessageHandler(
