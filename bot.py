@@ -629,6 +629,9 @@ async def handle_export(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def handle_dxb(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
+        print("DXB COMMAND RECEIVED")
+        print(update.message.text)
+
         if not await require_special_access(update):
             return
 
