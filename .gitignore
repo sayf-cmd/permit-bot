@@ -1,5 +1,9 @@
 venv/
 __pycache__/
 *.pyc
-owners_index.db
+dxb_profile/
+dxb_state.json
+.dsync/
 .env
+*.log.DS_Store
+owners_index.db

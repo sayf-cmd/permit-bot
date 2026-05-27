@@ -15,7 +15,7 @@ from owner_db_search import (
     format_results_for_telegram,
 )
 
-from dxb_interact_scraper import get_dxb_current_page_result
+from dxb_interact_scraper import search_dxb_unit
 from telegram import (
     Update,
     ReplyKeyboardMarkup,
@@ -632,13 +632,27 @@ async def handle_dxb(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if not await require_special_access(update):
             return
 
+        if len(context.args) < 2:
+            await update.message.reply_text(
+                "Напиши так:\n/dxb Grande 4702",
+                reply_markup=MENU_KEYBOARD,
+            )
+            return
+
+        unit_number = context.args[-1]
+        building_name = " ".join(context.args[:-1]).strip()
+
         msg = await update.message.reply_text(
-            "🔍 Reading current DXB Interact page..."
+            "🔍 Searching DXB Interact..."
         )
 
-        result = await get_dxb_current_page_result()
+        result = await search_dxb_unit(
+            building_name,
+            unit_number,
+        )
 
         if len(result) > 3900:
+            await msg.delete()
             for i in range(0, len(result), 3900):
                 await update.message.reply_text(result[i:i + 3900])
         else:
@@ -648,7 +662,7 @@ async def handle_dxb(update: Update, context: ContextTypes.DEFAULT_TYPE):
         print("DXB ERROR:", e)
 
         await update.message.reply_text(
-            "DXB search error. Make sure DXB Interact page is already opened in browser.",
+            "DXB search error.",
             reply_markup=MENU_KEYBOARD,
         )
 
