@@ -277,13 +277,14 @@ async def search_dxb_unit(building_name: str, unit_number: str) -> str:
     location_name = location["dv"]
 
     async with async_playwright() as p:
-        browser = await p.chromium.launch(
-            channel="chrome",
-            headless=False,
-            args=[
-                "--disable-blink-features=AutomationControlled",
-            ],
-        )
+ browser = await p.chromium.launch(
+    headless=True,
+    args=[
+        "--disable-blink-features=AutomationControlled",
+        "--no-sandbox",
+        "--disable-dev-shm-usage",
+    ],
+)
 
         context = await browser.new_context(
             storage_state=STATE_FILE,
