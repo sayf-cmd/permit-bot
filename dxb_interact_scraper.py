@@ -276,20 +276,19 @@ async def search_dxb_unit(building_name: str, unit_number: str) -> str:
     location_id = location["id"]
     location_name = location["dv"]
 
-async with async_playwright() as p:
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(
+            headless=True,
+            args=[
+                "--disable-blink-features=AutomationControlled",
+                "--no-sandbox",
+                "--disable-dev-shm-usage",
+            ],
+        )
 
-    browser = await p.chromium.launch(
-        headless=True,
-        args=[
-            "--disable-blink-features=AutomationControlled",
-            "--no-sandbox",
-            "--disable-dev-shm-usage",
-        ],
-    )
-
-    context = await browser.new_context(
-        storage_state=STATE_FILE,
-    )
+        context = await browser.new_context(
+            storage_state=STATE_FILE,
+        )
 
         page = await context.new_page()
 
@@ -307,27 +306,16 @@ async with async_playwright() as p:
         except Exception:
             pass
 
-        await set_location_id(
-            page,
-            location_id,
-            location_name,
-        )
-
+        await set_location_id(page, location_id, location_name)
         await page.wait_for_timeout(1000)
 
         try:
             await fill_unit_number(page, unit_number)
         except Exception as e:
             await browser.close()
-            return (
-                "❌ DXB Error: Could not fill Property No#.\n"
-                f"{e}\n\n"
-                f"Selected building: {location_name}\n"
-                f"Location ID: {location_id}"
-            )
+            return f"❌ DXB Error: Could not fill Property No#.\n{e}"
 
         await click_search(page)
-
         await page.wait_for_timeout(7000)
 
         body_after_search = await page.locator("body").inner_text()
@@ -362,9 +350,7 @@ async with async_playwright() as p:
         data_sale = parse_dxb_text(body_sale)
         data_rent = parse_dxb_text(body_rent)
 
-        # Force correct building name from LOV
         data_base["building"] = location_name
-
         data_base["sales"] = data_sale.get("sales", [])
         data_base["rents"] = data_rent.get("rents", [])
 
