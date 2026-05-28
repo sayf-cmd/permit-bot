@@ -15,7 +15,7 @@ from owner_db_search import (
     format_results_for_telegram,
 )
 
-from dxb_interact_scraper import search_dxb_unit
+from dxb_interact_api import search_dxb_unit_api
 from telegram import (
     Update,
     ReplyKeyboardMarkup,
@@ -153,7 +153,9 @@ try:
     else:
         raise Exception("Permit CSV disabled locally")
 except Exception as e:
-    print("PERMIT DATA DISABLED:", e)
+    import traceback
+    traceback.print_exc()
+    print("DXB ERROR:", e)
 
     df = None
     permit_col = ""
@@ -444,8 +446,8 @@ async def available_areas(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def handle_name_search(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
-        if not await require_special_access(update):
-            return
+        # if not await require_special_access(update):
+        #     return
 
         owner_name = " ".join(context.args).strip()
 
@@ -632,8 +634,8 @@ async def handle_dxb(update: Update, context: ContextTypes.DEFAULT_TYPE):
         print("DXB COMMAND RECEIVED")
         print(update.message.text)
 
-        if not await require_special_access(update):
-            return
+        # if not await require_special_access(update):
+        #     return
 
         if len(context.args) < 2:
             await update.message.reply_text(
@@ -649,7 +651,7 @@ async def handle_dxb(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "🔍 Searching DXB Interact..."
         )
 
-        result = await search_dxb_unit(
+        result = await search_dxb_unit_api(
             building_name,
             unit_number,
         )
@@ -662,7 +664,9 @@ async def handle_dxb(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await msg.edit_text(result)
 
     except Exception as e:
-        print("DXB ERROR:", e)
+        import traceback
+        traceback.print_exc()
+        print("DXB ERROR:", e, flush=True)
 
         await update.message.reply_text(
             "DXB search error.",
