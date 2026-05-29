@@ -3,6 +3,7 @@ import re
 import json
 import uuid
 from datetime import datetime
+from listing_link_parser import extract_permit_from_listing_url
 
 import pandas as pd
 import gspread
@@ -678,6 +679,22 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         user_text = update.message.text.strip()
 
+        if "propertyfinder.ae" in user_text:
+            await update.message.reply_text(
+                "🔎 Extracting permit from listing link..."
+            )
+
+            permit_from_link = await extract_permit_from_listing_url(user_text)
+
+            if not permit_from_link:
+                await update.message.reply_text(
+                    "❌ Could not find permit number in this listing.",
+                    reply_markup=MENU_KEYBOARD,
+                )
+                return
+
+            user_text = permit_from_link
+
         if user_text == "👤 My Profile":
             await profile(update, context)
             return
@@ -696,8 +713,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         if df is None:
             await update.message.reply_text(
-                "Permit search is disabled in local SQLite test mode.\n\n"
-                "Use permit number to search property details.",
+                "⚠️ Property database is temporarily unavailable.\n\n"
+                "Please try again later.",
                 reply_markup=MENU_KEYBOARD,
             )
             return
@@ -825,13 +842,14 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(reply, reply_markup=MENU_KEYBOARD)
 
     except Exception as e:
-        print(f"ERROR in handle_message: {e}")
+        import traceback
+        traceback.print_exc()
+        print(f"ERROR in handle_message: {e}", flush=True)
 
         await update.message.reply_text(
             "Temporary error. Please try again.",
             reply_markup=MENU_KEYBOARD,
         )
-
 
 app = ApplicationBuilder().token(TOKEN).build()
 

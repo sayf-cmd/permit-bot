@@ -39,6 +39,12 @@ BUILDING_ALIASES = {
     "st.regis downtown residences tower 2": "The St. Regis Residences Tower 2",
     "vida dubai mall tower 1": "VIDA Dubai Mall Tower 1",
     "vida dubai mall tower 2": "VIDA Dubai Mall Tower 2",
+    "address opera": "The Address Dubai Opera, Downtown Dubai",
+    "address opera 1": "The Address Dubai Opera Tower 1",
+    "address opera 2": "The Address Dubai Opera Tower 2",
+    "the address dubai opera": "The Address Dubai Opera, Downtown Dubai",
+    "the address dubai opera 1": "The Address Dubai Opera Tower 1",
+    "the address dubai opera 2": "The Address Dubai Opera Tower 2",
 }
 
 
@@ -493,7 +499,8 @@ async def search_dxb_unit_api(building_name: str, unit_number: str) -> str:
     async with async_playwright() as p:
         context = await p.chromium.launch_persistent_context(
             user_data_dir=PROFILE_DIR,
-            headless=True,
+            headless=False,
+            channel="chrome",
             args=[
                 "--disable-blink-features=AutomationControlled",
                 "--no-sandbox",
@@ -502,8 +509,8 @@ async def search_dxb_unit_api(building_name: str, unit_number: str) -> str:
         )
 
         page = context.pages[0] if context.pages else await context.new_page()
-        templates = await capture_runtime_templates(page)
 
+        templates = await capture_runtime_templates(page)
         await page.goto(
             "https://dxbinteract.com/dubai-property-prices",
             wait_until="domcontentloaded",
@@ -667,6 +674,4 @@ def debug_locations(query, limit=10):
 
 
 if __name__ == "__main__":
-    building = input("Building: ").strip()
-    unit = input("Unit: ").strip()
-    print(asyncio.run(search_dxb_unit_api(building, unit)))
+    debug_locations("address opera", 30)
