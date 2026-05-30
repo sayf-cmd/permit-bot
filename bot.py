@@ -677,27 +677,28 @@ async def handle_dxb(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
-    if "propertyfinder.ae" in user_text:
-        await update.message.reply_text("🔎 Extracting permit from listing link...")
+        user_text = update.message.text.strip()
 
-        permit_from_link = await extract_permit_from_listing_url(user_text)
+        if "propertyfinder.ae" in user_text:
+            await update.message.reply_text("🔎 Extracting permit from listing link...")
 
-        if not permit_from_link:
-            await update.message.reply_text(
-                "❌ Could not find permit number in this listing.",
-                reply_markup=MENU_KEYBOARD,
-            )
+            permit_from_link = await extract_permit_from_listing_url(user_text)
+
+            if not permit_from_link:
+                await update.message.reply_text(
+                    "❌ Could not find permit number in this listing.",
+                    reply_markup=MENU_KEYBOARD,
+                )
+                return
+
+            user_text = permit_from_link
+
+            if len(user_text) == 11 and user_text.startswith("71"):
+                user_text = user_text[2:]
+
+        if user_text == "👤 My Profile":
+            await profile(update, context)
             return
-
-        user_text = permit_from_link
-
-        if len(user_text) == 11 and user_text.startswith("71"):
-            user_text = user_text[2:]
-
-    if user_text == "👤 My Profile":
-        await profile(update, context)
-        return
-
         if user_text == "📩 Contact Admin":
             await contact_admin(update, context)
             return
