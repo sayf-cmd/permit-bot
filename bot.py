@@ -699,6 +699,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if user_text == "👤 My Profile":
             await profile(update, context)
             return
+
         if user_text == "📩 Contact Admin":
             await contact_admin(update, context)
             return
