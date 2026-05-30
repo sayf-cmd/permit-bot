@@ -696,7 +696,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             user_text = permit_from_link
 
             if len(user_text) == 11 and user_text.startswith("71"):
-            user_text = user_text[2:]
+               user_text = user_text[2:]
 
 if user_text == "👤 My Profile":
     await profile(update, context)
