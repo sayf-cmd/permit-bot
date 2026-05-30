@@ -696,10 +696,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             if len(user_text) == 11 and user_text.startswith("71"):
                 user_text = user_text[2:]
 
+            if len(user_text) == 11 and user_text.startswith("71"):
+                user_text = user_text[2:]
+
         if user_text == "👤 My Profile":
             await profile(update, context)
             return
-
         if user_text == "📩 Contact Admin":
             await contact_admin(update, context)
             return
