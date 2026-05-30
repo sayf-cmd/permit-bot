@@ -1,0 +1,6 @@
+2026/05/29-03:24:38.905 10535ed Reusing MANIFEST /Users/sayf/Desktop/Playground/telegram_bot/pf_profile/Default/Local Storage/leveldb/MANIFEST-000001
+2026/05/29-03:24:38.908 10535ed Recovering log #16
+2026/05/29-03:24:38.908 10535ed Reusing old log /Users/sayf/Desktop/Playground/telegram_bot/pf_profile/Default/Local Storage/leveldb/000016.log 
+2026/05/29-03:24:51.973 10535ed Level-0 table #20: started
+2026/05/29-03:24:51.974 10535ed Level-0 table #20: 27782 bytes OK
+2026/05/29-03:24:51.977 10535ed Delete type=0 #16

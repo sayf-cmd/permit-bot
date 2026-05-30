@@ -1,0 +1,149 @@
+{
+  "location_name": {
+    "url": "https://dxbinteract.com/wwv_flow.ajax?p_context=litedxb/property-history/566920936571",
+    "p_request": "PLUGIN=REEgVFlQRX5-ODUwMzkzMzM2Njg4MTM1MDIxMg/L3hfLuW2LAGswZedBuVKYxbLBJS49QSkM-aDBjCSa4c",
+    "x01": "",
+    "protected": "UDBfQ1VSUkVOVF9ZRUFSOlAwX1lURF9ZRUFSOlAwX1lURF9DT01QQVJFOlAwX0xP.,R0lOX1VSTDpQMF9DSEFOTkVMOlAwX0NVUlJFTkNZX1ZBTFVFOlAxNDJfUEFUSF9O.,QU1FOlAxNDJfTE9DQVRJT05fSUQ6UDBfTUVUUklDX1NZTUJPTDpHX1VTRVJfQVVU.,SDpHX1VTRVJfTkFNRTpHX1VTRVJfSU1BR0U6R19VU0VSX0VNQUlMOkdfVVNFUl9U.,SVRMRTpHX1VTRVJfTU9CSUxFOkdfVVNFUl9DT01QQU5ZOkdfQ09NUEFOWV9MT0dP.,OkdfVVNFUl9ST0xFOl9HTDpQMF9TT1VSQ0U6UDBfU0lHTlVQX01PQklMRV9DT0RF/QXmAd-hRhfggdzJUrAOHonNzxJ0Qs53O0QXKNP35cYs",
+    "salt": "235388761836471163227331395059905424533",
+    "items": [
+      {
+        "n": "P142_LOCATION_ID",
+        "v": "31568",
+        "ck": "eEFL7e-3fHpFPHcSqPWyHdtrPPe59WYRaREr41pgxLc"
+      }
+    ],
+    "sample_response": "{\n\"values\":[\n\"Grande, Downtown Dubai\"\n]\n}\n"
+  },
+  "prop_lookup": {
+    "url": "https://dxbinteract.com/wwv_flow.ajax?p_context=litedxb/property-history/566920936571",
+    "p_request": "PLUGIN=REEgVFlQRX5-ODUwNDQ5NzU3MzkxNjUwMTY1NQ/Nl_YHscCMLFbRuic8uUzTPgaVC2sDsGXDMTvGwuyLyk",
+    "x01": "",
+    "protected": "UDBfQ1VSUkVOVF9ZRUFSOlAwX1lURF9ZRUFSOlAwX1lURF9DT01QQVJFOlAwX0xP.,R0lOX1VSTDpQMF9DSEFOTkVMOlAwX0NVUlJFTkNZX1ZBTFVFOlAxNDJfUEFUSF9O.,QU1FOlAxNDJfTE9DQVRJT05fSUQ6UDBfTUVUUklDX1NZTUJPTDpHX1VTRVJfQVVU.,SDpHX1VTRVJfTkFNRTpHX1VTRVJfSU1BR0U6R19VU0VSX0VNQUlMOkdfVVNFUl9U.,SVRMRTpHX1VTRVJfTU9CSUxFOkdfVVNFUl9DT01QQU5ZOkdfQ09NUEFOWV9MT0dP.,OkdfVVNFUl9ST0xFOl9HTDpQMF9TT1VSQ0U6UDBfU0lHTlVQX01PQklMRV9DT0RF/QXmAd-hRhfggdzJUrAOHonNzxJ0Qs53O0QXKNP35cYs",
+    "salt": "235388761836471163227331395059905424533",
+    "items": [
+      {
+        "n": "P142_TYPE",
+        "v": "P"
+      },
+      {
+        "n": "P142_PROP_NO",
+        "v": "4702"
+      },
+      {
+        "n": "P142_LOCATION_ID",
+        "v": "31568",
+        "ck": "eEFL7e-3fHpFPHcSqPWyHdtrPPe59WYRaREr41pgxLc"
+      }
+    ],
+    "sample_response": "{\n\"item\":[\n{\n\"id\":\"P142_PROP_ID\"\n,\"value\":\"175410031\"\n}\n,{\n\"id\":\"P142_EJARI_ID\"\n,\"value\":\"2104431668\"\n}\n,{\n\"id\":\"P142_COORD\"\n,\"value\":\"25.194857,55.2714\"\n}\n]\n}\n"
+  },
+  "search_log": {
+    "url": "https://dxbinteract.com/wwv_flow.ajax?p_context=litedxb/property-history/566920936571",
+    "p_request": "PLUGIN=REEgVFlQRX5-ODUwNDQ5ODAwNDQ2ODUwMTY1NQ/YbqzdKLUApufZR8Ihx_wukiobMDcGXs04UskVE2G0MI",
+    "x01": "",
+    "protected": "UDBfQ1VSUkVOVF9ZRUFSOlAwX1lURF9ZRUFSOlAwX1lURF9DT01QQVJFOlAwX0xP.,R0lOX1VSTDpQMF9DSEFOTkVMOlAwX0NVUlJFTkNZX1ZBTFVFOlAxNDJfUEFUSF9O.,QU1FOlAxNDJfTE9DQVRJT05fSUQ6UDBfTUVUUklDX1NZTUJPTDpHX1VTRVJfQVVU.,SDpHX1VTRVJfTkFNRTpHX1VTRVJfSU1BR0U6R19VU0VSX0VNQUlMOkdfVVNFUl9U.,SVRMRTpHX1VTRVJfTU9CSUxFOkdfVVNFUl9DT01QQU5ZOkdfQ09NUEFOWV9MT0dP.,OkdfVVNFUl9ST0xFOl9HTDpQMF9TT1VSQ0U6UDBfU0lHTlVQX01PQklMRV9DT0RF/QXmAd-hRhfggdzJUrAOHonNzxJ0Qs53O0QXKNP35cYs",
+    "salt": "235388761836471163227331395059905424533",
+    "items": [
+      {
+        "n": "P142_TYPE",
+        "v": "P"
+      },
+      {
+        "n": "P142_PROP_NO",
+        "v": "4702"
+      },
+      {
+        "n": "P142_PATH_NAME",
+        "v": "Grande, Downtown Dubai",
+        "ck": "q2ZVCF3hRwY81zBROijzMpTERtTA4klTwxWPODQvo1o"
+      },
+      {
+        "n": "P142_LOCATION_ID",
+        "v": "31568",
+        "ck": "eEFL7e-3fHpFPHcSqPWyHdtrPPe59WYRaREr41pgxLc"
+      },
+      {
+        "n": "P142_PROP_ID",
+        "v": "175410031"
+      }
+    ],
+    "sample_response": "{\n\"item\":[\n{\n\"id\":\"P142_SEARCH_LOG_ID\"\n,\"value\":\"3500463\"\n}\n,{\n\"id\":\"P142_PATH_NAME\"\n,\"value\":\"Grande, Downtown Dubai\"\n}\n]\n}\n"
+  },
+  "details": {
+    "url": "https://dxbinteract.com/wwv_flow.ajax?p_context=litedxb/property-history/566920936571",
+    "p_request": "PLUGIN=UkVHSU9OIFRZUEV-fjQzOTA0NDgwODExNDMyMTgwNzQ2/fXOPt_wP09BGi4Pp6bQ83bg0kFrOJLR1eWcnJYc3dVk",
+    "x01": "43904480811432180746",
+    "protected": "UDBfQ1VSUkVOVF9ZRUFSOlAwX1lURF9ZRUFSOlAwX1lURF9DT01QQVJFOlAwX0xP.,R0lOX1VSTDpQMF9DSEFOTkVMOlAwX0NVUlJFTkNZX1ZBTFVFOlAxNDJfUEFUSF9O.,QU1FOlAxNDJfTE9DQVRJT05fSUQ6UDBfTUVUUklDX1NZTUJPTDpHX1VTRVJfQVVU.,SDpHX1VTRVJfTkFNRTpHX1VTRVJfSU1BR0U6R19VU0VSX0VNQUlMOkdfVVNFUl9U.,SVRMRTpHX1VTRVJfTU9CSUxFOkdfVVNFUl9DT01QQU5ZOkdfQ09NUEFOWV9MT0dP.,OkdfVVNFUl9ST0xFOl9HTDpQMF9TT1VSQ0U6UDBfU0lHTlVQX01PQklMRV9DT0RF/QXmAd-hRhfggdzJUrAOHonNzxJ0Qs53O0QXKNP35cYs",
+    "salt": "235388761836471163227331395059905424533",
+    "items": [
+      {
+        "n": "P142_TYPE",
+        "v": "P"
+      },
+      {
+        "n": "P142_LOCATION_ID",
+        "v": "31568",
+        "ck": "eEFL7e-3fHpFPHcSqPWyHdtrPPe59WYRaREr41pgxLc"
+      },
+      {
+        "n": "P142_PROP_ID",
+        "v": "175410031"
+      }
+    ],
+    "sample_response": "<div id=\"report_43904480811432180746_catch\"><ul class=\"t-Cards t-Cards--featured force-fa-lg t-Cards--3cols t-Cards--hideBody t-Cards--animColorFill\"  id=\"propDetails_cards\" data-region-id=\"propDetails\">\n\n<li class=\"t-Cards-item #CARD_MODIFIERS#\">\n  <div class=\"t-Card\">\n    <div class=\"t-Card-wrap\">\n      <div class=\"t-Card-icon u-color #CARD_COLOR#\"><span class=\"t-Icon fa #CARD_ICON#\"><span class=\"t-Card-initials\" role=\"presentation\">-</span></span></div>\n      <div class=\"t-Card-titleWrap\"><h3 class=\"t-Card-title\"><div class=\"dflex flex-row justify-evenly align-center details-mob-view\">\n<div class=\"dflex flex-row align-center\">    \n<div class=\"icon dflex justify-center flex-row align-center\">\n    <span class=\"fa fa-fit-to-size\" aria-hidden=\"true\"></span>\n</div>\n<div class=\"dflex flex-col align-start\">\n    <p class=\"margin-none u-color-15-text\">Size</p>\n    <p class=\"margin-none\"><b>805</b> <sup>Sqft</sup></p>\n</div>\n</div>\n<div class=\"dflex flex-row align-center -\">    \n<div class=\"i"
+  },
+  "sales": {
+    "url": "https://dxbinteract.com/wwv_flow.ajax?p_context=litedxb/property-history/566920936571",
+    "p_request": "PLUGIN=UkVHSU9OIFRZUEV-fjM3OTExODE2NDUzOTA3ODg0MTc3/9i_8Th5EcI4tFX3mZPCfQcTmBEgXCKp97h2DYEYbpHo",
+    "x01": "37911816453907884177",
+    "protected": "UDBfQ1VSUkVOVF9ZRUFSOlAwX1lURF9ZRUFSOlAwX1lURF9DT01QQVJFOlAwX0xP.,R0lOX1VSTDpQMF9DSEFOTkVMOlAwX0NVUlJFTkNZX1ZBTFVFOlAxNDJfUEFUSF9O.,QU1FOlAxNDJfTE9DQVRJT05fSUQ6UDBfTUVUUklDX1NZTUJPTDpHX1VTRVJfQVVU.,SDpHX1VTRVJfTkFNRTpHX1VTRVJfSU1BR0U6R19VU0VSX0VNQUlMOkdfVVNFUl9U.,SVRMRTpHX1VTRVJfTU9CSUxFOkdfVVNFUl9DT01QQU5ZOkdfQ09NUEFOWV9MT0dP.,OkdfVVNFUl9ST0xFOl9HTDpQMF9TT1VSQ0U6UDBfU0lHTlVQX01PQklMRV9DT0RF/QXmAd-hRhfggdzJUrAOHonNzxJ0Qs53O0QXKNP35cYs",
+    "salt": "235388761836471163227331395059905424533",
+    "items": [
+      {
+        "n": "P142_PROP_ID",
+        "v": "175410031"
+      },
+      {
+        "n": "P142_DLD_ID",
+        "v": ""
+      }
+    ],
+    "sample_response": "<div id=\"report_37911816453907884177_catch\"><ul class=\"t-Cards u-colors t-Cards--basic t-Cards--cols t-Cards--hideBody t-Cards--animColorFill\"  id=\"PropSaleHistory_cards\" data-region-id=\"PropSaleHistory\">\n\n<li class=\"t-Cards-item #CARD_MODIFIERS#\">\n  <div class=\"t-Card\">\n    <div class=\"t-Card-wrap\">\n      <div class=\"t-Card-icon u-color u-color-1-text\"><span class=\"t-Icon fa fa-number-#NUM#-o fa-lg\"><span class=\"t-Card-initials\" role=\"presentation\">#CARD_INITIALS#</span></span></div>\n      <div class=\"t-Card-titleWrap\"><h3 class=\"t-Card-title\"><div class=\"row\">\n<div class=\"col col-xxs-5 col-6 padding-top-md padding-bottom-md\">\n<h5 class=\"margin-none\">Nov, 2024</h5>\n</div>\n<div class=\"col col-xxs-7 col-6 timeline-border  padding-top-md padding-bottom-md\">\n<h4 class=\"margin-none\"><span>AED 2,350,000</span></h4>\n<p class=\"u-color-15-text\">Sold by: <span class=\"u-color-11-text\">Individual</span>\n</div>\n</div></h3><h4 class=\"t-Card-subtitle\">#CARD_SUBTITLE#</h4></div>\n      <div class=\"t-C"
+  },
+  "rent": {
+    "url": "https://dxbinteract.com/wwv_flow.ajax?p_context=litedxb/property-history/566920936571",
+    "p_request": "PLUGIN=UkVHSU9OIFRZUEV-fjI3NDc4NDI4MjEzODkzODU1OTkz/MS4QOrhdo-CWhI4HmcSCksDgz2ne26PCsYx_F7ZOZsM",
+    "x01": "27478428213893855993",
+    "protected": "UDBfQ1VSUkVOVF9ZRUFSOlAwX1lURF9ZRUFSOlAwX1lURF9DT01QQVJFOlAwX0xP.,R0lOX1VSTDpQMF9DSEFOTkVMOlAwX0NVUlJFTkNZX1ZBTFVFOlAxNDJfUEFUSF9O.,QU1FOlAxNDJfTE9DQVRJT05fSUQ6UDBfTUVUUklDX1NZTUJPTDpHX1VTRVJfQVVU.,SDpHX1VTRVJfTkFNRTpHX1VTRVJfSU1BR0U6R19VU0VSX0VNQUlMOkdfVVNFUl9U.,SVRMRTpHX1VTRVJfTU9CSUxFOkdfVVNFUl9DT01QQU5ZOkdfQ09NUEFOWV9MT0dP.,OkdfVVNFUl9ST0xFOl9HTDpQMF9TT1VSQ0U6UDBfU0lHTlVQX01PQklMRV9DT0RF/QXmAd-hRhfggdzJUrAOHonNzxJ0Qs53O0QXKNP35cYs",
+    "salt": "235388761836471163227331395059905424533",
+    "items": [
+      {
+        "n": "P142_EJARI_ID",
+        "v": "2104431668"
+      },
+      {
+        "n": "P142_DLD_EJARI_ID",
+        "v": ""
+      }
+    ],
+    "sample_response": "<div id=\"report_27478428213893855993_catch\"><ul class=\"t-Cards u-colors t-Cards--basic t-Cards--cols t-Cards--hideBody t-Cards--animColorFill\"  id=\"PropRentHistory_cards\" data-region-id=\"PropRentHistory\">\n\n<li class=\"t-Cards-item #CARD_MODIFIERS#\">\n  <div class=\"t-Card\">\n    <div class=\"t-Card-wrap\">\n      <div class=\"t-Card-icon u-color u-color-1-text\"><span class=\"t-Icon fa fa-number-#NUM#-o fa-lg\"><span class=\"t-Card-initials\" role=\"presentation\">#CARD_INITIALS#</span></span></div>\n      <div class=\"t-Card-titleWrap\"><h3 class=\"t-Card-title\"><div class=\"dflex flex-row justify-between align-center horizontal-timeline\">\n<div  class=\"start-bg dflex flex-col justify-start align-center\">\n<h5 class=\"margin-none\">Jan, 2026</h5>\n<p>START</p>\n</div>\n<div class=\"price\">\n<h4 class=\"margin-none\"><span>AED 180,000</span></h4>\n<h3><span aria-hidden=\"true\" class=\"u-color-6-text fa fa-star fa-2x\"></span> New</h3>\n</div>\n<div class=\"end-bg dflex flex-col justify-start align-center\">\n<h5 class=\"margi"
+  },
+  "roi": {
+    "url": "https://dxbinteract.com/wwv_flow.ajax?p_context=litedxb/property-history/566920936571",
+    "p_request": "PLUGIN=UkVHSU9OIFRZUEV-fjI3OTY1MDczMTkyNzU3NDQ4OTc5/xRoYflEscTPzyLRBEvpz-C1EFH5o9oi2AQG7Xy6s_yA",
+    "x01": "27965073192757448979",
+    "protected": "UDBfQ1VSUkVOVF9ZRUFSOlAwX1lURF9ZRUFSOlAwX1lURF9DT01QQVJFOlAwX0xP.,R0lOX1VSTDpQMF9DSEFOTkVMOlAwX0NVUlJFTkNZX1ZBTFVFOlAxNDJfUEFUSF9O.,QU1FOlAxNDJfTE9DQVRJT05fSUQ6UDBfTUVUUklDX1NZTUJPTDpHX1VTRVJfQVVU.,SDpHX1VTRVJfTkFNRTpHX1VTRVJfSU1BR0U6R19VU0VSX0VNQUlMOkdfVVNFUl9U.,SVRMRTpHX1VTRVJfTU9CSUxFOkdfVVNFUl9DT01QQU5ZOkdfQ09NUEFOWV9MT0dP.,OkdfVVNFUl9ST0xFOl9HTDpQMF9TT1VSQ0U6UDBfU0lHTlVQX01PQklMRV9DT0RF/QXmAd-hRhfggdzJUrAOHonNzxJ0Qs53O0QXKNP35cYs",
+    "salt": "235388761836471163227331395059905424533",
+    "items": [
+      {
+        "n": "P142_PROP_ID",
+        "v": "175410031"
+      },
+      {
+        "n": "P142_DLD_ID",
+        "v": ""
+      }
+    ],
+    "sample_response": "<div id=\"report_27965073192757448979_catch\"><ul class=\"t-Cards t-Cards--basic t-Cards--spanHorizontally t-Cards--hideBody t-Cards--animColorFill\"  id=\"R27965073192757448979_cards\" data-region-id=\"R27965073192757448979\">\n\n<li class=\"t-Cards-item #CARD_MODIFIERS#\">\n  <div class=\"t-Card\">\n    <div class=\"t-Card-wrap\">\n      <div class=\"t-Card-icon u-color #CARD_COLOR#\"><span class=\"t-Icon fa #CARD_ICON#\"><span class=\"t-Card-initials\" role=\"presentation\">#CARD_INITIALS#</span></span></div>\n      <div class=\"t-Card-titleWrap\"><h3 class=\"t-Card-title\"><div class=\"row off-white-bg margin-none\">\n<div class=\"col-5 dflex hidden-sm-down\">\n  <img src=\"/assets/property-trends/images/ROI.jpg\" width=\"100%\">\n</div>\n<div class=\"col-7 dflex flex-col align-center justify-center padding-top-lg padding-bottom-lg\">\n  <h2 class=\"lg-text margin-none u-textCenter\"><b>7.66%</b></h2>\n  <h3 class=\"u-color-15-text margin-top-none\">Rental yield</h3>\n</div>\n</div></h3><h4 class=\"t-Card-subtitle\">#CARD_SUBTITLE#</h4>"
+  }
+}

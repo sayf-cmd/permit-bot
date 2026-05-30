@@ -1,3 +1,5 @@
-2026/05/26-19:13:20.661 eeffcd Reusing MANIFEST /Users/sayf/Desktop/Playground/telegram_bot/dxb_profile/Default/Local Storage/leveldb/MANIFEST-000001
-2026/05/26-19:13:20.665 eeffcd Recovering log #3
-2026/05/26-19:13:20.666 eeffcd Reusing old log /Users/sayf/Desktop/Playground/telegram_bot/dxb_profile/Default/Local Storage/leveldb/000003.log 
+2026/05/29-03:22:22.625 1052bbb Reusing MANIFEST /Users/sayf/Desktop/Playground/telegram_bot/dxb_profile/Default/Local Storage/leveldb/MANIFEST-000001
+2026/05/29-03:22:22.629 1052bbb Recovering log #11
+2026/05/29-03:22:22.629 1052bbb Level-0 table #15: started
+2026/05/29-03:22:22.632 1052bbb Level-0 table #15: 9009 bytes OK
+2026/05/29-03:22:22.634 1052bbb Delete type=0 #11

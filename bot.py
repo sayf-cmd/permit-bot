@@ -695,9 +695,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
             user_text = permit_from_link
 
-        if user_text == "👤 My Profile":
-            await profile(update, context)
-            return
+            if len(user_text) == 11 and user_text.startswith("71"):
+            user_text = user_text[2:]
+
+if user_text == "👤 My Profile":
+    await profile(update, context)
+    return
 
         if user_text == "📩 Contact Admin":
             await contact_admin(update, context)
@@ -774,7 +777,14 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if len(digits) > 4:
             variants.append(digits[2:-2])
 
-        result = df[df[permit_col].isin(variants)]
+        df[permit_col] = (
+        df[permit_col]
+        .astype(str)
+        .str.replace(".0", "", regex=False)
+        .str.replace(r"\D", "", regex=True)
+        )
+
+result = df[df[permit_col].isin(variants)]
 
         if result.empty:
             add_search_history(
