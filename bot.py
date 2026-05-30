@@ -2,6 +2,7 @@ import os
 import re
 import json
 import uuid
+import inspect
 from datetime import datetime
 from listing_link_parser import extract_permit_from_listing_url
 
@@ -269,6 +270,50 @@ def normalize_permit(value):
     return re.sub(r"\D", "", str(value or "").strip())
 
 
+async def extract_permit_safe(listing_url):
+    """Extract permit from a listing URL without crashing the whole bot.
+
+    Supports both async and sync implementations of
+    extract_permit_from_listing_url, and also tries a simple numeric fallback.
+    """
+    try:
+        result = extract_permit_from_listing_url(listing_url)
+
+        if inspect.isawaitable(result):
+            result = await result
+
+        permit = normalize_permit(result)
+
+        if len(permit) == 11 and permit.startswith("71"):
+            permit = permit[2:]
+
+        if permit:
+            return permit
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        print(f"LINK EXTRACTOR ERROR: {e}", flush=True)
+
+    # Fallback: sometimes a user sends a URL/text that already contains
+    # the Trakheesi / permit number. Prefer numbers with the Dubai prefix 71.
+    candidates = re.findall(r"\d{8,15}", str(listing_url or ""))
+
+    for candidate in candidates:
+        candidate = normalize_permit(candidate)
+
+        if len(candidate) == 11 and candidate.startswith("71"):
+            return candidate[2:]
+
+    for candidate in candidates:
+        candidate = normalize_permit(candidate)
+
+        if 8 <= len(candidate) <= 12:
+            return candidate
+
+    return ""
+
+
 def already_searched(user_id, permit_number):
     sheet = get_history_sheet()
     rows = sheet.get_all_values()
@@ -530,6 +575,24 @@ async def handle_project_search(update: Update, context: ContextTypes.DEFAULT_TY
         await update.message.reply_text("Searching project database...")
 
         results = search_project_unit(query)
+
+        # Strictly filter by the last argument as unit number.
+        # Example: /project Grande 4702 should only show unit 4702,
+        # not every record in Grande.
+        unit_number = context.args[-1].strip()
+        unit_clean = re.sub(r"\.0$", "", unit_number)
+
+        filtered_results = []
+
+        for r in results:
+            result_unit = str(r.get("unit_number", "")).strip()
+            result_unit = re.sub(r"\.0$", "", result_unit)
+
+            if result_unit == unit_clean:
+                filtered_results.append(r)
+
+        results = filtered_results
+
         text = format_results_for_telegram(results)
 
         if len(text) > 3900:
@@ -679,25 +742,20 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         user_text = update.message.text.strip()
 
-        if "propertyfinder.ae" in user_text:
+        if "propertyfinder.ae" in user_text or "bayut.com" in user_text:
             await update.message.reply_text("🔎 Extracting permit from listing link...")
 
-            permit_from_link = await extract_permit_from_listing_url(user_text)
+            permit_from_link = await extract_permit_safe(user_text)
 
             if not permit_from_link:
                 await update.message.reply_text(
-                    "❌ Could not find permit number in this listing.",
+                    "❌ Could not find permit number in this listing.\n\n"
+                    "Send the Permit / Trakheesi number manually, or try another listing link.",
                     reply_markup=MENU_KEYBOARD,
                 )
                 return
 
             user_text = permit_from_link
-
-            if len(user_text) == 11 and user_text.startswith("71"):
-                user_text = user_text[2:]
-
-            if len(user_text) == 11 and user_text.startswith("71"):
-                user_text = user_text[2:]
 
         if user_text == "👤 My Profile":
             await profile(update, context)
