@@ -778,13 +778,13 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             variants.append(digits[2:-2])
 
         df[permit_col] = (
-        df[permit_col]
-        .astype(str)
-        .str.replace(".0", "", regex=False)
-        .str.replace(r"\D", "", regex=True)
+            df[permit_col]
+            .astype(str)
+            .str.replace(".0", "", regex=False)
+            .str.replace(r"\D", "", regex=True)
         )
 
-result = df[df[permit_col].isin(variants)]
+        result = df[df[permit_col].isin(variants)]
 
         if result.empty:
             add_search_history(
