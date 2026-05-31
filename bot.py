@@ -5,6 +5,7 @@ import uuid
 import inspect
 from datetime import datetime
 from listing_link_parser import extract_permit_from_listing_url
+from supabase import create_client
 
 import pandas as pd
 import gspread
@@ -38,6 +39,9 @@ TOKEN = os.environ["TELEGRAM_TOKEN"]
 SHEET_CSV_URL = os.environ.get("SHEET_CSV_URL", "")
 GOOGLE_SHEET_URL = os.environ.get("GOOGLE_SHEET_URL", "")
 GOOGLE_SERVICE_ACCOUNT_JSON = os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON", "")
+SUPABASE_URL = os.environ["SUPABASE_URL"]
+SUPABASE_KEY = os.environ["SUPABASE_KEY"]
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 ADMIN_USERNAME = "@Sayf_Jr"
 
@@ -712,16 +716,11 @@ async def handle_dxb(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "status": "pending",
         }).execute()
 
-        await update.message.reply_text(
-            "⏳ DXB request added to queue..."
-        )
+        await update.message.reply_text("⏳ DXB request added to queue...")
 
     except Exception as e:
         print("DXB ERROR:", e)
-        await update.message.reply_text(
-            "❌ DXB error. Try again later.",
-            reply_markup=MENU_KEYBOARD,
-        )
+        await update.message.reply_text("❌ DXB error. Try again later.")
 
         if len(result) > 3900:
             await msg.delete()
