@@ -695,12 +695,6 @@ async def handle_export(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def handle_dxb(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
-        print("DXB COMMAND RECEIVED")
-        print(update.message.text)
-
-        # if not await require_special_access(update):
-        #     return
-
         if len(context.args) < 2:
             await update.message.reply_text(
                 "Напиши так:\n/dxb Grande 4702",
@@ -711,13 +705,22 @@ async def handle_dxb(update: Update, context: ContextTypes.DEFAULT_TYPE):
         unit_number = context.args[-1]
         building_name = " ".join(context.args[:-1]).strip()
 
-        msg = await update.message.reply_text(
-            "🔍 Searching DXB Interact..."
+        supabase.table("dxb_jobs").insert({
+            "chat_id": str(update.effective_chat.id),
+            "building": building_name,
+            "unit": unit_number,
+            "status": "pending",
+        }).execute()
+
+        await update.message.reply_text(
+            "⏳ DXB request added to queue..."
         )
 
-        result = await search_dxb_unit_api(
-            building_name,
-            unit_number,
+    except Exception as e:
+        print("DXB ERROR:", e)
+        await update.message.reply_text(
+            "❌ DXB error. Try again later.",
+            reply_markup=MENU_KEYBOARD,
         )
 
         if len(result) > 3900:
