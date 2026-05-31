@@ -1,3 +1,6 @@
-2026/05/29-03:22:22.764 1052bbb Reusing MANIFEST /Users/sayf/Desktop/Playground/telegram_bot/dxb_profile/Default/Session Storage/MANIFEST-000001
-2026/05/29-03:22:22.765 1052bbb Recovering log #4
-2026/05/29-03:22:22.768 1052bbb Reusing old log /Users/sayf/Desktop/Playground/telegram_bot/dxb_profile/Default/Session Storage/000004.log 
+2026/05/31-22:41:56.408 11e2639 Reusing MANIFEST /Users/sayf/Desktop/Playground/telegram_bot/dxb_profile/Default/Session Storage/MANIFEST-000001
+2026/05/31-22:41:56.411 11e2639 Recovering log #4
+2026/05/31-22:41:56.412 11e2639 Reusing old log /Users/sayf/Desktop/Playground/telegram_bot/dxb_profile/Default/Session Storage/000004.log 
+2026/05/31-22:42:00.912 11e263c Level-0 table #8: started
+2026/05/31-22:42:00.913 11e263c Level-0 table #8: 17424 bytes OK
+2026/05/31-22:42:00.915 11e263c Delete type=0 #4

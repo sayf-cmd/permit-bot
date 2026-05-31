@@ -1,50 +1,53 @@
 import re
-import json
-import asyncio
 import requests
-from urllib.parse import parse_qs
 from difflib import SequenceMatcher
 from playwright.async_api import async_playwright
+import asyncio
 
 LOV_URL = "https://fam-erp.com/property/website/DLDLOV?RETURN_COLUMN=LOCATION_URL"
 PROFILE_DIR = "dxb_profile"
 
+# Manual mappings for buildings that exist in DXB UI autocomplete
+# but are missing / weak in the public LOV endpoint.
 MANUAL_LOCATIONS = {
     "acacia c": {
-        "id": "35567",
+        "id": 35567,
         "dv": "Building C, Acacia At Park Heights, Dubai Hills Estate",
     },
     "acacia building c": {
-        "id": "35567",
+        "id": 35567,
         "dv": "Building C, Acacia At Park Heights, Dubai Hills Estate",
     },
     "acacia at park heights building c": {
-        "id": "35567",
+        "id": 35567,
         "dv": "Building C, Acacia At Park Heights, Dubai Hills Estate",
     },
-    "mulberry 2 b1": {
-        "id": "35668",
-        "dv": "Mulberry 2 Building B1, Mulberry Park Heights, Dubai Hills Estate",
+}
+
+# Manual unit mappings for cases where DXB needs internal APEX unit lookup
+# and hidden-field UI search does not populate PROP_ID.
+MANUAL_PROPS = {
+    ("acacia c", "607"): {
+        "prop_id": "22111450",
+        "ejari_id": "1324341876",
     },
-    "mulberry b1": {
-        "id": "35668",
-        "dv": "Mulberry 2 Building B1, Mulberry Park Heights, Dubai Hills Estate",
+    ("acacia building c", "607"): {
+        "prop_id": "22111450",
+        "ejari_id": "1324341876",
+    },
+    ("acacia at park heights building c", "607"): {
+        "prop_id": "22111450",
+        "ejari_id": "1324341876",
     },
 }
 
 BUILDING_ALIASES = {
     "st regis downtown residences tower 1": "The St. Regis Residences Tower 1",
-    "st.regis downtown residences tower 1": "The St. Regis Residences Tower 1",
     "st regis downtown residences tower 2": "The St. Regis Residences Tower 2",
+    "st.regis downtown residences tower 1": "The St. Regis Residences Tower 1",
     "st.regis downtown residences tower 2": "The St. Regis Residences Tower 2",
     "vida dubai mall tower 1": "VIDA Dubai Mall Tower 1",
     "vida dubai mall tower 2": "VIDA Dubai Mall Tower 2",
-    "address opera": "The Address Dubai Opera, Downtown Dubai",
-    "address opera 1": "The Address Dubai Opera Tower 1",
-    "address opera 2": "The Address Dubai Opera Tower 2",
-    "the address dubai opera": "The Address Dubai Opera, Downtown Dubai",
-    "the address dubai opera 1": "The Address Dubai Opera Tower 1",
-    "the address dubai opera 2": "The Address Dubai Opera Tower 2",
 }
 
 
@@ -59,18 +62,29 @@ def similarity(a, b):
     return SequenceMatcher(None, normalize(a), normalize(b)).ratio()
 
 
-def apply_alias(text):
-    q = normalize(text)
+def apply_alias(building_name):
+    query = normalize(building_name)
 
-    for alias, item in MANUAL_LOCATIONS.items():
-        if normalize(alias) in q:
-            return item
+    for alias, location in MANUAL_LOCATIONS.items():
+        if normalize(alias) in query:
+            return location
 
     for alias, actual in BUILDING_ALIASES.items():
-        if normalize(alias) in q:
+        if normalize(alias) in query:
             return actual
 
-    return text
+    return building_name
+
+
+def get_manual_prop(building_name, unit_number):
+    query = normalize(building_name)
+    unit = str(unit_number).strip()
+
+    for (alias, manual_unit), value in MANUAL_PROPS.items():
+        if normalize(alias) in query and manual_unit == unit:
+            return value
+
+    return None
 
 
 def find_best_location(building_name):
@@ -97,86 +111,72 @@ def find_best_location(building_name):
     best_score = -999
 
     for item in items:
-        if item.get("flag") not in ["P", "B"]:
+        name = item.get("dv", "")
+        flag = item.get("flag", "")
+
+        if flag not in ["P", "B"]:
             continue
 
-        name = item.get("dv", "")
         target = normalize(name)
         target_words = set(target.split())
 
-        score = similarity(query, target) * 10
-        score += len(query_words & target_words) * 8
-        score -= len(query_words - target_words) * 2
+        score = 0
+        score += similarity(query, target) * 10
+
+        shared = query_words.intersection(target_words)
+        missing = query_words - target_words
+
+        score += len(shared) * 8
+        score -= len(missing) * 2
 
         if query == target:
-            score += 80
+            score += 60
+
         if query in target:
-            score += 45
+            score += 35
+
         if target.startswith(query):
-            score += 30
+            score += 25
 
         if "dubai hills" in query and "dubai hills" in target:
-            score += 60
+            score += 50
+
         if "downtown" in query and "downtown" in target:
-            score += 60
+            score += 50
+
         if "business bay" in query and "business bay" in target:
-            score += 60
+            score += 50
+
         if "dubai hills" in query and "damac hills 2" in target:
-            score -= 150
+            score -= 120
 
         if score > best_score:
             best_score = score
             best = item
 
-    if best_score < 20:
+    if best_score < 25:
         return None
 
-    return {
-        "id": str(best.get("id", "")),
-        "dv": best.get("dv", ""),
-    }
+    return best
 
 
 def extract(pattern, text, default="-"):
-    m = re.search(pattern, text or "", re.I | re.S)
+    m = re.search(pattern, text, re.I | re.S)
     return m.group(1).strip() if m else default
 
 
-def parse_details_html(html):
-    size = extract(r"Size</p>\s*<p[^>]*><b>([^<]+)</b>\s*<sup>Sqft</sup>", html)
-    bedrooms = extract(r"Bedrooms</p>\s*<p[^>]*><b>([^<]+)</b>", html)
-    balcony = extract(r"Balcony</p>\s*<p[^>]*><b>([^<]+)</b>\s*<sup>Sqft</sup>", html)
-    parking = extract(r"Parking</p>\s*<p[^>]*[^>]*><b>([^<]+)</b>", html)
-
-    if size != "-":
-        size = f"{size} Sqft"
-    if balcony != "-" and "sqft" not in balcony.lower():
-        balcony = f"{balcony} Sqft"
-
-    return {
-        "size": size,
-        "bedrooms": bedrooms,
-        "balcony": balcony,
-        "parking": parking,
-    }
-
-
-def parse_sales_html(html):
+def parse_sales(text):
     return re.findall(
-        r"<h5[^>]*>\s*([^<]+?)\s*</h5>.*?"
-        r"AED\s*([\d,]+).*?"
-        r"Sold by:\s*<span[^>]*>\s*([^<]+?)\s*</span>",
-        html or "",
-        re.I | re.S,
+        r"([A-Za-z]{3},\s+\d{4})\s+AED\s+([\d,]+)\s+Sold by:\s+([A-Za-z]+)",
+        text,
+        re.I,
     )
 
 
-def parse_rents_html(html):
+def parse_rents(text):
     return re.findall(
-        r"<h5[^>]*>\s*([^<]+?)\s*</h5>\s*<p>START</p>.*?"
-        r"AED\s*([\d,]+).*?"
-        r"<h5[^>]*>\s*([^<]+?)\s*</h5>\s*<p>END</p>",
-        html or "",
+        r"Rental contract\s+([A-Za-z]{3},\s+\d{4})\s+START\s+AED\s+([\d,]+).*?([A-Za-z]{3},\s+\d{4})\s+END",
+        text,
         re.I | re.S,
     )
 
@@ -185,24 +185,22 @@ def format_result(data):
     prop_id = data.get("prop_id", "")
     trakheesi = f"71{prop_id}" if prop_id else "-"
 
-    sales = data.get("sales") or []
     sales_text = "• No sale history found"
-    if sales:
+    if data.get("sales"):
         sales_text = "\n".join(
-            f"• {date.strip()} — AED {price.strip()} — {seller.strip()}"
-            for date, price, seller in sales
+            f"• {date} — AED {price} — {seller}"
+            for date, price, seller in data["sales"]
         )
 
-    rents = data.get("rents") or []
     rent_text = "• No rental contracts found"
-    if rents:
+    if data.get("rents"):
         rent_text = "\n".join(
-            f"• {start.strip()} → {end.strip()} — AED {amount.strip()}"
-            for start, amount, end in rents
+            f"• {start} → {end} — AED {amount}"
+            for start, amount, end in data["rents"]
         )
 
     ejari_line = ""
-    if data.get("ejari_id"):
+    if data.get("ejari_id") and data.get("ejari_id") != "-":
         ejari_line = f"🆔 EJARI ID: {data.get('ejari_id')}\n"
 
     return (
@@ -223,265 +221,6 @@ def format_result(data):
     )
 
 
-def classify_template(post_data, response_text):
-    parsed = parse_qs(post_data or "")
-    p_json_raw = parsed.get("p_json", ["{}"])[0]
-    p_request = parsed.get("p_request", [""])[0]
-    x01 = parsed.get("x01", [""])[0]
-    widget_action = parsed.get("p_widget_action", [""])[0]
-
-    try:
-        p_json = json.loads(p_json_raw)
-    except Exception:
-        p_json = {}
-
-    items = p_json.get("pageItems", {}).get("itemsToSubmit", [])
-    names = [x.get("n") for x in items]
-    protected = p_json.get("pageItems", {}).get("protected", "")
-    salt = p_json.get("salt", "")
-
-    record = {
-        "p_request": p_request,
-        "x01": x01,
-        "widget_action": widget_action,
-        "protected": protected,
-        "salt": salt,
-        "items": items,
-    }
-
-    text = response_text or ""
-
-    if names == ["P142_LOCATION_ID"] and text.strip().startswith("{"):
-        return "location_name", record
-
-    if (
-        "P142_PROP_NO" in names
-        and "P142_LOCATION_ID" in names
-        and "P142_PROP_ID" not in names
-        and text.strip().startswith("{")
-    ):
-        return "prop_lookup", record
-
-    if (
-        "P142_PROP_NO" in names
-        and "P142_PATH_NAME" in names
-        and "P142_PROP_ID" in names
-        and text.strip().startswith("{")
-    ):
-        return "search_log", record
-
-    if "propDetails_cards" in text:
-        return "details", record
-
-    if "PropSaleHistory_cards" in text:
-        return "sales", record
-
-    if "PropRentHistory_cards" in text or "P142_EJARI_ID" in names:
-        return "rent", record
-
-    if "Rental yield" in text and x01:
-        return "roi", record
-
-    return None, record
-
-
-async def capture_runtime_templates(page):
-    templates = {
-        "location_name": None,
-        "prop_lookup": None,
-        "search_log": None,
-        "details": None,
-        "sales": None,
-        "rent": None,
-        "roi": None,
-    }
-
-    async def on_response(response):
-        if "wwv_flow.ajax" not in response.url:
-            return
-        try:
-            req = response.request
-            post = req.post_data or ""
-            text = await response.text()
-            kind, record = classify_template(post, text)
-            if kind and not templates.get(kind):
-                templates[kind] = record
-        except Exception:
-            pass
-
-    page.on("response", on_response)
-    return templates
-
-
-async def do_warmup_search(page):
-    """
-    Automatic warmup search. This triggers DXB to emit fresh APEX templates
-    for the current p_instance/session.
-    """
-    await page.wait_for_timeout(1500)
-
-    await page.evaluate(
-        """
-        () => {
-            const setVal = (id, value) => {
-                const el = document.querySelector(id);
-                if (el) {
-                    el.value = value;
-                    el.dispatchEvent(new Event("input", { bubbles: true }));
-                    el.dispatchEvent(new Event("change", { bubbles: true }));
-                    el.dispatchEvent(new KeyboardEvent("keyup", { bubbles: true }));
-                }
-            };
-
-            setVal("#P142_TYPE", "P");
-            setVal("#P142_LOCATION_ID", "31624");
-            setVal("#P142_PATH_NAME", "The Pad, Business Bay");
-            setVal("#P142_PROP_NO", "607");
-        }
-        """
-    )
-
-    await page.wait_for_timeout(1000)
-
-    clicked = False
-
-    try:
-        await page.locator("button").filter(has_text="Search").first.click(
-            timeout=7000,
-            force=True,
-        )
-        clicked = True
-    except Exception:
-        pass
-
-    if not clicked:
-        try:
-            await page.get_by_text("Search", exact=True).click(
-                timeout=7000,
-                force=True,
-            )
-            clicked = True
-        except Exception:
-            pass
-
-    if not clicked:
-        await page.evaluate(
-            """
-            () => {
-                const candidates = [...document.querySelectorAll("button, a, input[type='button'], input[type='submit']")];
-                const btn = candidates.find(x =>
-                    (x.innerText || x.value || "").trim() === "Search"
-                );
-                if (!btn) throw new Error("Search button not found");
-                btn.click();
-            }
-            """
-        )
-
-    await page.wait_for_timeout(8000)
-
-    try:
-        await page.get_by_text("Rent", exact=True).click(timeout=7000, force=True)
-        await page.wait_for_timeout(3000)
-    except Exception:
-        pass
-
-    try:
-        await page.get_by_text("Sale", exact=True).click(timeout=5000, force=True)
-        await page.wait_for_timeout(1000)
-    except Exception:
-        pass
-
-
-async def apex_post(page, template, items, *, x01=None, widget_action=None):
-    ck_by_name = {
-        item.get("n"): item.get("ck")
-        for item in template.get("items", [])
-        if item.get("ck")
-    }
-
-    return await page.evaluate(
-        """
-        async ({ pRequest, items, x01, widgetAction, protectedValue, saltValue, ckByName }) => {
-            const get = (id) => document.querySelector(id)?.value || "";
-            const pFlowId = get("#pFlowId") || "242";
-            const pFlowStepId = get("#pFlowStepId") || "142";
-            const pInstance = get("#pInstance") || "";
-            const pContext = get("#pContext") || "";
-
-            const normalizedItems = items.map(item => {
-                const out = { n: item.n, v: String(item.v ?? "") };
-                const ck = ckByName[item.n];
-                if (ck) out.ck = ck;
-                if (item.ck) out.ck = item.ck;
-                return out;
-            });
-
-            const body = new URLSearchParams();
-            body.set("p_flow_id", pFlowId);
-            body.set("p_flow_step_id", pFlowStepId);
-            body.set("p_instance", pInstance);
-            body.set("p_debug", "");
-            body.set("p_request", pRequest);
-
-            if (widgetAction) body.set("p_widget_action", widgetAction);
-            if (x01) body.set("x01", x01);
-
-            body.set(
-                "p_json",
-                JSON.stringify({
-                    pageItems: {
-                        itemsToSubmit: normalizedItems,
-                        protected: protectedValue,
-                        rowVersion: "",
-                        formRegionChecksums: []
-                    },
-                    salt: saltValue
-                })
-            );
-
-            const res = await fetch(`/wwv_flow.ajax?p_context=${pContext}`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-                    "X-Requested-With": "XMLHttpRequest"
-                },
-                body
-            });
-
-            return await res.text();
-        }
-        """,
-        {
-            "pRequest": template["p_request"],
-            "items": items,
-            "x01": x01 if x01 is not None else template.get("x01", ""),
-            "widgetAction": widget_action if widget_action is not None else template.get("widget_action", ""),
-            "protectedValue": template.get("protected", ""),
-            "saltValue": template.get("salt", ""),
-            "ckByName": ck_by_name,
-        },
-    )
-
-
-def parse_json_items(text):
-    try:
-        data = json.loads(text)
-    except Exception:
-        return {}
-
-    out = {}
-
-    for val in data.get("values", []) or []:
-        if isinstance(val, str):
-            out.setdefault("values", []).append(val)
-
-    for item in data.get("item", []) or []:
-        out[item.get("id")] = item.get("value", "")
-
-    return out
-
-
 async def search_dxb_unit_api(building_name: str, unit_number: str) -> str:
     location = find_best_location(building_name)
 
@@ -492,8 +231,10 @@ async def search_dxb_unit_api(building_name: str, unit_number: str) -> str:
             f"Unit: {unit_number}"
         )
 
-    location_id = str(location["id"])
+    manual_prop = get_manual_prop(building_name, unit_number)
+
     location_name = location["dv"]
+    location_id = str(location["id"])
     area = location_name.split(",")[-1].strip() if "," in location_name else "-"
 
     async with async_playwright() as p:
@@ -510,7 +251,6 @@ async def search_dxb_unit_api(building_name: str, unit_number: str) -> str:
 
         page = context.pages[0] if context.pages else await context.new_page()
 
-        templates = await capture_runtime_templates(page)
         await page.goto(
             "https://dxbinteract.com/dubai-property-prices",
             wait_until="domcontentloaded",
@@ -519,56 +259,64 @@ async def search_dxb_unit_api(building_name: str, unit_number: str) -> str:
 
         await page.wait_for_timeout(2000)
 
-        await do_warmup_search(page)
+        await page.evaluate(
+            """
+            ({ locationId, locationName, unitNumber }) => {
+                const setVal = (id, value) => {
+                    const el = document.querySelector(id);
+                    if (el) {
+                        el.value = value;
+                        el.dispatchEvent(new Event("input", { bubbles: true }));
+                        el.dispatchEvent(new Event("change", { bubbles: true }));
+                    }
+                };
 
-        # Wait until required templates are available.
-        for _ in range(20):
-            required_ok = (
-                templates.get("location_name")
-                and templates.get("prop_lookup")
-                and templates.get("search_log")
-                and templates.get("details")
-                and templates.get("sales")
-            )
-            if required_ok:
-                break
-            await page.wait_for_timeout(500)
-
-        missing = [
-            k for k in ["location_name", "prop_lookup", "search_log", "details", "sales"]
-            if not templates.get(k)
-        ]
-
-        if missing:
-            await context.close()
-            return (
-                "❌ Could not capture fresh DXB APEX templates.\n\n"
-                f"Missing: {', '.join(missing)}"
-            )
-
-        name_text = await apex_post(
-            page,
-            templates["location_name"],
-            [{"n": "P142_LOCATION_ID", "v": location_id}],
+                setVal("#P142_LOCATION_ID", String(locationId));
+                setVal("#P142_PATH_NAME", locationName);
+                setVal("#P142_PROP_NO", String(unitNumber));
+            }
+            """,
+            {
+                "locationId": location_id,
+                "locationName": location_name,
+                "unitNumber": unit_number,
+            },
         )
-        name_data = parse_json_items(name_text)
-        if name_data.get("values"):
-            location_name = name_data["values"][0]
-            area = location_name.split(",")[-1].strip() if "," in location_name else area
 
-        prop_text = await apex_post(
-            page,
-            templates["prop_lookup"],
-            [
-                {"n": "P142_TYPE", "v": "P"},
-                {"n": "P142_PROP_NO", "v": str(unit_number)},
-                {"n": "P142_LOCATION_ID", "v": location_id},
-            ],
+        try:
+            await page.locator("button").filter(
+                has_text="Search"
+            ).first.click(timeout=10000)
+
+        except Exception:
+            await page.evaluate(
+                """
+                () => {
+                    const buttons = [...document.querySelectorAll("button, a")];
+                    const btn = buttons.find(
+                        x => x.innerText.trim() === "Search"
+                    );
+
+                    if (btn) btn.click();
+                }
+                """
+            )
+
+        await page.wait_for_timeout(7000)
+
+        body_sale = await page.locator("body").inner_text()
+
+        prop_id = await page.evaluate(
+            """() => document.querySelector("#P142_PROP_ID")?.value || "" """
         )
-        prop_data = parse_json_items(prop_text)
 
-        prop_id = prop_data.get("P142_PROP_ID", "")
-        ejari_id = prop_data.get("P142_EJARI_ID", "")
+        ejari_id = await page.evaluate(
+            """() => document.querySelector("#P142_EJARI_ID")?.value || "" """
+        )
+
+        if manual_prop:
+            prop_id = manual_prop["prop_id"]
+            ejari_id = manual_prop["ejari_id"]
 
         if not prop_id:
             await context.close()
@@ -577,79 +325,43 @@ async def search_dxb_unit_api(building_name: str, unit_number: str) -> str:
                 f"🏢 Building: {location_name}\n"
                 f"📍 Area: {area}\n"
                 f"🏠 Unit: {unit_number}\n"
-                f"🆔 LOCATION_ID: {location_id}\n\n"
-                f"Debug response: {prop_text[:300]}"
+                f"🆔 LOCATION_ID: {location_id}"
             )
 
-        await apex_post(
-            page,
-            templates["search_log"],
-            [
-                {"n": "P142_TYPE", "v": "P"},
-                {"n": "P142_PROP_NO", "v": str(unit_number)},
-                {"n": "P142_PATH_NAME", "v": location_name},
-                {"n": "P142_LOCATION_ID", "v": location_id},
-                {"n": "P142_PROP_ID", "v": prop_id},
-            ],
-        )
+        try:
+            await page.get_by_text("Rent", exact=True).click(timeout=10000)
+            await page.wait_for_timeout(2500)
+        except Exception:
+            pass
 
-        details_html = await apex_post(
-            page,
-            templates["details"],
-            [
-                {"n": "P142_TYPE", "v": "P"},
-                {"n": "P142_LOCATION_ID", "v": location_id},
-                {"n": "P142_PROP_ID", "v": prop_id},
-            ],
-            widget_action="reset",
-        )
+        body_rent = await page.locator("body").inner_text()
 
-        sales_html = await apex_post(
-            page,
-            templates["sales"],
-            [
-                {"n": "P142_PROP_ID", "v": prop_id},
-                {"n": "P142_DLD_ID", "v": ""},
-            ],
-            widget_action="reset",
-        )
+        rents = parse_rents(body_rent)
 
-        rent_html = ""
-        if ejari_id and templates.get("rent"):
-            rent_html = await apex_post(
-                page,
-                templates["rent"],
-                [
-                    {"n": "P142_EJARI_ID", "v": ejari_id},
-                    {"n": "P142_DLD_EJARI_ID", "v": ""},
-                ],
-                widget_action="reset",
-            )
+        status = "🟢 Status: Available"
+        if rents:
+            status = "🔴 Status: Rented"
 
-        await context.close()
-
-    details = parse_details_html(details_html)
-    sales = parse_sales_html(sales_html)
-    rents = parse_rents_html(rent_html)
-
-    status = "🔴 Status: Rented" if rents else "🟢 Status: Available"
-
-    return format_result(
-        {
+        data = {
             "prop_id": prop_id,
-            "ejari_id": ejari_id,
+            "ejari_id": ejari_id or "-",
             "building": location_name,
             "area": area,
-            "unit": str(unit_number),
-            "size": details.get("size", "-"),
-            "bedrooms": details.get("bedrooms", "-"),
-            "balcony": details.get("balcony", "-"),
-            "parking": details.get("parking", "-"),
-            "sales": sales,
+            "unit": unit_number,
+            "size": extract(r"Size\s+([\d,]+\s+Sqft)", body_sale),
+            "bedrooms": extract(r"Bedrooms\s+([0-9]+|Studio)", body_sale),
+            "balcony": extract(r"Balcony\s+(.+?\s+Sqft|No balcony)", body_sale),
+            "parking": extract(
+                r"Parking\s+(.+?)(?:\s+[0-9.]+%\s+Rental yield|Processing|Transactions history)",
+                body_sale,
+            ),
+            "sales": parse_sales(body_sale),
             "rents": rents,
             "status": status,
         }
-    )
+
+        await context.close()
+        return format_result(data)
 
 
 def debug_locations(query, limit=10):
@@ -674,4 +386,6 @@ def debug_locations(query, limit=10):
 
 
 if __name__ == "__main__":
-    debug_locations("address opera", 30)
+    building = input("Building: ").strip()
+    unit = input("Unit: ").strip()
+    print(asyncio.run(search_dxb_unit_api(building, unit)))
