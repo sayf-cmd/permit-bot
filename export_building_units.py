@@ -2,11 +2,12 @@ import asyncio
 import re
 import csv
 from dxb_interact_api import search_dxb_unit_api
+UNITS_PER_FLOOR = int(input("Units per floor: ").strip())
 
 
-BUILDING = "Burj Crown"
-START_UNIT = 1501
-END_UNIT = 1510
+BUILDING = input("Building name: ").strip()
+START_FLOOR = int(input("Start floor: ").strip())
+END_FLOOR = int(input("End floor: ").strip())
 
 OUTPUT_FILE = "building_units_export.csv"
 
@@ -40,33 +41,37 @@ def extract_rents(text):
 async def main():
     rows = []
 
-    for unit in range(START_UNIT, END_UNIT + 1):
-        unit = str(unit)
-        print(f"Checking {BUILDING} {unit}...")
+    for floor in range(START_FLOOR, END_FLOOR + 1):
 
-        try:
-            result = await search_dxb_unit_api(BUILDING, unit)
+        for unit in range(1, UNITS_PER_FLOOR + 1):
 
-            if result.startswith("❌"):
-                continue
+            unit_number = f"{floor}{unit:02d}"
 
-            rows.append({
-                "Trakheesi": extract_field("🆔 Trakheesi", result),
-                "Ejari ID": extract_field("🆔 EJARI ID", result),
-                "Building": extract_field("🏢 Building", result),
-                "Area": extract_field("📍 Area", result),
-                "Unit": extract_field("🏠 Unit", result),
-                "Bedrooms": extract_field("🛏 Bedrooms", result),
-                "Size": extract_field("📐 Size", result),
-                "Balcony": extract_field("🌇 Balcony", result),
-                "Parking": extract_field("🅿️ Parking", result),
-                "Status": "Rented" if "🔴 Status: Rented" in result else "Available",
-                "Sale History": extract_sales(result),
-                "Rental Contracts": extract_rents(result),
-            })
+            print(f"Checking {BUILDING} {unit_number}...")
 
-        except Exception as e:
-            print(f"Error {unit}: {e}")
+            try:
+                result = await search_dxb_unit_api(BUILDING, unit_number)
+
+                if result.startswith("❌"):
+                    continue
+
+                rows.append({
+                    "Trakheesi": extract_field("🆔 Trakheesi", result),
+                    "Ejari ID": extract_field("🆔 EJARI ID", result),
+                    "Building": extract_field("🏢 Building", result),
+                    "Area": extract_field("📍 Area", result),
+                    "Unit": extract_field("🏠 Unit", result),
+                    "Bedrooms": extract_field("🛏 Bedrooms", result),
+                    "Size": extract_field("📐 Size", result),
+                    "Balcony": extract_field("🌇 Balcony", result),
+                    "Parking": extract_field("🅿️ Parking", result),
+                    "Status": "Rented" if "🔴 Status: Rented" in result else "Available",
+                    "Sale History": extract_sales(result),
+                    "Rental Contracts": extract_rents(result),
+                })
+
+            except Exception as e:
+                print(f"Error {unit_number}: {e}")
 
     with open(OUTPUT_FILE, "w", newline="", encoding="utf-8-sig") as f:
         writer = csv.DictWriter(
