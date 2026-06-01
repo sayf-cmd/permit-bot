@@ -4,8 +4,12 @@ import json
 import uuid
 import inspect
 from datetime import datetime
+from io import StringIO
+import requests
 from listing_link_parser import extract_permit_from_listing_url
 from supabase import create_client
+from dotenv import load_dotenv
+load_dotenv()
 
 import pandas as pd
 import gspread
@@ -34,14 +38,33 @@ from telegram.ext import (
 )
 
 
-TOKEN = os.environ["TELEGRAM_TOKEN"]
+TOKEN = (
+    os.environ.get("TELEGRAM_TOKEN")
+    or os.environ.get("BOT_TOKEN")
+    or os.environ.get("TELEGRAM_BOT_TOKEN")
+)
 
-SHEET_CSV_URL = os.environ.get("SHEET_CSV_URL", "")
+SHEET_CSV_URL = (
+    os.environ.get("SHEET_CSV_URL")
+    or os.environ.get("CSV_URL")
+    or os.environ.get("PROPERTY_CSV_URL")
+    or os.environ.get("CSV_LINK")
+    or ""
+)
+
+print("SHEET_CSV_URL FROM ENV:", repr(SHEET_CSV_URL))
+
 GOOGLE_SHEET_URL = os.environ.get("GOOGLE_SHEET_URL", "")
 GOOGLE_SERVICE_ACCOUNT_JSON = os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON", "")
-SUPABASE_URL = os.environ["SUPABASE_URL"]
-SUPABASE_KEY = os.environ["SUPABASE_KEY"]
-supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "")
+
+if not TOKEN:
+    raise RuntimeError("Missing TELEGRAM_TOKEN / BOT_TOKEN / TELEGRAM_BOT_TOKEN env variable")
+
+supabase = None
+if SUPABASE_URL and SUPABASE_KEY:
+    supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 ADMIN_USERNAME = "@Sayf_Jr"
 
@@ -103,18 +126,77 @@ def clean_phone(value):
     return digits
 
 
+def pick_column(df, candidates, required=True):
+    """Return the real dataframe column name from possible aliases."""
+    columns = {str(col).strip().lower(): col for col in df.columns}
+
+    for candidate in candidates:
+        key = str(candidate).strip().lower()
+        if key in columns:
+            return columns[key]
+
+    if required:
+        raise KeyError(
+            f"Missing required column. Tried {candidates}. "
+            f"Available columns: {list(df.columns)}"
+        )
+
+    return ""
+
+
+def ensure_column(df, name):
+    if name not in df.columns:
+        df[name] = ""
+    return name
+
+
 def load_data():
-    df = pd.read_csv(SHEET_CSV_URL, low_memory=False)
+    if not SHEET_CSV_URL or SHEET_CSV_URL == "test":
+        raise RuntimeError("SHEET_CSV_URL / CSV_URL is empty or disabled")
+
+    response = requests.get(
+        SHEET_CSV_URL,
+        timeout=30,
+        allow_redirects=True,
+        headers={"User-Agent": "Mozilla/5.0"},
+    )
+    response.raise_for_status()
+
+    preview = response.text[:200].lower()
+    content_type = response.headers.get("content-type", "")
+
+    if "<html" in preview:
+        raise RuntimeError(
+            f"CSV URL returned HTML instead of CSV. content-type={content_type}"
+        )
+
+    df = pd.read_csv(StringIO(response.text), dtype=str, low_memory=False)
     df.columns = [str(col).strip() for col in df.columns]
 
-    permit_col = "Permit_number"
-    building_col = "Building_name"
-    unit_col = "Unit_number"
+    print("CSV LOADED ROWS:", len(df))
+    print("CSV COLUMNS:", df.columns.tolist())
 
-    latest_phone_1_col = "Latest_phone_1"
-    latest_phone_2_col = "Latest_phone_2"
-    latest_phone_3_col = "Latest_phone_3"
-    latest_phone_4_col = "Latest_phone_4"
+    permit_col = pick_column(df, ["Permit_number", "Permit Number", "Permit", "TRAKHESSI"])
+    building_col = pick_column(df, ["Building_name", "Building Name", "Building No", "BUILDING"])
+    unit_col = pick_column(df, ["Unit_number", "Unit Number", "Unit No", "UNIT"])
+
+    area_col = pick_column(df, ["Area_name", "Area Name", "Area", "Zone"], required=False)
+    if not area_col:
+        area_col = ensure_column(df, "Area")
+
+    latest_owner_col = pick_column(df, ["Latest_owner", "Latest_Owner", "Owner Name", "Owner"], required=False)
+    if not latest_owner_col:
+        latest_owner_col = ensure_column(df, "Latest_Owner")
+
+    latest_phone_1_col = pick_column(df, ["Latest_phone_1", "Latest_Phone_1", "Mobile 1"], required=False)
+    latest_phone_2_col = pick_column(df, ["Latest_phone_2", "Latest_Phone_2", "Mobile 2"], required=False)
+    latest_phone_3_col = pick_column(df, ["Latest_phone_3", "Latest_Phone_3", "Mobile 3"], required=False)
+    latest_phone_4_col = pick_column(df, ["Latest_phone_4", "Latest_Phone_4", "Mobile 4"], required=False)
+
+    latest_phone_1_col = latest_phone_1_col or ensure_column(df, "Latest_Phone_1")
+    latest_phone_2_col = latest_phone_2_col or ensure_column(df, "Latest_Phone_2")
+    latest_phone_3_col = latest_phone_3_col or ensure_column(df, "Latest_Phone_3")
+    latest_phone_4_col = latest_phone_4_col or ensure_column(df, "Latest_Phone_4")
 
     df[permit_col] = (
         df[permit_col]
@@ -122,6 +204,14 @@ def load_data():
         .str.strip()
         .str.replace(".0", "", regex=False)
         .str.replace(r"\D", "", regex=True)
+    )
+
+    df[building_col] = df[building_col].astype(str).str.strip()
+    df[unit_col] = (
+        df[unit_col]
+        .astype(str)
+        .str.strip()
+        .str.replace(".0", "", regex=False)
     )
 
     for col in [
@@ -137,6 +227,8 @@ def load_data():
         permit_col,
         building_col,
         unit_col,
+        area_col,
+        latest_owner_col,
         latest_phone_1_col,
         latest_phone_2_col,
         latest_phone_3_col,
@@ -151,6 +243,8 @@ try:
             permit_col,
             building_col,
             unit_col,
+            area_col,
+            latest_owner_col,
             latest_phone_1_col,
             latest_phone_2_col,
             latest_phone_3_col,
@@ -167,6 +261,8 @@ except Exception as e:
     permit_col = ""
     building_col = ""
     unit_col = ""
+    area_col = ""
+    latest_owner_col = ""
     latest_phone_1_col = ""
     latest_phone_2_col = ""
     latest_phone_3_col = ""
@@ -706,6 +802,13 @@ async def handle_dxb(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
             return
 
+        if supabase is None:
+            await update.message.reply_text(
+                "❌ DXB queue is not configured. Missing SUPABASE_URL or SUPABASE_KEY.",
+                reply_markup=MENU_KEYBOARD,
+            )
+            return
+
         unit_number = context.args[-1]
         building_name = " ".join(context.args[:-1]).strip()
 
@@ -719,23 +822,12 @@ async def handle_dxb(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("⏳ DXB request added to queue...")
 
     except Exception as e:
-        print("DXB ERROR:", e)
-        await update.message.reply_text("❌ DXB error. Try again later.")
-
-        if len(result) > 3900:
-            await msg.delete()
-            for i in range(0, len(result), 3900):
-                await update.message.reply_text(result[i:i + 3900])
-        else:
-            await msg.edit_text(result)
-
-    except Exception as e:
         import traceback
         traceback.print_exc()
         print("DXB ERROR:", e, flush=True)
 
         await update.message.reply_text(
-            "DXB search error.",
+            "❌ DXB error. Try again later.",
             reply_markup=MENU_KEYBOARD,
         )
 
@@ -901,9 +993,9 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "🏠 Property Overview\n\n"
             f"🏢 Unit Number: {row[unit_col]}\n"
             f"🏛️ Building: {row[building_col]}\n"
-            f"📍 Zone: {row['Area_name']}\n\n"
+            f"📍 Zone: {row.get(area_col, '')}\n\n"
             "👤 Public Owner Information\n"
-            f"🧑 Name: {str(row['Latest_owner']).title()}\n"
+            f"🧑 Name: {str(row.get(latest_owner_col, '')).title()}\n"
             f"📞 Phone: {', '.join(phones) if phones else 'Not available'}\n"
             f"{duplicate_note}\n"
             f"❗ You have {remaining_after_search} free searches left."
