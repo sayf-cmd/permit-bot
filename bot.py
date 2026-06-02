@@ -67,6 +67,8 @@ if SUPABASE_URL and SUPABASE_KEY:
     supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 ADMIN_USERNAME = "@Sayf_Jr"
+ADMIN_IDS = {816494430}
+
 
 SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
@@ -357,17 +359,36 @@ async def require_special_access(update: Update):
 
 
 def increment_user_usage(row_number, current_used):
-    sheet = get_users_sheet()
-    sheet.update_cell(row_number, 3, int(current_used) + 1)
+    try:
+        sheet = get_users_sheet()
+        sheet.update_cell(row_number, 3, int(current_used) + 1)
+    except Exception as e:
+        print("USER USAGE UPDATE ERROR:", e, flush=True)
 
 
 def update_last_used(row_number):
-    sheet = get_users_sheet()
-    sheet.update_cell(row_number, 6, now_text())
+    try:
+        sheet = get_users_sheet()
+        sheet.update_cell(row_number, 6, now_text())
+    except Exception as e:
+        print("LAST USED UPDATE ERROR:", e, flush=True)
 
 
 def normalize_permit(value):
     return re.sub(r"\D", "", str(value or "").strip())
+
+
+def normalize_dxb_key(building_name, unit_number):
+    building = re.sub(r"\s+", " ", str(building_name or "").strip()).lower()
+    unit = re.sub(r"\.0$", "", str(unit_number or "").strip())
+    return f"DXB:{building}|{unit}"
+
+
+def normalize_history_key(value):
+    value = str(value or "").strip()
+    if value.upper().startswith("DXB:"):
+        return value.lower()
+    return normalize_permit(value)
 
 
 async def extract_permit_safe(listing_url):
@@ -420,16 +441,16 @@ def already_searched(user_id, permit_number):
         rows = sheet.get_all_values()
 
         user_id = str(user_id).strip()
-        permit_number = normalize_permit(permit_number)
+        search_key = normalize_history_key(permit_number)
 
         for row in rows[1:]:
             if len(row) < 4:
                 continue
 
             history_user_id = str(row[1]).strip()
-            history_permit = normalize_permit(row[3])
+            history_key = normalize_history_key(row[3])
 
-            if history_user_id == user_id and history_permit == permit_number:
+            if history_user_id == user_id and history_key == search_key:
                 return True
 
         return False
@@ -437,6 +458,7 @@ def already_searched(user_id, permit_number):
     except Exception as e:
         print("SEARCH HISTORY READ ERROR:", e, flush=True)
         return False
+
 
 def add_search_history(user_id, username, permit_number, result, charged):
     try:
@@ -457,24 +479,63 @@ def add_search_history(user_id, username, permit_number, result, charged):
     except Exception as e:
         print("SEARCH HISTORY WRITE ERROR:", e, flush=True)
 
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    tg_user = update.effective_user
+    try:
+        _, row_number, record = find_or_create_user(tg_user.id, tg_user.username or "")
+        update_last_used(row_number)
+        _, requests_used, request_limit = normalize_user_record(record)
+        remaining = max(request_limit - requests_used, 0)
+    except Exception:
+        remaining = 5
+
     text = (
-        "👋 Welcome to Rockstar Property Intelligence Bot\n\n"
-        "💎 You currently have 5 free requests available.\n\n"
-        "🏠 Send any Permit Number / Trakheesi Number from Property Finder or Bayut "
-        "to instantly access:\n\n"
-        "• Unit Number\n"
-        "• Building Information\n"
-        "• Owner Data\n"
-        "• Property Details\n\n"
-        "⚡ Dubai Secondary Market Intelligence Tool"
+        "🏙 DXB Intelligence Bot\n\n"
+        "Instant Dubai property intelligence.\n\n"
+        "━━━━━━━━━━━━━━\n\n"
+        "🔎 Command\n"
+        "/find Building Name Unit\n\n"
+        "Example:\n"
+        "/find Burj Royale 903\n\n"
+        "━━━━━━━━━━━━━━\n\n"
+        "📊 Includes\n"
+        "• Sale history\n"
+        "• Rental contracts\n"
+        "• Unit details\n"
+        "• Availability status\n"
+        "• Parking & balcony info\n\n"
+        f"🆔 Your Telegram ID: {tg_user.id}\n"
+        f"🎁 Free searches left: {remaining}"
     )
 
-    await update.message.reply_text(
-        text,
-        reply_markup=MENU_KEYBOARD,
+    keyboard = InlineKeyboardMarkup(
+        [
+            [InlineKeyboardButton("🔎 Find Property", callback_data="help_find")],
+            [InlineKeyboardButton("💳 Buy Plan", url=f"https://t.me/{ADMIN_USERNAME.lstrip('@')}")],
+            [InlineKeyboardButton("📘 How It Works", callback_data="help_how")],
+            [InlineKeyboardButton("🆘 Support", url=f"https://t.me/{ADMIN_USERNAME.lstrip('@')}")],
+        ]
     )
 
+    await update.message.reply_text(text, reply_markup=keyboard)
+
+
+async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    text = (
+        "📘 How To Use\n\n"
+        "🔎 Find DXB property history:\n"
+        "/find Building Name Unit\n\n"
+        "Example:\n"
+        "/find Burj Royale 903\n\n"
+        "━━━━━━━━━━━━━━\n\n"
+        "Advanced owner database commands:\n"
+        "• /project Building Unit\n"
+        "• /name Owner Name\n"
+        "• /phone Phone Number\n\n"
+        "🎁 Every user gets 5 free searches."
+    )
+    await update.message.reply_text(text, reply_markup=MENU_KEYBOARD)
 
 async def reload_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
@@ -597,6 +658,163 @@ async def available_areas(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 
+
+
+def format_price(value):
+    raw = str(value or "").replace(",", "").strip()
+    if not raw or raw.lower() in ["nan", "none", "null"]:
+        return ""
+    try:
+        amount = float(raw)
+    except Exception:
+        return str(value).strip()
+    return f"AED {amount:,.0f}"
+
+
+def format_date(value):
+    raw = str(value or "").strip()
+    if not raw or raw.lower() in ["nan", "none", "null"]:
+        return ""
+    try:
+        dt = pd.to_datetime(raw, errors="coerce")
+        if pd.isna(dt):
+            return raw
+        return dt.strftime("%d %b %Y")
+    except Exception:
+        return raw
+
+
+def normalize_text_value(value):
+    raw = str(value or "").strip()
+    if raw.lower() in ["nan", "none", "null", ""]:
+        return ""
+    return raw
+
+
+def normalize_result_record(record):
+    phones = record.get("phones", []) or []
+    if isinstance(phones, str):
+        phones = [phones]
+    phones = [clean_phone(phone) for phone in phones]
+    phones = [phone for phone in phones if phone]
+
+    return {
+        "building": normalize_text_value(record.get("building_name") or record.get("building") or record.get("Building")),
+        "unit": normalize_text_value(record.get("unit_number") or record.get("unit") or record.get("Unit")),
+        "owner": normalize_text_value(record.get("owner_name") or record.get("owner") or record.get("Owner")),
+        "phones": phones,
+        "price": normalize_text_value(record.get("price") or record.get("transaction_amount") or record.get("amount")),
+        "date": normalize_text_value(record.get("date") or record.get("transaction_date") or record.get("Date")),
+    }
+
+
+def sort_records_newest(records):
+    def key(record):
+        dt = pd.to_datetime(record.get("date", ""), errors="coerce")
+        if pd.isna(dt):
+            return pd.Timestamp.min
+        return dt
+    return sorted(records, key=key, reverse=True)
+
+
+def format_grouped_property_results(results, title="🏙 Property Intelligence"):
+    if not results:
+        return f"{title}\n\nNo matching records found."
+
+    records = [normalize_result_record(r) for r in results]
+    records = [r for r in records if r["building"] or r["unit"] or r["owner"]]
+    records = sort_records_newest(records)
+
+    units = {(r["building"].lower(), r["unit"]) for r in records if r["building"] or r["unit"]}
+    owners = {r["owner"].lower() for r in records if r["owner"]}
+    phones = {p for r in records for p in r["phones"]}
+
+    lines = [
+        title,
+        "",
+        f"📊 Matches found: {len(records)}",
+        f"🏠 Units: {len(units)}",
+        f"👤 Owners: {len(owners)}",
+    ]
+    if phones:
+        lines.append(f"📞 Phones: {len(phones)}")
+
+    grouped = {}
+    for r in records:
+        key = (r["building"], r["unit"])
+        grouped.setdefault(key, []).append(r)
+
+    for (building, unit), items in list(grouped.items())[:8]:
+        owner = next((x["owner"] for x in items if x["owner"]), "Not available")
+        group_phones = []
+        for item in items:
+            for phone in item["phones"]:
+                if phone not in group_phones:
+                    group_phones.append(phone)
+
+        lines.append("\n━━━━━━━━━━━━━━")
+        if building:
+            lines.append(f"🏢 {building}")
+        if unit:
+            lines.append(f"🏠 Unit {unit}")
+        if owner:
+            lines.extend(["", "👤 Owner", owner])
+        if group_phones:
+            lines.append(f"📞 {', '.join(group_phones[:4])}")
+
+        tx_lines = []
+        seen_tx = set()
+        for item in items[:6]:
+            date = format_date(item["date"])
+            price = format_price(item["price"])
+            if not date and not price:
+                continue
+            tx = f"• {date or 'Date N/A'}"
+            if price:
+                tx += f" — {price}"
+            if tx not in seen_tx:
+                tx_lines.append(tx)
+                seen_tx.add(tx)
+
+        if tx_lines:
+            lines.extend(["", "💰 Transactions"])
+            lines.extend(tx_lines[:5])
+
+    if len(grouped) > 8:
+        lines.append(f"\nShowing first 8 of {len(grouped)} grouped units.")
+
+    return "\n".join(lines).strip()
+
+
+def format_name_results(query, results):
+    return format_grouped_property_results(results, title=f"👤 Owner Intelligence\n\n{query.upper()}")
+
+
+def format_phone_results(query, results):
+    return format_grouped_property_results(results, title=f"📞 Phone Intelligence\n\n{query}")
+
+
+def format_project_results(query, results):
+    return format_grouped_property_results(results, title=f"🏙 Project Intelligence\n\n{query}")
+
+
+def split_long_text(text, limit=3900):
+    text = str(text or "")
+    if len(text) <= limit:
+        return [text]
+    chunks = []
+    current = ""
+    for block in text.split("\n━━━━━━━━━━━━━━\n"):
+        candidate = block if not current else current + "\n━━━━━━━━━━━━━━\n" + block
+        if len(candidate) > limit and current:
+            chunks.append(current)
+            current = block
+        else:
+            current = candidate
+    if current:
+        chunks.append(current)
+    return chunks
+
 async def handle_name_search(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         # if not await require_special_access(update):
@@ -614,13 +832,10 @@ async def handle_name_search(update: Update, context: ContextTypes.DEFAULT_TYPE)
         await update.message.reply_text("Searching owner database...")
 
         results = search_owner_everywhere(owner_name)
-        text = format_results_for_telegram(results)
+        text = format_name_results(owner_name, results)
 
-        if len(text) > 3900:
-            for i in range(0, len(text), 3900):
-                await update.message.reply_text(text[i:i + 3900])
-        else:
-            await update.message.reply_text(text)
+        for chunk in split_long_text(text):
+            await update.message.reply_text(chunk)
 
     except Exception as e:
         print("NAME SEARCH ERROR:", e)
@@ -629,7 +844,6 @@ async def handle_name_search(update: Update, context: ContextTypes.DEFAULT_TYPE)
             "Name search error.",
             reply_markup=MENU_KEYBOARD,
         )
-
 
 async def handle_phone_search(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
@@ -648,13 +862,10 @@ async def handle_phone_search(update: Update, context: ContextTypes.DEFAULT_TYPE
         await update.message.reply_text("Searching phone database...")
 
         results = search_phone_everywhere(phone)
-        text = format_results_for_telegram(results)
+        text = format_phone_results(phone, results)
 
-        if len(text) > 3900:
-            for i in range(0, len(text), 3900):
-                await update.message.reply_text(text[i:i + 3900])
-        else:
-            await update.message.reply_text(text)
+        for chunk in split_long_text(text):
+            await update.message.reply_text(chunk)
 
     except Exception as e:
         print("PHONE SEARCH ERROR:", e)
@@ -663,7 +874,6 @@ async def handle_phone_search(update: Update, context: ContextTypes.DEFAULT_TYPE
             "Phone search error.",
             reply_markup=MENU_KEYBOARD,
         )
-
 
 async def handle_project_search(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
@@ -683,30 +893,23 @@ async def handle_project_search(update: Update, context: ContextTypes.DEFAULT_TY
 
         results = search_project_unit(query)
 
-        # Strictly filter by the last argument as unit number.
-        # Example: /project Grande 4702 should only show unit 4702,
-        # not every record in Grande.
-        unit_number = context.args[-1].strip()
-        unit_clean = re.sub(r"\.0$", "", unit_number)
+        if context.args:
+            unit_number = context.args[-1].strip()
+            unit_clean = re.sub(r"\.0$", "", unit_number)
 
-        filtered_results = []
+            filtered_results = []
+            for r in results:
+                result_unit = str(r.get("unit_number", "")).strip()
+                result_unit = re.sub(r"\.0$", "", result_unit)
+                if result_unit == unit_clean:
+                    filtered_results.append(r)
 
-        for r in results:
-            result_unit = str(r.get("unit_number", "")).strip()
-            result_unit = re.sub(r"\.0$", "", result_unit)
+            results = filtered_results
 
-            if result_unit == unit_clean:
-                filtered_results.append(r)
+        text = format_project_results(query, results)
 
-        results = filtered_results
-
-        text = format_results_for_telegram(results)
-
-        if len(text) > 3900:
-            for i in range(0, len(text), 3900):
-                await update.message.reply_text(text[i:i + 3900])
-        else:
-            await update.message.reply_text(text)
+        for chunk in split_long_text(text):
+            await update.message.reply_text(chunk)
 
     except Exception as e:
         print("PROJECT SEARCH ERROR:", e)
@@ -715,7 +918,6 @@ async def handle_project_search(update: Update, context: ContextTypes.DEFAULT_TY
             "Project search error.",
             reply_markup=MENU_KEYBOARD,
         )
-
 
 async def handle_export(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
@@ -800,11 +1002,11 @@ async def handle_export(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 
-async def handle_dxb(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def handle_find(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         if len(context.args) < 2:
             await update.message.reply_text(
-                "Напиши так:\n/dxb Grande 4702",
+                "Напиши так:\n/find Grande 4702",
                 reply_markup=MENU_KEYBOARD,
             )
             return
@@ -816,27 +1018,80 @@ async def handle_dxb(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
             return
 
-        unit_number = context.args[-1]
-        building_name = " ".join(context.args[:-1]).strip()
+        tg_user = update.effective_user
+        _, row_number, record = find_or_create_user(
+            tg_user.id,
+            tg_user.username or "",
+        )
+        update_last_used(row_number)
 
-        supabase.table("dxb_jobs").insert({
+        status, requests_used, request_limit = normalize_user_record(record)
+
+        if status == "blocked":
+            await update.message.reply_text(
+                "Your access is currently inactive. Please contact the administrator.",
+                reply_markup=MENU_KEYBOARD,
+            )
+            return
+
+        unit_number = context.args[-1].strip()
+        building_name = " ".join(context.args[:-1]).strip()
+        request_key = normalize_dxb_key(building_name, unit_number)
+        is_duplicate = already_searched(tg_user.id, request_key)
+
+        if requests_used >= request_limit and not is_duplicate:
+            keyboard = InlineKeyboardMarkup(
+                [[InlineKeyboardButton("Contact Admin", url=f"https://t.me/{ADMIN_USERNAME.lstrip('@')}")]]
+            )
+            await update.message.reply_text(
+                "You have reached your search limit.\nPlease contact the administrator for more access.",
+                reply_markup=keyboard,
+            )
+            return
+
+        job = {
             "chat_id": str(update.effective_chat.id),
+            "user_id": str(tg_user.id),
+            "username": tg_user.username or "",
             "building": building_name,
             "unit": unit_number,
+            "request_key": request_key,
             "status": "pending",
-        }).execute()
+        }
 
-        await update.message.reply_text("⏳ DXB request added to queue...")
+        try:
+            supabase.table("dxb_jobs").insert(job).execute()
+        except Exception:
+            # Fallback for older dxb_jobs tables that only have basic columns.
+            # For full limits/history on /find, add user_id, username and request_key columns.
+            supabase.table("dxb_jobs").insert({
+                "chat_id": str(update.effective_chat.id),
+                "building": building_name,
+                "unit": unit_number,
+                "status": "pending",
+            }).execute()
+
+        duplicate_note = "\n♻️ Repeated object — no search will be charged." if is_duplicate else ""
+
+        await update.message.reply_text(
+            f"⏳ DXB request added to queue...{duplicate_note}",
+            reply_markup=MENU_KEYBOARD,
+        )
 
     except Exception as e:
         import traceback
         traceback.print_exc()
-        print("DXB ERROR:", e, flush=True)
+        print("FIND/DXB ERROR:", e, flush=True)
 
         await update.message.reply_text(
             "❌ DXB error. Try again later.",
             reply_markup=MENU_KEYBOARD,
         )
+
+
+async def handle_dxb(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # Backward compatible alias. Main command is /find.
+    await handle_find(update, context)
 
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -871,6 +1126,9 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         if user_text == "📍 Available Areas":
             await available_areas(update, context)
+            return
+        if user_text in ["📘 How It Works", "🔎 Find Property"]:
+            await help_command(update, context)
             return
 
         if df is None:
@@ -1023,6 +1281,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 app = ApplicationBuilder().token(TOKEN).build()
 
 app.add_handler(CommandHandler("start", start))
+app.add_handler(CommandHandler("help", help_command))
 app.add_handler(CommandHandler("reload", reload_data))
 app.add_handler(CommandHandler("profile", profile))
 app.add_handler(CommandHandler("contact", contact_admin))
@@ -1032,6 +1291,7 @@ app.add_handler(CommandHandler("name", handle_name_search))
 app.add_handler(CommandHandler("phone", handle_phone_search))
 app.add_handler(CommandHandler("project", handle_project_search))
 app.add_handler(CommandHandler("export", handle_export))
+app.add_handler(CommandHandler("find", handle_find))
 app.add_handler(CommandHandler("dxb", handle_dxb))
 
 app.add_handler(
