@@ -415,40 +415,47 @@ async def extract_permit_safe(listing_url):
 
 
 def already_searched(user_id, permit_number):
-    sheet = get_history_sheet()
-    rows = sheet.get_all_values()
+    try:
+        sheet = get_history_sheet()
+        rows = sheet.get_all_values()
 
-    user_id = str(user_id).strip()
-    permit_number = normalize_permit(permit_number)
+        user_id = str(user_id).strip()
+        permit_number = normalize_permit(permit_number)
 
-    for row in rows[1:]:
-        if len(row) < 4:
-            continue
+        for row in rows[1:]:
+            if len(row) < 4:
+                continue
 
-        history_user_id = str(row[1]).strip()
-        history_permit = normalize_permit(row[3])
+            history_user_id = str(row[1]).strip()
+            history_permit = normalize_permit(row[3])
 
-        if history_user_id == user_id and history_permit == permit_number:
-            return True
+            if history_user_id == user_id and history_permit == permit_number:
+                return True
 
-    return False
+        return False
 
+    except Exception as e:
+        print("SEARCH HISTORY READ ERROR:", e, flush=True)
+        return False
 
 def add_search_history(user_id, username, permit_number, result, charged):
-    sheet = get_history_sheet()
+    try:
+        sheet = get_history_sheet()
 
-    sheet.append_row(
-        [
-            now_text(),
-            str(user_id),
-            username or "",
-            str(permit_number),
-            result,
-            "yes" if charged else "no",
-        ],
-        value_input_option="USER_ENTERED",
-    )
+        sheet.append_row(
+            [
+                now_text(),
+                str(user_id),
+                username or "",
+                str(permit_number),
+                result,
+                "yes" if charged else "no",
+            ],
+            value_input_option="USER_ENTERED",
+        )
 
+    except Exception as e:
+        print("SEARCH HISTORY WRITE ERROR:", e, flush=True)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = (
