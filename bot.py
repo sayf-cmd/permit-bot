@@ -32,6 +32,7 @@ from telegram import (
 from telegram.ext import (
     ApplicationBuilder,
     CommandHandler,
+    CallbackQueryHandler,
     MessageHandler,
     ContextTypes,
     filters,
@@ -68,6 +69,7 @@ if SUPABASE_URL and SUPABASE_KEY:
 
 ADMIN_USERNAME = "@Sayf_Jr"
 ADMIN_IDS = {816494430}
+WELCOME_IMAGE_PATH = os.environ.get("WELCOME_IMAGE_PATH", "welcome_cover.png")
 
 
 SCOPES = [
@@ -77,8 +79,9 @@ SCOPES = [
 
 MENU_KEYBOARD = ReplyKeyboardMarkup(
     [
-        ["👤 My Profile", "📩 Contact Admin"],
-        ["💳 Tariffs", "📍 Available Areas"],
+        ["🔎 Find Property", "👤 My Profile"],
+        ["📘 How It Works", "💳 Tariffs"],
+        ["📩 Contact Admin", "📍 Available Areas"],
     ],
     resize_keyboard=True,
 )
@@ -492,9 +495,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     text = (
         "🏙 DXB Intelligence Bot\n\n"
-        "Instant Dubai property intelligence.\n\n"
+        "Dubai property intelligence in seconds.\n\n"
         "━━━━━━━━━━━━━━\n\n"
-        "🔎 Command\n"
+        "🔎 Find Property\n"
+        "Use:\n"
         "/find Building Name Unit\n\n"
         "Example:\n"
         "/find Burj Royale 903\n\n"
@@ -506,36 +510,72 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "• Availability status\n"
         "• Parking & balcony info\n\n"
         f"🆔 Your Telegram ID: {tg_user.id}\n"
-        f"🎁 Free searches left: {remaining}"
+        f"❗ You have {remaining} free searches left."
     )
 
     keyboard = InlineKeyboardMarkup(
         [
             [InlineKeyboardButton("🔎 Find Property", callback_data="help_find")],
-            [InlineKeyboardButton("💳 Buy Plan", url=f"https://t.me/{ADMIN_USERNAME.lstrip('@')}")],
             [InlineKeyboardButton("📘 How It Works", callback_data="help_how")],
+            [InlineKeyboardButton("💳 Buy Plan", url=f"https://t.me/{ADMIN_USERNAME.lstrip('@')}")],
             [InlineKeyboardButton("🆘 Support", url=f"https://t.me/{ADMIN_USERNAME.lstrip('@')}")],
         ]
     )
 
-    await update.message.reply_text(text, reply_markup=keyboard)
+    if os.path.exists(WELCOME_IMAGE_PATH):
+        with open(WELCOME_IMAGE_PATH, "rb") as photo:
+            await update.message.reply_photo(photo=photo, caption=text, reply_markup=keyboard)
+    else:
+        await update.message.reply_text(text, reply_markup=keyboard)
 
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = (
         "📘 How To Use\n\n"
-        "🔎 Find DXB property history:\n"
+        "🔎 DXB live property search:\n"
         "/find Building Name Unit\n\n"
         "Example:\n"
         "/find Burj Royale 903\n\n"
         "━━━━━━━━━━━━━━\n\n"
-        "Advanced owner database commands:\n"
+        "Owner database commands:\n"
         "• /project Building Unit\n"
         "• /name Owner Name\n"
         "• /phone Phone Number\n\n"
         "🎁 Every user gets 5 free searches."
     )
     await update.message.reply_text(text, reply_markup=MENU_KEYBOARD)
+
+
+async def handle_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+
+    if query.data == "help_find":
+        text = (
+            "🔎 Find Property\n\n"
+            "Send command in this format:\n\n"
+            "/find Building Name Unit\n\n"
+            "Examples:\n"
+            "• /find Burj Royale 903\n"
+            "• /find Grande 1507\n"
+            "• /find Peninsula One 3011"
+        )
+    elif query.data == "help_how":
+        text = (
+            "📘 How It Works\n\n"
+            "1. Send /find with building and unit number.\n"
+            "2. The bot checks DXB live data.\n"
+            "3. You receive a clean property report.\n\n"
+            "Advanced commands:\n"
+            "• /project Building Unit — owners & contacts for a unit\n"
+            "• /name Owner Name — owner intelligence\n"
+            "• /phone Phone Number — phone intelligence"
+        )
+    else:
+        text = "Use /find Building Name Unit"
+
+    await query.message.reply_text(text, reply_markup=MENU_KEYBOARD)
+
 
 async def reload_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
@@ -795,7 +835,47 @@ def format_phone_results(query, results):
 
 
 def format_project_results(query, results):
-    return format_grouped_property_results(results, title=f"🏙 Project Intelligence\n\n{query}")
+    if not results:
+        return f"🏙 Unit Owner Intelligence\n\n{query}\n\nNo owners found for this unit."
+
+    records = [normalize_result_record(r) for r in results]
+    records = [r for r in records if r["building"] or r["unit"] or r["owner"] or r["phones"]]
+    records = sort_records_newest(records)
+
+    building = next((r["building"] for r in records if r["building"]), "Unknown Building")
+    unit = next((r["unit"] for r in records if r["unit"]), "")
+
+    owners = {}
+    for r in records:
+        owner = str(r["owner"] or "").strip()
+        if not owner or owner.lower() in ["nan", "none", "null"]:
+            continue
+        owners.setdefault(owner, set())
+        for phone in r["phones"]:
+            phone = clean_phone(phone)
+            if phone:
+                owners[owner].add(phone)
+
+    lines = [
+        "🏙 Unit Owner Intelligence",
+        "",
+        f"🏢 {building}",
+    ]
+    if unit:
+        lines.append(f"🏠 Unit {unit}")
+
+    lines.extend(["", "━━━━━━━━━━━━━━", "", "👤 Owners & Contacts", ""])
+
+    if not owners:
+        lines.append("No owner names found.")
+    else:
+        for idx, (owner, phones) in enumerate(owners.items(), start=1):
+            phone_text = ", ".join(sorted(phones)) if phones else "Not available"
+            lines.append(f"{idx}. {owner}")
+            lines.append(f"📞 {phone_text}")
+            lines.append("")
+
+    return "\n".join(lines).strip()
 
 
 def split_long_text(text, limit=3900):
@@ -884,12 +964,12 @@ async def handle_project_search(update: Update, context: ContextTypes.DEFAULT_TY
 
         if not query:
             await update.message.reply_text(
-                "Напиши так:\n/project THE EDGE A1807",
+                "Напиши так:\n/project Peninsula One 3011",
                 reply_markup=MENU_KEYBOARD,
             )
             return
 
-        await update.message.reply_text("Searching project database...")
+        await update.message.reply_text("Searching unit owners...")
 
         results = search_project_unit(query)
 
@@ -1113,6 +1193,17 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
             user_text = permit_from_link
 
+        if user_text == "🔎 Find Property":
+            await update.message.reply_text(
+                "🔎 Send command like this:\n/find Burj Royale 903",
+                reply_markup=MENU_KEYBOARD,
+            )
+            return
+
+        if user_text == "📘 How It Works":
+            await help_command(update, context)
+            return
+
         if user_text == "👤 My Profile":
             await profile(update, context)
             return
@@ -1214,7 +1305,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
             await update.message.reply_text(
                 "No matching property was found.\n\n"
-                f"You have {request_limit - requests_used} free searches left.",
+                f"❗ You have {request_limit - requests_used} free searches left.",
                 reply_markup=MENU_KEYBOARD,
             )
             return
@@ -1282,6 +1373,7 @@ app = ApplicationBuilder().token(TOKEN).build()
 
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("help", help_command))
+app.add_handler(CallbackQueryHandler(handle_button))
 app.add_handler(CommandHandler("reload", reload_data))
 app.add_handler(CommandHandler("profile", profile))
 app.add_handler(CommandHandler("contact", contact_admin))
