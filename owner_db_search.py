@@ -1,9 +1,10 @@
+import os
 import json
 import re
 import sqlite3
 from pathlib import Path
 
-DB_PATH = Path("/var/data/owners_index.db")
+DB_PATH = Path(os.environ.get("OWNERS_DB_PATH", "owners_index.db"))
 
 PHONE_COLUMNS = [
     "mobile",
@@ -54,6 +55,17 @@ DATE_COLUMNS = [
     "transaction date",
 ]
 
+OWNER_COLUMNS = [
+    "owner name",
+    "owner_name",
+    "name",
+    "nameen",
+    "customer name",
+    "full name",
+    "buyer name",
+    "seller name",
+]
+
 PRICE_COLUMNS = [
     "procedurevalue",
     "procedure value",
@@ -62,19 +74,6 @@ PRICE_COLUMNS = [
     "price",
     "amount",
     "value",
-]
-
-OWNER_COLUMNS = [
-    "owner name",
-    "owner",
-    "name",
-    "nameen",
-    "customer name",
-    "full name",
-    "buyer name",
-    "seller name",
-    "investor name",
-    "person name",
 ]
 
 
@@ -180,7 +179,6 @@ def search_owner_everywhere(owner_name, max_results=50):
         date = exact_find(row_dict, DATE_COLUMNS)
         price = exact_find(row_dict, PRICE_COLUMNS)
         phones = extract_phones_from_columns(row_dict)
-        real_owner = exact_find(row_dict, OWNER_COLUMNS) or owner_name
 
         duplicate_key = (
             norm(building),
@@ -203,7 +201,7 @@ def search_owner_everywhere(owner_name, max_results=50):
                 "row_number": row["row_number"],
                 "building_name": building,
                 "unit_number": unit,
-                "owner_name": real_owner,
+                "owner_name": exact_find(row_dict, OWNER_COLUMNS) or owner_name,
                 "phones": phones,
                 "date": date,
                 "price": price,
@@ -219,76 +217,41 @@ def search_owner_everywhere(owner_name, max_results=50):
 
 def format_results_for_telegram(results):
     if not results:
-        return "Ничего не найдено."
+        return "❌ No results found."
 
-    total_records = len(results)
+    lines = [
+        "🔍 Search Results",
+        "",
+        f"📊 Matches found: {len(results)}",
+    ]
 
-    unique_units = len(
-        set(
-            r["unit_number"]
-            for r in results
-            if r.get("unit_number")
-        )
-    )
-
-    unique_owners = len(
-        set(
-            r["owner_name"]
-            for r in results
-            if r.get("owner_name")
-        )
-    )
-
-    unique_phones = len(
-        set(
-            phone
-            for r in results
-            for phone in r.get("phones", [])
-            if phone
-        )
-    )
-
-    MAX_RESULTS = 10
-
-    visible_results = results[:MAX_RESULTS]
-
-    messages = []
-
-    header = (
-        f"🔍 Search Results\n\n"
-        f"📊 Found: {total_records} records\n"
-        f"🏠 Unique units: {unique_units}\n"
-        f"👤 Unique owners: {unique_owners}\n"
-        f"📞 Unique phones: {unique_phones}\n\n"
-        f"Showing first {min(total_records, MAX_RESULTS)} results:\n"
-    )
-
-    messages.append(header)
-
-    for i, r in enumerate(visible_results, start=1):
-        phones = ", ".join(r["phones"]) if r["phones"] else "Not available"
-
-        msg = (
-            f"🔎 #{i}\n"
-            f"🏢 {r['building_name'] or '-'}\n"
-            f"🏠 Unit: {r['unit_number'] or '-'}\n"
-            f"👤 Owner: {r['owner_name']}\n"
-            f"📞 Phone: {phones}\n"
-            f"💰 Price: {r['price'] or '-'}\n"
-            f"📅 Date: {r['date'] or '-'}\n"
-            f"📁 Source: {r['source_folder']} / {r['file_name']}"
+    for i, r in enumerate(results[:20], start=1):
+        phones = ", ".join(r.get("phones", [])) if r.get("phones") else "Not available"
+        source = " / ".join(
+            x for x in [r.get("source_folder", ""), r.get("file_name", "")] if x
         )
 
-        messages.append(msg)
+        lines.extend([
+            "",
+            "━━━━━━━━━━━━━━",
+            f"#{i}",
+            f"🏢 {r.get('building_name') or '-'}",
+            f"🏠 Unit: {r.get('unit_number') or '-'}",
+            f"👤 Owner: {r.get('owner_name') or '-'}",
+            f"📞 Phone: {phones}",
+        ])
 
-    remaining = total_records - MAX_RESULTS
+        if r.get("price"):
+            lines.append(f"💰 Price: {r.get('price')}")
+        if r.get("date"):
+            lines.append(f"📅 Date: {r.get('date')}")
+        if source:
+            lines.append(f"📁 Source: {source}")
 
-    if remaining > 0:
-        messages.append(
-            f"\n... and {remaining} more records."
-        )
+    if len(results) > 20:
+        lines.append(f"\n... and {len(results) - 20} more records.")
 
-    return "\n\n".join(messages)
+    return "\n".join(lines).strip()
 
 def normalize_phone_query(value):
     return re.sub(r"\D", "", clean(value))
@@ -427,7 +390,7 @@ def search_project_unit(query, max_results=50):
         owner = (
             exact_find(
                 row_dict,
-                OWNER_COLUMNS
+                ["owner name", "name", "nameen", "customer name", "full name"]
             )
             or "-"
         )
