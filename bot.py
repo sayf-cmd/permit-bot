@@ -1044,25 +1044,41 @@ async def handle_project_search(update: Update, context: ContextTypes.DEFAULT_TY
 
         results = search_project_unit(query)
 
+        # smarter unit filtering
         if context.args:
             unit_number = context.args[-1].strip()
             unit_clean = re.sub(r"\.0$", "", unit_number)
 
             filtered_results = []
-            for r in results:
-                result_unit = str(r.get("unit_number", "")).strip()
-                result_unit = re.sub(r"\.0$", "", result_unit)
 
-                # Keep exact unit matches, but do not drop records where the source row
-                # does not expose a clean unit column. Some Excel files store unit only
-                # inside the full row text.
-                if result_unit == unit_clean or not result_unit:
+            for r in results:
+                result_unit = str(
+                    r.get("unit_number", "")
+                ).strip()
+
+                result_unit = re.sub(
+                    r"\.0$",
+                    "",
+                    result_unit,
+                )
+
+                full_row = str(
+                    r.get("full_row", "")
+                ).lower()
+
+                if (
+                    result_unit == unit_clean
+                    or unit_clean in full_row
+                ):
                     filtered_results.append(r)
 
             if filtered_results:
                 results = filtered_results
 
-        text = format_project_results(query, results)
+        text = format_project_results(
+            query,
+            results,
+        )
 
         for chunk in split_long_text(text):
             await update.message.reply_text(chunk)
