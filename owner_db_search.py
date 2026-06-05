@@ -64,19 +64,6 @@ PRICE_COLUMNS = [
     "value",
 ]
 
-OWNER_COLUMNS = [
-    "owner name",
-    "owner",
-    "name",
-    "nameen",
-    "customer name",
-    "full name",
-    "buyer name",
-    "seller name",
-    "investor name",
-    "person name",
-]
-
 
 def clean(value):
     return str(value or "").strip()
@@ -180,7 +167,6 @@ def search_owner_everywhere(owner_name, max_results=50):
         date = exact_find(row_dict, DATE_COLUMNS)
         price = exact_find(row_dict, PRICE_COLUMNS)
         phones = extract_phones_from_columns(row_dict)
-        real_owner = exact_find(row_dict, OWNER_COLUMNS) or owner_name
 
         duplicate_key = (
             norm(building),
@@ -203,7 +189,7 @@ def search_owner_everywhere(owner_name, max_results=50):
                 "row_number": row["row_number"],
                 "building_name": building,
                 "unit_number": unit,
-                "owner_name": real_owner,
+                "owner_name": owner_name,
                 "phones": phones,
                 "date": date,
                 "price": price,
@@ -347,7 +333,7 @@ def search_phone_everywhere(phone_query, max_results=50):
         price = exact_find(row_dict, PRICE_COLUMNS)
 
         owner = (
-            exact_find(row_dict, OWNER_COLUMNS)
+            exact_find(row_dict, ["owner name", "name", "nameen", "customer name", "full name"])
             or "-"
         )
 
@@ -427,7 +413,7 @@ def search_project_unit(query, max_results=50):
         owner = (
             exact_find(
                 row_dict,
-                OWNER_COLUMNS
+                ["owner name", "name", "nameen", "customer name", "full name"]
             )
             or "-"
         )
