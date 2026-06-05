@@ -1265,6 +1265,7 @@ async def handle_dxb(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Backward compatible alias. Main command is /find.
     await handle_find(update, context)
 
+    return sorted(records, key=key, reverse=True)
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
