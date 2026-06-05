@@ -395,10 +395,11 @@ def normalize_history_key(value):
 
 
 async def extract_permit_safe(listing_url):
-    """Extract permit from a listing URL without crashing the whole bot.
+    """Extract full Permit / Trakheesi from listing URL safely.
 
-    Supports both async and sync implementations of
-    extract_permit_from_listing_url, and also tries a simple numeric fallback.
+    Important:
+    - Do NOT strip the 71 prefix.
+    - Later search logic tries full and shortened variants.
     """
     try:
         result = extract_permit_from_listing_url(listing_url)
@@ -408,9 +409,6 @@ async def extract_permit_safe(listing_url):
 
         permit = normalize_permit(result)
 
-        if len(permit) == 11 and permit.startswith("71"):
-            permit = permit[2:]
-
         if permit:
             return permit
 
@@ -419,20 +417,16 @@ async def extract_permit_safe(listing_url):
         traceback.print_exc()
         print(f"LINK EXTRACTOR ERROR: {e}", flush=True)
 
-    # Fallback: sometimes a user sends a URL/text that already contains
-    # the Trakheesi / permit number. Prefer numbers with the Dubai prefix 71.
-    candidates = re.findall(r"\d{8,15}", str(listing_url or ""))
+    candidates = re.findall(r"\d{7,15}", str(listing_url or ""))
 
     for candidate in candidates:
         candidate = normalize_permit(candidate)
-
-        if len(candidate) == 11 and candidate.startswith("71"):
-            return candidate[2:]
+        if candidate.startswith("71") and 9 <= len(candidate) <= 15:
+            return candidate
 
     for candidate in candidates:
         candidate = normalize_permit(candidate)
-
-        if 8 <= len(candidate) <= 12:
+        if 7 <= len(candidate) <= 15:
             return candidate
 
     return ""
@@ -733,147 +727,295 @@ def normalize_text_value(value):
 
 def normalize_result_record(record):
     phones = record.get("phones", []) or []
+
     if isinstance(phones, str):
         phones = [phones]
+
     phones = [clean_phone(phone) for phone in phones]
     phones = [phone for phone in phones if phone]
+    phones = list(dict.fromkeys(phones))
+
+    source_folder = normalize_text_value(record.get("source_folder"))
+    file_name = normalize_text_value(record.get("file_name"))
+    sheet_name = normalize_text_value(record.get("sheet_name"))
+    row_number = normalize_text_value(record.get("row_number"))
+
+    source_parts = []
+    if source_folder:
+        source_parts.append(source_folder)
+    if file_name:
+        source_parts.append(file_name)
+
+    source = " / ".join(source_parts)
+
+    if sheet_name:
+        source = f"{source} — {sheet_name}" if source else sheet_name
+
+    if row_number:
+        source = f"{source} row {row_number}" if source else f"row {row_number}"
 
     return {
-        "building": normalize_text_value(record.get("building_name") or record.get("building") or record.get("Building")),
-        "unit": normalize_text_value(record.get("unit_number") or record.get("unit") or record.get("Unit")),
-        "owner": normalize_text_value(record.get("owner_name") or record.get("owner") or record.get("Owner")),
+        "building": normalize_text_value(
+            record.get("building_name")
+            or record.get("building")
+            or record.get("Building")
+        ),
+        "unit": normalize_text_value(
+            record.get("unit_number")
+            or record.get("unit")
+            or record.get("Unit")
+        ),
+        "owner": normalize_text_value(
+            record.get("owner_name")
+            or record.get("owner")
+            or record.get("Owner")
+        ),
         "phones": phones,
-        "price": normalize_text_value(record.get("price") or record.get("transaction_amount") or record.get("amount")),
-        "date": normalize_text_value(record.get("date") or record.get("transaction_date") or record.get("Date")),
+        "price": normalize_text_value(
+            record.get("price")
+            or record.get("transaction_amount")
+            or record.get("amount")
+        ),
+        "date": normalize_text_value(
+            record.get("date")
+            or record.get("transaction_date")
+            or record.get("Date")
+        ),
+        "source": source or "Unknown source",
+        "source_folder": source_folder,
+        "file_name": file_name,
+        "sheet_name": sheet_name,
+        "row_number": row_number,
     }
 
 
-def sort_records_newest(records):
-    def key(record):
-        dt = pd.to_datetime(record.get("date", ""), errors="coerce")
-        if pd.isna(dt):
-            return pd.Timestamp.min
-        return dt
-    return sorted(records, key=key, reverse=True)
+def source_line(record):
+    return f"📁 Source: {record.get('source') or 'Unknown source'}"
 
 
-def format_grouped_property_results(results, title="🏙 Property Intelligence"):
+def phones_text(phones):
+    phones = [p for p in phones if p]
+    return ", ".join(phones) if phones else "Not available"
+
+
+def format_owner_block(owner, phones, sources, idx=None):
+    prefix = f"{idx}. " if idx else "• "
+    lines = [f"{prefix}{owner or 'Owner not available'}"]
+    lines.append(f"📞 {phones_text(sorted(phones))}")
+
+    for source in sorted(sources):
+        lines.append(f"📁 {source}")
+
+    return "\n".join(lines)
+
+
+def format_grouped_property_results(results, title="🏙 Property Intelligence", query_text=""):
     if not results:
-        return f"{title}\n\nNo matching records found."
+        return f"{title}\n\n❌ No results found."
 
     records = [normalize_result_record(r) for r in results]
-    records = [r for r in records if r["building"] or r["unit"] or r["owner"]]
+    records = [
+        r for r in records
+        if r["building"] or r["unit"] or r["owner"] or r["phones"]
+    ]
     records = sort_records_newest(records)
 
-    units = {(r["building"].lower(), r["unit"]) for r in records if r["building"] or r["unit"]}
+    units = {
+        (r["building"].lower(), r["unit"])
+        for r in records
+        if r["building"] or r["unit"]
+    }
     owners = {r["owner"].lower() for r in records if r["owner"]}
     phones = {p for r in records for p in r["phones"]}
+    sources = {r["source"] for r in records if r["source"]}
 
     lines = [
         title,
+    ]
+
+    if query_text:
+        lines.extend(["", f"🔎 Query: {query_text}"])
+
+    lines.extend([
         "",
-        f"📊 Matches found: {len(records)}",
+        "━━━━━━━━━━━━━━",
+        f"📊 Records: {len(records)}",
         f"🏠 Units: {len(units)}",
         f"👤 Owners: {len(owners)}",
-    ]
-    if phones:
-        lines.append(f"📞 Phones: {len(phones)}")
+        f"📞 Phones: {len(phones)}",
+        f"📁 Sources: {len(sources)}",
+    ])
 
     grouped = {}
+
     for r in records:
-        key = (r["building"], r["unit"])
+        key = (
+            r["building"] or "Unknown Building",
+            r["unit"] or "-",
+        )
         grouped.setdefault(key, []).append(r)
 
-    for (building, unit), items in list(grouped.items())[:8]:
-        owner = next((x["owner"] for x in items if x["owner"]), "Not available")
-        group_phones = []
+    for (building, unit), items in list(grouped.items())[:12]:
+        lines.extend(["", "━━━━━━━━━━━━━━"])
+        lines.append(f"🏢 {building}")
+
+        if unit and unit != "-":
+            lines.append(f"🏠 Unit: {unit}")
+
+        owner_map = {}
+
         for item in items:
+            owner = item["owner"] or "Owner not available"
+
+            if owner not in owner_map:
+                owner_map[owner] = {
+                    "phones": set(),
+                    "sources": set(),
+                    "transactions": [],
+                }
+
             for phone in item["phones"]:
-                if phone not in group_phones:
-                    group_phones.append(phone)
+                owner_map[owner]["phones"].add(phone)
 
-        lines.append("\n━━━━━━━━━━━━━━")
-        if building:
-            lines.append(f"🏢 {building}")
-        if unit:
-            lines.append(f"🏠 Unit {unit}")
-        if owner:
-            lines.extend(["", "👤 Owner", owner])
-        if group_phones:
-            lines.append(f"📞 {', '.join(group_phones[:4])}")
+            if item["source"]:
+                owner_map[owner]["sources"].add(item["source"])
 
-        tx_lines = []
-        seen_tx = set()
-        for item in items[:6]:
             date = format_date(item["date"])
             price = format_price(item["price"])
-            if not date and not price:
-                continue
-            tx = f"• {date or 'Date N/A'}"
-            if price:
-                tx += f" — {price}"
-            if tx not in seen_tx:
-                tx_lines.append(tx)
-                seen_tx.add(tx)
 
-        if tx_lines:
-            lines.extend(["", "💰 Transactions"])
-            lines.extend(tx_lines[:5])
+            if date or price:
+                tx = f"• {date or 'Date N/A'}"
+                if price:
+                    tx += f" — {price}"
 
-    if len(grouped) > 8:
-        lines.append(f"\nShowing first 8 of {len(grouped)} grouped units.")
+                if tx not in owner_map[owner]["transactions"]:
+                    owner_map[owner]["transactions"].append(tx)
+
+        lines.extend(["", "👥 Owners"])
+
+        for idx, (owner, data) in enumerate(owner_map.items(), start=1):
+            lines.append("")
+            lines.append(
+                format_owner_block(
+                    owner,
+                    data["phones"],
+                    data["sources"],
+                    idx=idx,
+                )
+            )
+
+            if data["transactions"]:
+                lines.append("💰 Transactions")
+                lines.extend(data["transactions"][:5])
+
+    if len(grouped) > 12:
+        lines.append(f"\nShowing first 12 of {len(grouped)} grouped units.")
 
     return "\n".join(lines).strip()
 
 
 def format_name_results(query, results):
-    return format_grouped_property_results(results, title=f"👤 Owner Intelligence\n\n{query.upper()}")
+    return format_grouped_property_results(
+        results,
+        title="👤 Owner Search",
+        query_text=query.upper(),
+    )
 
 
 def format_phone_results(query, results):
-    return format_grouped_property_results(results, title=f"📞 Phone Intelligence\n\n{query}")
+    return format_grouped_property_results(
+        results,
+        title="📞 Phone Search",
+        query_text=query,
+    )
 
 
 def format_project_results(query, results):
     if not results:
-        return f"🏙 Unit Owner Intelligence\n\n{query}\n\nNo owners found for this unit."
+        return (
+            "🏙 Project / Unit Search\n\n"
+            f"🔎 Query: {query}\n\n"
+            "❌ No owners found for this unit."
+        )
 
     records = [normalize_result_record(r) for r in results]
-    records = [r for r in records if r["building"] or r["unit"] or r["owner"] or r["phones"]]
+    records = [
+        r for r in records
+        if r["building"] or r["unit"] or r["owner"] or r["phones"]
+    ]
     records = sort_records_newest(records)
 
     building = next((r["building"] for r in records if r["building"]), "Unknown Building")
     unit = next((r["unit"] for r in records if r["unit"]), "")
 
-    owners = {}
+    owner_map = {}
+
     for r in records:
-        owner = str(r["owner"] or "").strip()
-        if not owner or owner.lower() in ["nan", "none", "null"]:
-            continue
-        owners.setdefault(owner, set())
+        owner = r["owner"] or "Owner not available"
+
+        if owner not in owner_map:
+            owner_map[owner] = {
+                "phones": set(),
+                "sources": set(),
+                "transactions": [],
+            }
+
         for phone in r["phones"]:
-            phone = clean_phone(phone)
-            if phone:
-                owners[owner].add(phone)
+            owner_map[owner]["phones"].add(phone)
+
+        if r["source"]:
+            owner_map[owner]["sources"].add(r["source"])
+
+        date = format_date(r["date"])
+        price = format_price(r["price"])
+
+        if date or price:
+            tx = f"• {date or 'Date N/A'}"
+            if price:
+                tx += f" — {price}"
+
+            if tx not in owner_map[owner]["transactions"]:
+                owner_map[owner]["transactions"].append(tx)
+
+    all_phones = {
+        phone
+        for data in owner_map.values()
+        for phone in data["phones"]
+    }
+
+    all_sources = {
+        source
+        for data in owner_map.values()
+        for source in data["sources"]
+    }
 
     lines = [
-        "🏙 Unit Owner Intelligence",
+        "🏙 Project / Unit Search",
         "",
-        f"🏢 {building}",
+        f"🔎 Query: {query}",
+        "",
+        f"🏢 Building: {building}",
     ]
+
     if unit:
-        lines.append(f"🏠 Unit {unit}")
+        lines.append(f"🏠 Unit: {unit}")
 
-    lines.extend(["", "━━━━━━━━━━━━━━", "", "👤 Owners & Contacts", ""])
+    lines.extend([
+        "",
+        "━━━━━━━━━━━━━━",
+        f"👥 Owners found: {len(owner_map)}",
+        f"📞 Phones found: {len(all_phones)}",
+        f"📁 Sources: {len(all_sources)}",
+        "",
+        "👥 Owners & Contacts",
+    ])
 
-    if not owners:
-        lines.append("No owner names found.")
-    else:
-        for idx, (owner, phones) in enumerate(owners.items(), start=1):
-            phone_text = ", ".join(sorted(phones)) if phones else "Not available"
-            lines.append(f"{idx}. {owner}")
-            lines.append(f"📞 {phone_text}")
-            lines.append("")
+    for idx, (owner, data) in enumerate(owner_map.items(), start=1):
+        lines.extend(["", format_owner_block(owner, data["phones"], data["sources"], idx=idx)])
+
+        if data["transactions"]:
+            lines.append("💰 Transactions")
+            lines.extend(data["transactions"][:6])
 
     return "\n".join(lines).strip()
 
@@ -1178,7 +1320,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         user_text = update.message.text.strip()
 
-        if "propertyfinder.ae" in user_text or "bayut.com" in user_text:
+        is_listing_link = (
+            user_text.startswith("http://")
+            or user_text.startswith("https://")
+        )
+
+        if is_listing_link and "propertyfinder.ae" in user_text:
             await update.message.reply_text("🔎 Extracting permit from listing link...")
 
             permit_from_link = await extract_permit_safe(user_text)
