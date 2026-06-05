@@ -20,3 +20,5 @@ dxb_state.json
 .env
 *.log.DS_Store
 owners_index.db
+dxb_profile/
+.DS_Store
