@@ -77,7 +77,6 @@ async def extract_with_playwright(url: str) -> str:
             headless=HEADLESS,
             args=[
                 "--disable-blink-features=AutomationControlled",
-                "--no-sandbox",
                 "--disable-dev-shm-usage",
             ],
         )

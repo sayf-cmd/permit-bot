@@ -8,8 +8,6 @@ async def main():
         context = await p.chromium.launch_persistent_context(
             user_data_dir=PROFILE_DIR,
             headless=False,
-            channel="chrome",
-            args=["--no-sandbox"],
         )
 
         page = context.pages[0] if context.pages else await context.new_page()

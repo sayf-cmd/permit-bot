@@ -248,7 +248,6 @@ async def search_dxb_unit_api(
             channel="chrome",
             args=[
                 "--disable-blink-features=AutomationControlled",
-                "--no-sandbox",
                 "--disable-dev-shm-usage",
             ],
         )

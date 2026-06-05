@@ -496,7 +496,6 @@ async def search_dxb_unit_api(building_name: str, unit_number: str) -> str:
             headless=True,
             args=[
                 "--disable-blink-features=AutomationControlled",
-                "--no-sandbox",
                 "--disable-dev-shm-usage",
             ],
         )
