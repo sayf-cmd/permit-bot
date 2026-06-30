@@ -18,13 +18,8 @@ from datetime import datetime
 import pandas as pd
 import gspread
 from google.oauth2.service_account import Credentials
-try:
-    def append_proppy_result(*args, **kwargs):
+def append_proppy_result(*args, **kwargs):
     return None
-
-except Exception:
-    def append_proppy_result(*args, **kwargs):
-        return None
 
 from listing_link_parser import extract_permit_from_listing_url
 
