@@ -1,11 +1,41 @@
-async def create_proppy_link_request(*args, **kwargs):
-    return None
+class _DisabledResult:
+    def __await__(self):
+        async def _coro():
+            return None
+        return _coro().__await__()
 
-async def get_proppy_link_request_result(*args, **kwargs):
-    return None
+    def __bool__(self):
+        return False
 
-async def search_proppy_by_link(*args, **kwargs):
-    return None
+    def __len__(self):
+        return 0
 
-async def search_proppy_unit(*args, **kwargs):
-    return None
+    def __str__(self):
+        return ""
+
+    def get(self, key, default=None):
+        return default
+
+    def items(self):
+        return []
+
+    def keys(self):
+        return []
+
+    def values(self):
+        return []
+
+
+def _disabled(*args, **kwargs):
+    return _DisabledResult()
+
+
+def search_proppy_link_request_data(*args, **kwargs):
+    return _disabled(*args, **kwargs)
+
+def format_proppy_data(*args, **kwargs):
+    return _disabled(*args, **kwargs)
+
+
+def __getattr__(name):
+    return _disabled
