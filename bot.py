@@ -18,7 +18,13 @@ from datetime import datetime
 import pandas as pd
 import gspread
 from google.oauth2.service_account import Credentials
-from proppy_sheet_logger import append_proppy_result
+try:
+    def append_proppy_result(*args, **kwargs):
+    return None
+
+except Exception:
+    def append_proppy_result(*args, **kwargs):
+        return None
 
 from listing_link_parser import extract_permit_from_listing_url
 
@@ -29,7 +35,9 @@ from owner_db_search import (
     format_results_for_telegram,
 )
 
-from dxb_interact_api import search_dxb_unit_api
+async def search_dxb_unit_api(building_name: str, unit_number: str) -> str:
+    return "DXB search is disabled. Bot is running in database-only mode."
+
 
 from proppy_link_request_api import (
     search_proppy_link_request_data,
