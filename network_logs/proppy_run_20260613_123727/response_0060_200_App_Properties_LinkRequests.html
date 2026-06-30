@@ -1,0 +1,872 @@
+
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Proppy - Link Requests</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- ✅ Core Styles -->
+    <link href="/css/style.css?v2.1.2" rel="stylesheet" />
+    <link href="/css/datepicker.min.css?v2.1.2" rel="stylesheet" />
+
+    <!-- ✅ External Libraries -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/css/lightbox.min.css" rel="stylesheet" />
+    <link href="/img/logo.png" rel="icon" sizes="64x64" type="image/png" />
+</head>
+
+<body>
+    <header class="fixed-top">
+        
+<div class="topbar">
+    <button type="button" class="sidebar-toggle" aria-label="Open menu">
+        <span></span><span></span><span></span>
+    </button>
+    <div class="logo">
+        <img src="/img/logo.png" />
+        <span>Proppy</span>
+    </div>
+    <div class="user-info">
+        <a href="/App/Profiles/Profile">
+                <img src="https://randomuser.me/api/portraits/men/32.jpg" />
+        </a>
+        <span class="user-greeting">Hello, Sayf Nazarov</span>
+        <a class="logout" href="/App/Account/Logout">
+            <span class="logout-icon">🚪</span><span class="logout-text"> Logout</span>
+        </a>
+    </div>
+</div>
+    </header>
+
+    <div class="sidebar-backdrop"></div>
+
+    <div class="layout">
+        
+<div class="sidebar">
+
+
+<a href="/App/Agents/Dashboard" class="nav-item ">
+    <img src="/img/dashboard.svg" /> Dashboard
+</a>
+
+<div>
+    <div class="nav-item toggleable ">
+        <img src="/img/tasks.svg" /> Tasks
+    </div>
+    <div class="submenu">
+        <a href="/App/Tasks/List" class="">Tasks</a>
+        <a href="/App/Goals/List" class="">Goals</a>
+        <!--<a href="~/App/Tasks/Calendar" class="(item == MenuItemEnum.Calendar ? "active" : "")">Calendar</a>-->
+    </div>
+</div>
+
+<a href="/App/Calls/List" class="nav-item ">
+    <img src="/img/calls.svg" /> Calls
+</a>
+
+<a href="/App/Leads/List" class="nav-item ">
+    <img src="/img/leads.svg" /> Leads
+</a>
+
+<div>
+    <div class="nav-item toggleable ">
+        <img src="/img/clients.svg" /> Clients
+    </div>
+    <div class="submenu">
+        <a href="/App/Clients/List" class="">Clients</a>
+        <a href="/App/Deals/List" class="">Deals</a>
+    </div>
+</div>
+
+<div>
+    <div class="nav-item toggleable active open">
+        <img src="/img/properties.svg" /> Properties
+    </div>
+    <div class="submenu">
+        <a href="/App/Properties/List" class="">Properties</a>
+        <a href="/App/Viewings/List" class="">Viewings</a>
+        <a href="/App/Postings/List" class="">Postings</a>
+        <a href="/App/Projects/List" class="">Projects</a>
+        <a href="/App/Properties/Records2" class="">Database 2.0</a>
+        <a href="/App/Properties/LinkRequests" class="active">Link requests</a>
+        <a href="/App/Properties/Planner" class="">Planner</a>
+    </div>
+</div>
+
+<div>
+    <div class="nav-item toggleable ">
+        <img src="/img/admin.svg" /> Information
+    </div>
+    <div class="submenu">
+        <a href="/App/Information/Documents" class="">Documents</a>
+        <a href="/App/Information/Resources" class="">Resources</a>
+    </div>
+</div>
+<!--
+<a href="~/App/Docs/Generator" class="nav-item (item == MenuItemEnum.Docs ? "active" : "")">
+<img src="~/img/docs_generator.svg" /> Docs Generator
+</a>-->
+</div>
+
+
+        
+
+
+<div class="main-content">
+    <div class="main-container">
+        <h2>Link Requests</h2>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <a class="upload-button" href="/App/Properties/Planner">🗓 Planner</a>
+            <button class="upload-button" id="open-new-link-modal">➕ New Request</button>
+        </div>
+    </div>
+
+    <div style="margin-top: 14px; padding: 12px 16px; border-radius: 10px; background: #eff6ff; border: 1px solid #bfdbfe; color: #1e3a5f; max-width: 760px;">
+        😴 <strong>Tired of waiting for each request?</strong> Add your links to the
+        <a href="/App/Properties/Planner" style="font-weight: 600;">Planner</a> — they'll be processed overnight
+        and all the results will be waiting for you in the morning.
+    </div>
+
+    <form method="get" class="filters-row" action="/App/Properties/LinkRequests">
+        <select name="Status" class="filter-select">
+            <option value="">All Statuses</option>
+                    <option value="0">New</option>
+                    <option value="1">In Progress</option>
+                    <option value="2">Success</option>
+                    <option value="3">Failed</option>
+                    <option value="4">Timeout</option>
+                    <option value="5">Deferred</option>
+        </select>
+        <button type="submit" class="upload-button">🔎 Search</button>
+    </form>
+
+    <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Date</th>
+                    <th>Link</th>
+                    <th>Status</th>
+                    <th>Building</th>
+                    <th>Unit</th>
+                    <th>Owner</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td style="white-space: nowrap;">2026-06-13 08:39</td>
+                            <td style="max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                <a href="71495668339" target="_blank" title="71495668339">71495668339</a>
+                            </td>
+                            <td><span style="font-weight: 600; color:#16a34a;">Success</span></td>
+                            <td>THE EDGE</td>
+                            <td>A3108</td>
+                            <td>
+                                ANASTASIIA KOKORINA
+                                    <span style="font-size: 10px; padding: 1px 6px; border-radius: 999px; background: #e0f2fe; color: #0c4a6e; border: 1px solid #bae6fd; vertical-align: middle;">DB</span>
+                            </td>
+                            <td>
+                                <a class="upload-button" href="/App/Properties/LinkDetails?id=f017f95e-4b54-492f-b8ee-e741a852124a">👁 View</a>
+                                <form method="post" style="display:inline;" action="/App/Properties/LinkDelete">
+                                    <input type="hidden" name="id" value="f017f95e-4b54-492f-b8ee-e741a852124a" />
+                                <input name="__RequestVerificationToken" type="hidden" value="CfDJ8EOtxNFfKuZFieYPUES0R4198c-8guqYvbc_uDjtDi6F56fNnGbr9klkHQEYb9PeQ40EdlWvCnbU_oSqlrUhpbae0dDPo3a8_MfDXjQ9Shlen8nOmFEQRSoFhA7-MzA7rJvxX98OujCXu7a2rwET_2upbF-RhLGOoUD0TfcrROS5nMmzWdnz-Jv6vTm0kpVfgw" /></form>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td style="white-space: nowrap;">2026-06-12 21:52</td>
+                            <td style="max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                <a href="7136768480" target="_blank" title="7136768480">7136768480</a>
+                            </td>
+                            <td><span style="font-weight: 600; color:#16a34a;">Success</span></td>
+                            <td>The St. Regis Residences - Tower 1</td>
+                            <td>2904</td>
+                            <td>
+                                SEMEN KORTENOV
+                                    <span style="font-size: 10px; padding: 1px 6px; border-radius: 999px; background: #e0f2fe; color: #0c4a6e; border: 1px solid #bae6fd; vertical-align: middle;">DB</span>
+                            </td>
+                            <td>
+                                <a class="upload-button" href="/App/Properties/LinkDetails?id=d7edff65-314d-4114-982d-f434b175232a">👁 View</a>
+                                <form method="post" style="display:inline;" action="/App/Properties/LinkDelete">
+                                    <input type="hidden" name="id" value="d7edff65-314d-4114-982d-f434b175232a" />
+                                <input name="__RequestVerificationToken" type="hidden" value="CfDJ8EOtxNFfKuZFieYPUES0R4198c-8guqYvbc_uDjtDi6F56fNnGbr9klkHQEYb9PeQ40EdlWvCnbU_oSqlrUhpbae0dDPo3a8_MfDXjQ9Shlen8nOmFEQRSoFhA7-MzA7rJvxX98OujCXu7a2rwET_2upbF-RhLGOoUD0TfcrROS5nMmzWdnz-Jv6vTm0kpVfgw" /></form>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td style="white-space: nowrap;">2026-06-12 21:43</td>
+                            <td style="max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                <a href="6553048003" target="_blank" title="6553048003">6553048003</a>
+                            </td>
+                            <td><span style="font-weight: 600; color:#16a34a;">Success</span></td>
+                            <td>JABAL ALI INDUSTRIAL DEVELOPMENT</td>
+                            <td></td>
+                            <td>
+                                
+                            </td>
+                            <td>
+                                <a class="upload-button" href="/App/Properties/LinkDetails?id=bb385455-0e34-4620-9676-bae90ef5e1e4">👁 View</a>
+                                <form method="post" style="display:inline;" action="/App/Properties/LinkDelete">
+                                    <input type="hidden" name="id" value="bb385455-0e34-4620-9676-bae90ef5e1e4" />
+                                <input name="__RequestVerificationToken" type="hidden" value="CfDJ8EOtxNFfKuZFieYPUES0R4198c-8guqYvbc_uDjtDi6F56fNnGbr9klkHQEYb9PeQ40EdlWvCnbU_oSqlrUhpbae0dDPo3a8_MfDXjQ9Shlen8nOmFEQRSoFhA7-MzA7rJvxX98OujCXu7a2rwET_2upbF-RhLGOoUD0TfcrROS5nMmzWdnz-Jv6vTm0kpVfgw" /></form>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td style="white-space: nowrap;">2026-06-12 19:22</td>
+                            <td style="max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                <a href="71524289963" target="_blank" title="71524289963">71524289963</a>
+                            </td>
+                            <td><span style="font-weight: 600; color:#16a34a;">Success</span></td>
+                            <td>VYB</td>
+                            <td>1201</td>
+                            <td>
+                                EDLIRA CEKREZI
+                                    <span style="font-size: 10px; padding: 1px 6px; border-radius: 999px; background: #e0f2fe; color: #0c4a6e; border: 1px solid #bae6fd; vertical-align: middle;">DB</span>
+                                    <br /><a href="tel:971585069884" style="font-size: 12px;">971585069884</a>
+                            </td>
+                            <td>
+                                <a class="upload-button" href="/App/Properties/LinkDetails?id=5c57be87-17a2-4d0d-99b4-6d37c7d2fe0a">👁 View</a>
+                                <form method="post" style="display:inline;" action="/App/Properties/LinkDelete">
+                                    <input type="hidden" name="id" value="5c57be87-17a2-4d0d-99b4-6d37c7d2fe0a" />
+                                <input name="__RequestVerificationToken" type="hidden" value="CfDJ8EOtxNFfKuZFieYPUES0R4198c-8guqYvbc_uDjtDi6F56fNnGbr9klkHQEYb9PeQ40EdlWvCnbU_oSqlrUhpbae0dDPo3a8_MfDXjQ9Shlen8nOmFEQRSoFhA7-MzA7rJvxX98OujCXu7a2rwET_2upbF-RhLGOoUD0TfcrROS5nMmzWdnz-Jv6vTm0kpVfgw" /></form>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>5</td>
+                            <td style="white-space: nowrap;">2026-06-12 19:22</td>
+                            <td style="max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                <a href="71524283051" target="_blank" title="71524283051">71524283051</a>
+                            </td>
+                            <td><span style="font-weight: 600; color:#16a34a;">Success</span></td>
+                            <td>VYB</td>
+                            <td>409</td>
+                            <td>
+                                OSAMAH FAWAZ ALJABR
+                                    <span style="font-size: 10px; padding: 1px 6px; border-radius: 999px; background: #e0f2fe; color: #0c4a6e; border: 1px solid #bae6fd; vertical-align: middle;">DB</span>
+                                    <br /><a href="tel:971561778237" style="font-size: 12px;">971561778237</a>
+                            </td>
+                            <td>
+                                <a class="upload-button" href="/App/Properties/LinkDetails?id=d4ce253e-6a04-45e7-a861-504916415cc5">👁 View</a>
+                                <form method="post" style="display:inline;" action="/App/Properties/LinkDelete">
+                                    <input type="hidden" name="id" value="d4ce253e-6a04-45e7-a861-504916415cc5" />
+                                <input name="__RequestVerificationToken" type="hidden" value="CfDJ8EOtxNFfKuZFieYPUES0R4198c-8guqYvbc_uDjtDi6F56fNnGbr9klkHQEYb9PeQ40EdlWvCnbU_oSqlrUhpbae0dDPo3a8_MfDXjQ9Shlen8nOmFEQRSoFhA7-MzA7rJvxX98OujCXu7a2rwET_2upbF-RhLGOoUD0TfcrROS5nMmzWdnz-Jv6vTm0kpVfgw" /></form>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>6</td>
+                            <td style="white-space: nowrap;">2026-06-12 19:17</td>
+                            <td style="max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                <a href="71524284491" target="_blank" title="71524284491">71524284491</a>
+                            </td>
+                            <td><span style="font-weight: 600; color:#16a34a;">Success</span></td>
+                            <td>VYB</td>
+                            <td>604</td>
+                            <td>
+                                WEI WANG
+                                    <span style="font-size: 10px; padding: 1px 6px; border-radius: 999px; background: #e0f2fe; color: #0c4a6e; border: 1px solid #bae6fd; vertical-align: middle;">DB</span>
+                                    <br /><a href="tel:971|52-9075439" style="font-size: 12px;">971|52-9075439</a>
+                            </td>
+                            <td>
+                                <a class="upload-button" href="/App/Properties/LinkDetails?id=b5b8fff1-ec0e-4c18-8900-6c95e1f11e90">👁 View</a>
+                                <form method="post" style="display:inline;" action="/App/Properties/LinkDelete">
+                                    <input type="hidden" name="id" value="b5b8fff1-ec0e-4c18-8900-6c95e1f11e90" />
+                                <input name="__RequestVerificationToken" type="hidden" value="CfDJ8EOtxNFfKuZFieYPUES0R4198c-8guqYvbc_uDjtDi6F56fNnGbr9klkHQEYb9PeQ40EdlWvCnbU_oSqlrUhpbae0dDPo3a8_MfDXjQ9Shlen8nOmFEQRSoFhA7-MzA7rJvxX98OujCXu7a2rwET_2upbF-RhLGOoUD0TfcrROS5nMmzWdnz-Jv6vTm0kpVfgw" /></form>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>7</td>
+                            <td style="white-space: nowrap;">2026-06-12 19:17</td>
+                            <td style="max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                <a href="71524284299" target="_blank" title="71524284299">71524284299</a>
+                            </td>
+                            <td><span style="font-weight: 600; color:#16a34a;">Success</span></td>
+                            <td>VYB</td>
+                            <td>602</td>
+                            <td>
+                                NATALIA MIKHAI
+                                    <span style="font-size: 10px; padding: 1px 6px; border-radius: 999px; background: #e0f2fe; color: #0c4a6e; border: 1px solid #bae6fd; vertical-align: middle;">DB</span>
+                                    <br /><a href="tel:7|9104483195" style="font-size: 12px;">7|9104483195</a>
+                            </td>
+                            <td>
+                                <a class="upload-button" href="/App/Properties/LinkDetails?id=67fd6bec-8460-40a6-aee1-a5b90021ae9f">👁 View</a>
+                                <form method="post" style="display:inline;" action="/App/Properties/LinkDelete">
+                                    <input type="hidden" name="id" value="67fd6bec-8460-40a6-aee1-a5b90021ae9f" />
+                                <input name="__RequestVerificationToken" type="hidden" value="CfDJ8EOtxNFfKuZFieYPUES0R4198c-8guqYvbc_uDjtDi6F56fNnGbr9klkHQEYb9PeQ40EdlWvCnbU_oSqlrUhpbae0dDPo3a8_MfDXjQ9Shlen8nOmFEQRSoFhA7-MzA7rJvxX98OujCXu7a2rwET_2upbF-RhLGOoUD0TfcrROS5nMmzWdnz-Jv6vTm0kpVfgw" /></form>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>8</td>
+                            <td style="white-space: nowrap;">2026-06-12 19:17</td>
+                            <td style="max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                <a href="71524282667" target="_blank" title="71524282667">71524282667</a>
+                            </td>
+                            <td><span style="font-weight: 600; color:#16a34a;">Success</span></td>
+                            <td>VYB</td>
+                            <td>405</td>
+                            <td>
+                                ABDELMAJEED YASIN AHMAD ZWAIRI
+                                    <span style="font-size: 10px; padding: 1px 6px; border-radius: 999px; background: #e0f2fe; color: #0c4a6e; border: 1px solid #bae6fd; vertical-align: middle;">DB</span>
+                                    <br /><a href="tel:971528350598" style="font-size: 12px;">971528350598</a>
+                            </td>
+                            <td>
+                                <a class="upload-button" href="/App/Properties/LinkDetails?id=b82e9d2e-9c0f-4166-81da-7c245e7f9f0c">👁 View</a>
+                                <form method="post" style="display:inline;" action="/App/Properties/LinkDelete">
+                                    <input type="hidden" name="id" value="b82e9d2e-9c0f-4166-81da-7c245e7f9f0c" />
+                                <input name="__RequestVerificationToken" type="hidden" value="CfDJ8EOtxNFfKuZFieYPUES0R4198c-8guqYvbc_uDjtDi6F56fNnGbr9klkHQEYb9PeQ40EdlWvCnbU_oSqlrUhpbae0dDPo3a8_MfDXjQ9Shlen8nOmFEQRSoFhA7-MzA7rJvxX98OujCXu7a2rwET_2upbF-RhLGOoUD0TfcrROS5nMmzWdnz-Jv6vTm0kpVfgw" /></form>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>9</td>
+                            <td style="white-space: nowrap;">2026-06-12 19:14</td>
+                            <td style="max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                <a href="65251682035" target="_blank" title="65251682035">65251682035</a>
+                            </td>
+                            <td><span style="font-weight: 600; color:#16a34a;">Success</span></td>
+                            <td></td>
+                            <td></td>
+                            <td>
+                                
+                            </td>
+                            <td>
+                                <a class="upload-button" href="/App/Properties/LinkDetails?id=4ad4195f-dce7-4c91-95ab-7fe52d20c6fe">👁 View</a>
+                                <form method="post" style="display:inline;" action="/App/Properties/LinkDelete">
+                                    <input type="hidden" name="id" value="4ad4195f-dce7-4c91-95ab-7fe52d20c6fe" />
+                                <input name="__RequestVerificationToken" type="hidden" value="CfDJ8EOtxNFfKuZFieYPUES0R4198c-8guqYvbc_uDjtDi6F56fNnGbr9klkHQEYb9PeQ40EdlWvCnbU_oSqlrUhpbae0dDPo3a8_MfDXjQ9Shlen8nOmFEQRSoFhA7-MzA7rJvxX98OujCXu7a2rwET_2upbF-RhLGOoUD0TfcrROS5nMmzWdnz-Jv6vTm0kpVfgw" /></form>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>10</td>
+                            <td style="white-space: nowrap;">2026-06-12 19:12</td>
+                            <td style="max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                <a href="71524284587" target="_blank" title="71524284587">71524284587</a>
+                            </td>
+                            <td><span style="font-weight: 600; color:#16a34a;">Success</span></td>
+                            <td>VYB</td>
+                            <td>605</td>
+                            <td>
+                                AYKUT IZCI
+                                    <span style="font-size: 10px; padding: 1px 6px; border-radius: 999px; background: #e0f2fe; color: #0c4a6e; border: 1px solid #bae6fd; vertical-align: middle;">DB</span>
+                                    <br /><a href="tel:971|52-7323586" style="font-size: 12px;">971|52-7323586</a>
+                            </td>
+                            <td>
+                                <a class="upload-button" href="/App/Properties/LinkDetails?id=46d6ec3b-5315-4399-8470-8b7f46a582ff">👁 View</a>
+                                <form method="post" style="display:inline;" action="/App/Properties/LinkDelete">
+                                    <input type="hidden" name="id" value="46d6ec3b-5315-4399-8470-8b7f46a582ff" />
+                                <input name="__RequestVerificationToken" type="hidden" value="CfDJ8EOtxNFfKuZFieYPUES0R4198c-8guqYvbc_uDjtDi6F56fNnGbr9klkHQEYb9PeQ40EdlWvCnbU_oSqlrUhpbae0dDPo3a8_MfDXjQ9Shlen8nOmFEQRSoFhA7-MzA7rJvxX98OujCXu7a2rwET_2upbF-RhLGOoUD0TfcrROS5nMmzWdnz-Jv6vTm0kpVfgw" /></form>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>11</td>
+                            <td style="white-space: nowrap;">2026-06-12 19:12</td>
+                            <td style="max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                <a href="71524290635" target="_blank" title="71524290635">71524290635</a>
+                            </td>
+                            <td><span style="font-weight: 600; color:#16a34a;">Success</span></td>
+                            <td>VYB</td>
+                            <td>1208</td>
+                            <td>
+                                ILIA UBILAVA
+                                    <span style="font-size: 10px; padding: 1px 6px; border-radius: 999px; background: #e0f2fe; color: #0c4a6e; border: 1px solid #bae6fd; vertical-align: middle;">DB</span>
+                            </td>
+                            <td>
+                                <a class="upload-button" href="/App/Properties/LinkDetails?id=1529335e-30f3-4a25-8533-805d921b22aa">👁 View</a>
+                                <form method="post" style="display:inline;" action="/App/Properties/LinkDelete">
+                                    <input type="hidden" name="id" value="1529335e-30f3-4a25-8533-805d921b22aa" />
+                                <input name="__RequestVerificationToken" type="hidden" value="CfDJ8EOtxNFfKuZFieYPUES0R4198c-8guqYvbc_uDjtDi6F56fNnGbr9klkHQEYb9PeQ40EdlWvCnbU_oSqlrUhpbae0dDPo3a8_MfDXjQ9Shlen8nOmFEQRSoFhA7-MzA7rJvxX98OujCXu7a2rwET_2upbF-RhLGOoUD0TfcrROS5nMmzWdnz-Jv6vTm0kpVfgw" /></form>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>12</td>
+                            <td style="white-space: nowrap;">2026-06-12 19:12</td>
+                            <td style="max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                <a href="71524281323" target="_blank" title="71524281323">71524281323</a>
+                            </td>
+                            <td><span style="font-weight: 600; color:#16a34a;">Success</span></td>
+                            <td>VYB</td>
+                            <td>301</td>
+                            <td>
+                                ALBINA SARSEKEEVA
+                                    <span style="font-size: 10px; padding: 1px 6px; border-radius: 999px; background: #e0f2fe; color: #0c4a6e; border: 1px solid #bae6fd; vertical-align: middle;">DB</span>
+                                    <br /><a href="tel:7|9991267466" style="font-size: 12px;">7|9991267466</a>
+                            </td>
+                            <td>
+                                <a class="upload-button" href="/App/Properties/LinkDetails?id=1eda30f4-b25a-49b9-b16e-f5b02c7754a6">👁 View</a>
+                                <form method="post" style="display:inline;" action="/App/Properties/LinkDelete">
+                                    <input type="hidden" name="id" value="1eda30f4-b25a-49b9-b16e-f5b02c7754a6" />
+                                <input name="__RequestVerificationToken" type="hidden" value="CfDJ8EOtxNFfKuZFieYPUES0R4198c-8guqYvbc_uDjtDi6F56fNnGbr9klkHQEYb9PeQ40EdlWvCnbU_oSqlrUhpbae0dDPo3a8_MfDXjQ9Shlen8nOmFEQRSoFhA7-MzA7rJvxX98OujCXu7a2rwET_2upbF-RhLGOoUD0TfcrROS5nMmzWdnz-Jv6vTm0kpVfgw" /></form>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>13</td>
+                            <td style="white-space: nowrap;">2026-06-12 19:08</td>
+                            <td style="max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                <a href="71524281995" target="_blank" title="71524281995">71524281995</a>
+                            </td>
+                            <td><span style="font-weight: 600; color:#16a34a;">Success</span></td>
+                            <td>VYB</td>
+                            <td>308</td>
+                            <td>
+                                NURGUL RYSKULOVA
+                                    <span style="font-size: 10px; padding: 1px 6px; border-radius: 999px; background: #e0f2fe; color: #0c4a6e; border: 1px solid #bae6fd; vertical-align: middle;">DB</span>
+                                    <br /><a href="tel:7|7011003959" style="font-size: 12px;">7|7011003959</a>
+                            </td>
+                            <td>
+                                <a class="upload-button" href="/App/Properties/LinkDetails?id=2623359a-21f1-40be-a4c8-97498e2a36e3">👁 View</a>
+                                <form method="post" style="display:inline;" action="/App/Properties/LinkDelete">
+                                    <input type="hidden" name="id" value="2623359a-21f1-40be-a4c8-97498e2a36e3" />
+                                <input name="__RequestVerificationToken" type="hidden" value="CfDJ8EOtxNFfKuZFieYPUES0R4198c-8guqYvbc_uDjtDi6F56fNnGbr9klkHQEYb9PeQ40EdlWvCnbU_oSqlrUhpbae0dDPo3a8_MfDXjQ9Shlen8nOmFEQRSoFhA7-MzA7rJvxX98OujCXu7a2rwET_2upbF-RhLGOoUD0TfcrROS5nMmzWdnz-Jv6vTm0kpVfgw" /></form>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>14</td>
+                            <td style="white-space: nowrap;">2026-06-12 19:08</td>
+                            <td style="max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                <a href="71524287371" target="_blank" title="71524287371">71524287371</a>
+                            </td>
+                            <td><span style="font-weight: 600; color:#16a34a;">Success</span></td>
+                            <td>VYB</td>
+                            <td>904</td>
+                            <td>
+                                BAHAREH MOHAMMADPOUR BARGHI
+                                    <span style="font-size: 10px; padding: 1px 6px; border-radius: 999px; background: #e0f2fe; color: #0c4a6e; border: 1px solid #bae6fd; vertical-align: middle;">DB</span>
+                                    <br /><a href="tel:971522873702" style="font-size: 12px;">971522873702</a>
+                            </td>
+                            <td>
+                                <a class="upload-button" href="/App/Properties/LinkDetails?id=be666b1a-2cb3-41b2-811f-3832f735654f">👁 View</a>
+                                <form method="post" style="display:inline;" action="/App/Properties/LinkDelete">
+                                    <input type="hidden" name="id" value="be666b1a-2cb3-41b2-811f-3832f735654f" />
+                                <input name="__RequestVerificationToken" type="hidden" value="CfDJ8EOtxNFfKuZFieYPUES0R4198c-8guqYvbc_uDjtDi6F56fNnGbr9klkHQEYb9PeQ40EdlWvCnbU_oSqlrUhpbae0dDPo3a8_MfDXjQ9Shlen8nOmFEQRSoFhA7-MzA7rJvxX98OujCXu7a2rwET_2upbF-RhLGOoUD0TfcrROS5nMmzWdnz-Jv6vTm0kpVfgw" /></form>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>15</td>
+                            <td style="white-space: nowrap;">2026-06-12 19:08</td>
+                            <td style="max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                <a href="71524287467" target="_blank" title="71524287467">71524287467</a>
+                            </td>
+                            <td><span style="font-weight: 600; color:#16a34a;">Success</span></td>
+                            <td>VYB</td>
+                            <td>905</td>
+                            <td>
+                                BAHAREH MOHAMMADPOUR BARGHI
+                                    <span style="font-size: 10px; padding: 1px 6px; border-radius: 999px; background: #e0f2fe; color: #0c4a6e; border: 1px solid #bae6fd; vertical-align: middle;">DB</span>
+                                    <br /><a href="tel:971522873702" style="font-size: 12px;">971522873702</a>
+                            </td>
+                            <td>
+                                <a class="upload-button" href="/App/Properties/LinkDetails?id=7c7b00ed-e4cf-4ed3-93db-e83a5d8b48dd">👁 View</a>
+                                <form method="post" style="display:inline;" action="/App/Properties/LinkDelete">
+                                    <input type="hidden" name="id" value="7c7b00ed-e4cf-4ed3-93db-e83a5d8b48dd" />
+                                <input name="__RequestVerificationToken" type="hidden" value="CfDJ8EOtxNFfKuZFieYPUES0R4198c-8guqYvbc_uDjtDi6F56fNnGbr9klkHQEYb9PeQ40EdlWvCnbU_oSqlrUhpbae0dDPo3a8_MfDXjQ9Shlen8nOmFEQRSoFhA7-MzA7rJvxX98OujCXu7a2rwET_2upbF-RhLGOoUD0TfcrROS5nMmzWdnz-Jv6vTm0kpVfgw" /></form>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>16</td>
+                            <td style="white-space: nowrap;">2026-06-12 19:04</td>
+                            <td style="max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                <a href="71524280459" target="_blank" title="71524280459">71524280459</a>
+                            </td>
+                            <td><span style="font-weight: 600; color:#16a34a;">Success</span></td>
+                            <td>VYB</td>
+                            <td>202</td>
+                            <td>
+                                
+                            </td>
+                            <td>
+                                <a class="upload-button" href="/App/Properties/LinkDetails?id=8527cd14-e3f2-4a96-8ea2-1fb49ea6655e">👁 View</a>
+                                <form method="post" style="display:inline;" action="/App/Properties/LinkDelete">
+                                    <input type="hidden" name="id" value="8527cd14-e3f2-4a96-8ea2-1fb49ea6655e" />
+                                <input name="__RequestVerificationToken" type="hidden" value="CfDJ8EOtxNFfKuZFieYPUES0R4198c-8guqYvbc_uDjtDi6F56fNnGbr9klkHQEYb9PeQ40EdlWvCnbU_oSqlrUhpbae0dDPo3a8_MfDXjQ9Shlen8nOmFEQRSoFhA7-MzA7rJvxX98OujCXu7a2rwET_2upbF-RhLGOoUD0TfcrROS5nMmzWdnz-Jv6vTm0kpVfgw" /></form>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>17</td>
+                            <td style="white-space: nowrap;">2026-06-12 19:04</td>
+                            <td style="max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                <a href="71524290059" target="_blank" title="71524290059">71524290059</a>
+                            </td>
+                            <td><span style="font-weight: 600; color:#16a34a;">Success</span></td>
+                            <td>VYB</td>
+                            <td>1202</td>
+                            <td>
+                                ANASTASIYA KANASHUK
+                                    <span style="font-size: 10px; padding: 1px 6px; border-radius: 999px; background: #e0f2fe; color: #0c4a6e; border: 1px solid #bae6fd; vertical-align: middle;">DB</span>
+                                    <br /><a href="tel:971581968566" style="font-size: 12px;">971581968566</a>
+                            </td>
+                            <td>
+                                <a class="upload-button" href="/App/Properties/LinkDetails?id=1a98ceae-0f1f-416a-b77d-0bc9a688a140">👁 View</a>
+                                <form method="post" style="display:inline;" action="/App/Properties/LinkDelete">
+                                    <input type="hidden" name="id" value="1a98ceae-0f1f-416a-b77d-0bc9a688a140" />
+                                <input name="__RequestVerificationToken" type="hidden" value="CfDJ8EOtxNFfKuZFieYPUES0R4198c-8guqYvbc_uDjtDi6F56fNnGbr9klkHQEYb9PeQ40EdlWvCnbU_oSqlrUhpbae0dDPo3a8_MfDXjQ9Shlen8nOmFEQRSoFhA7-MzA7rJvxX98OujCXu7a2rwET_2upbF-RhLGOoUD0TfcrROS5nMmzWdnz-Jv6vTm0kpVfgw" /></form>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>18</td>
+                            <td style="white-space: nowrap;">2026-06-12 19:04</td>
+                            <td style="max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                <a href="71524291307" target="_blank" title="71524291307">71524291307</a>
+                            </td>
+                            <td><span style="font-weight: 600; color:#16a34a;">Success</span></td>
+                            <td>VYB</td>
+                            <td>1305</td>
+                            <td>
+                                ELIAS EBRAHIM
+                                    <span style="font-size: 10px; padding: 1px 6px; border-radius: 999px; background: #e0f2fe; color: #0c4a6e; border: 1px solid #bae6fd; vertical-align: middle;">DB</span>
+                                    <br /><a href="tel:963|966672666" style="font-size: 12px;">963|966672666</a>
+                            </td>
+                            <td>
+                                <a class="upload-button" href="/App/Properties/LinkDetails?id=9b70d30e-6d4d-4e81-933a-0295f3567202">👁 View</a>
+                                <form method="post" style="display:inline;" action="/App/Properties/LinkDelete">
+                                    <input type="hidden" name="id" value="9b70d30e-6d4d-4e81-933a-0295f3567202" />
+                                <input name="__RequestVerificationToken" type="hidden" value="CfDJ8EOtxNFfKuZFieYPUES0R4198c-8guqYvbc_uDjtDi6F56fNnGbr9klkHQEYb9PeQ40EdlWvCnbU_oSqlrUhpbae0dDPo3a8_MfDXjQ9Shlen8nOmFEQRSoFhA7-MzA7rJvxX98OujCXu7a2rwET_2upbF-RhLGOoUD0TfcrROS5nMmzWdnz-Jv6vTm0kpVfgw" /></form>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>19</td>
+                            <td style="white-space: nowrap;">2026-06-12 19:00</td>
+                            <td style="max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                <a href="71524281035" target="_blank" title="71524281035">71524281035</a>
+                            </td>
+                            <td><span style="font-weight: 600; color:#16a34a;">Success</span></td>
+                            <td>VYB</td>
+                            <td>208</td>
+                            <td>
+                                CHRISTOPHER LEWIS ROBINSON
+                                    <span style="font-size: 10px; padding: 1px 6px; border-radius: 999px; background: #e0f2fe; color: #0c4a6e; border: 1px solid #bae6fd; vertical-align: middle;">DB</span>
+                            </td>
+                            <td>
+                                <a class="upload-button" href="/App/Properties/LinkDetails?id=f134fe7e-df91-4b4e-80f0-0dc9c3bbd4a1">👁 View</a>
+                                <form method="post" style="display:inline;" action="/App/Properties/LinkDelete">
+                                    <input type="hidden" name="id" value="f134fe7e-df91-4b4e-80f0-0dc9c3bbd4a1" />
+                                <input name="__RequestVerificationToken" type="hidden" value="CfDJ8EOtxNFfKuZFieYPUES0R4198c-8guqYvbc_uDjtDi6F56fNnGbr9klkHQEYb9PeQ40EdlWvCnbU_oSqlrUhpbae0dDPo3a8_MfDXjQ9Shlen8nOmFEQRSoFhA7-MzA7rJvxX98OujCXu7a2rwET_2upbF-RhLGOoUD0TfcrROS5nMmzWdnz-Jv6vTm0kpVfgw" /></form>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>20</td>
+                            <td style="white-space: nowrap;">2026-06-12 19:00</td>
+                            <td style="max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                <a href="71524282379" target="_blank" title="71524282379">71524282379</a>
+                            </td>
+                            <td><span style="font-weight: 600; color:#16a34a;">Success</span></td>
+                            <td>VYB</td>
+                            <td>402</td>
+                            <td>
+                                MONIKA MIKHAI
+                                    <span style="font-size: 10px; padding: 1px 6px; border-radius: 999px; background: #e0f2fe; color: #0c4a6e; border: 1px solid #bae6fd; vertical-align: middle;">DB</span>
+                                    <br /><a href="tel:7|9258115997" style="font-size: 12px;">7|9258115997</a>
+                            </td>
+                            <td>
+                                <a class="upload-button" href="/App/Properties/LinkDetails?id=3661ed38-4063-429b-b1c8-b908c38d5caf">👁 View</a>
+                                <form method="post" style="display:inline;" action="/App/Properties/LinkDelete">
+                                    <input type="hidden" name="id" value="3661ed38-4063-429b-b1c8-b908c38d5caf" />
+                                <input name="__RequestVerificationToken" type="hidden" value="CfDJ8EOtxNFfKuZFieYPUES0R4198c-8guqYvbc_uDjtDi6F56fNnGbr9klkHQEYb9PeQ40EdlWvCnbU_oSqlrUhpbae0dDPo3a8_MfDXjQ9Shlen8nOmFEQRSoFhA7-MzA7rJvxX98OujCXu7a2rwET_2upbF-RhLGOoUD0TfcrROS5nMmzWdnz-Jv6vTm0kpVfgw" /></form>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="pagination-line">
+
+
+                <span class="pagination-button active">1</span>
+                <a class="pagination-button" href="?Page=2">2</a>
+                <span class="pagination-button">...</span>
+                <a class="pagination-button" href="?Page=7">7</a>
+
+            <a class="pagination-button" href="?Page=2">→</a>
+    </div>
+</div>
+
+<!-- Модальное окно -->
+<div id="new-link-modal" class="modal-client" style="display:none;">
+    <div class="modal-client-content">
+        <h2>New Link Request</h2>
+        <form id="new-link-form">
+            <label class="client-form-label">Link:</label>
+            <input type="text" id="link-input" name="link" class="client-form-control" required />
+            <div class="modal-client-buttons">
+                <button type="submit" class="upload-button">Create</button>
+                <button type="button" class="upload-button" id="cancel-new-link">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+        
+    </div>
+
+    <!-- ✅ Scripts in Correct Order -->
+    <script src="/js/jquery-3.6.0.min.js"></script>
+    <script src="/js/bootstrap.bundle.min.js"></script>
+
+    <!-- ✅ Plugins -->
+    <script src="/js/datepicker.min.js?v2.1.2"></script>
+    <script src="/js/virtual-select.min.js"></script>
+    <script src="/js/slick.js"></script>
+    <script src="/js/swiper-bundle.min.js"></script>
+    <script src="/js/wow.min.js"></script>
+    <script src="/js/tooltip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/js/lightbox.min.js"></script>
+
+    <!-- ✅ Validation -->
+    <script src="/js/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="/js/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+
+    <!-- ✅ YouTube Embed -->
+    <script src="/js/lite-yt-embed.js"></script>
+
+    <!-- ✅ Menu toggle logic -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            document.querySelectorAll(".nav-item.toggleable").forEach(function (item) {
+                item.addEventListener("click", function () {
+                    item.classList.toggle("open");
+                    let submenu = item.nextElementSibling;
+                    if (submenu && submenu.classList.contains("submenu")) {
+                        submenu.style.display = submenu.style.display === "flex" ? "none" : "flex";
+                    }
+                });
+            });
+
+            // Mobile sidebar toggle
+            var toggleBtn = document.querySelector(".sidebar-toggle");
+            var sidebar = document.querySelector(".sidebar");
+            var backdrop = document.querySelector(".sidebar-backdrop");
+
+            function closeSidebar() {
+                if (sidebar) sidebar.classList.remove("open");
+                if (backdrop) backdrop.classList.remove("open");
+                document.body.classList.remove("sidebar-open");
+            }
+
+            if (toggleBtn && sidebar) {
+                toggleBtn.addEventListener("click", function (e) {
+                    e.stopPropagation();
+                    var isOpen = sidebar.classList.toggle("open");
+                    if (backdrop) backdrop.classList.toggle("open", isOpen);
+                    document.body.classList.toggle("sidebar-open", isOpen);
+                });
+            }
+
+            if (backdrop) {
+                backdrop.addEventListener("click", closeSidebar);
+            }
+
+            // Close on nav item click (mobile UX)
+            if (sidebar) {
+                sidebar.querySelectorAll("a").forEach(function (a) {
+                    a.addEventListener("click", function () {
+                        if (window.innerWidth <= 768) closeSidebar();
+                    });
+                });
+            }
+
+            // Close on resize to desktop
+            window.addEventListener("resize", function () {
+                if (window.innerWidth > 768) closeSidebar();
+            });
+        });
+    </script>
+
+    <!-- ✅ Page Specific Scripts -->
+    
+    <script>
+        $("#open-new-link-modal").on("click", function () {
+            $("#new-link-modal").show();
+        });
+
+        $("#cancel-new-link").on("click", function () {
+            $("#new-link-modal").hide();
+        });
+
+        $("#new-link-form").on("submit", function (e) {
+            e.preventDefault();
+            const link = $("#link-input").val();
+
+            $.ajax({
+                type: "POST",
+                url: "/App/Properties/LinkCreate",
+                contentType: "application/json",
+                data: JSON.stringify(link),
+                success: function (data) {
+                    if (data.success) {
+                        window.location.href = "/App/Properties/LinkDetails?id=" + data.id;
+                    } else {
+                        alert("Error creating request.");
+                    }
+                },
+                error: function (xhr) {
+                    alert("Error: " + xhr.responseText);
+                }
+            });
+        });
+    </script>
+
+
+    <div id="db2-live-announcement"
+     style="display:none; position:fixed; inset:0; z-index:10000;
+            background:rgba(15,23,42,.55); align-items:center; justify-content:center;
+            padding:16px;">
+    <div style="background:#fff; border-radius:14px; max-width:520px; width:100%;
+                padding:28px 28px 22px 28px; box-shadow:0 18px 48px rgba(0,0,0,.18);
+                font-family:inherit; color:#0f172a;">
+        <div style="font-size:22px; font-weight:700; margin:0 0 12px 0; display:flex; align-items:center; gap:8px;">
+            <span style="display:inline-block; padding:2px 10px; font-size:12px; border-radius:999px;
+                         background:#dcfce7; color:#166534; border:1px solid #bbf7d0;
+                         font-weight:600; letter-spacing:.5px;">LIVE</span>
+            Database 2.0 is fully production-ready
+        </div>
+        <p style="margin:0 0 10px 0; line-height:1.55; color:#334155;">
+            Ingestion is complete &mdash; the new database is <strong>about four
+            times larger</strong> than the previous one and includes a large
+            batch of <strong>fresh records</strong> that weren&rsquo;t in the
+            old store at all.
+        </p>
+        <p style="margin:0 0 18px 0; line-height:1.55; color:#334155;">
+            Use the <strong>Database 2.0</strong> entry in the menu, or the
+            <strong>Search in Database</strong> button on the link request
+            page &mdash; it now points at the new store by default.
+        </p>
+        <div style="display:flex; justify-content:flex-end;">
+            <button type="button" id="db2-live-announcement-ok"
+                    style="background:#0ea5e9; color:#fff; border:none; padding:10px 22px;
+                           border-radius:8px; font-size:14px; font-weight:600; cursor:pointer;">
+                OK, got it
+            </button>
+        </div>
+    </div>
+</div>
+<script>
+    (function () {
+        // Hard cutoff: stop showing this modal once the rollout window closes.
+        // Compare against the *date* (UTC midnight) — once we cross over,
+        // even users who never dismissed it stop seeing the banner.
+        var CUTOFF = new Date("2026-06-10T00:00:00Z").getTime();
+        if (Date.now() >= CUTOFF) return;
+
+        function readCookie(name) {
+            var prefix = name + "=";
+            var parts = document.cookie ? document.cookie.split("; ") : [];
+            for (var i = 0; i < parts.length; i++) {
+                if (parts[i].indexOf(prefix) === 0) return parts[i].substring(prefix.length);
+            }
+            return null;
+        }
+        function writeCookie(name, value, days) {
+            var d = new Date();
+            d.setTime(d.getTime() + days * 24 * 60 * 60 * 1000);
+            // SameSite=Lax so it survives normal navigation but stays out of
+            // cross-site iframes; path=/ so it covers the whole app.
+            document.cookie = name + "=" + value + "; expires=" + d.toUTCString() + "; path=/; SameSite=Lax";
+        }
+        // NEW cookie name — users who dismissed the previous "we're filling
+        // it up" modal (db2_seen) must still see this go-live announcement
+        // once. Keep the suffix descriptive so it's grep-able in DevTools.
+        if (readCookie("db2_live_seen") === "1") return;
+
+        function show() {
+            var el = document.getElementById("db2-live-announcement");
+            if (!el) return;
+            el.style.display = "flex";
+            var btn = document.getElementById("db2-live-announcement-ok");
+            if (btn) {
+                btn.addEventListener("click", function () {
+                    writeCookie("db2_live_seen", "1", 365);
+                    el.style.display = "none";
+                });
+            }
+        }
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", show);
+        } else {
+            show();
+        }
+    })();
+</script>
+
+
+    <div id="planner-announcement"
+     style="display:none; position:fixed; inset:0; z-index:10000;
+            background:rgba(15,23,42,.55); align-items:center; justify-content:center;
+            padding:16px;">
+    <div style="background:#fff; border-radius:14px; max-width:520px; width:100%;
+                padding:28px 28px 22px 28px; box-shadow:0 18px 48px rgba(0,0,0,.18);
+                font-family:inherit; color:#0f172a;">
+        <div style="font-size:22px; font-weight:700; margin:0 0 12px 0; display:flex; align-items:center; gap:8px;">
+            <span style="display:inline-block; padding:2px 10px; font-size:12px; border-radius:999px;
+                         background:#e0f2fe; color:#0c4a6e; border:1px solid #bae6fd;
+                         font-weight:600; letter-spacing:.5px;">NEW</span>
+            Request Planner &amp; live progress
+        </div>
+        <p style="margin:0 0 10px 0; line-height:1.55; color:#334155;">
+            <strong>Tired of waiting for each request?</strong> Add your links
+            to the plan and get all the results by morning: upload an Excel
+            list of links or permit numbers on the new
+            <strong>Planner</strong> page &mdash; they are processed overnight
+            and all results (building, unit, owner) are ready by the morning,
+            with a one-click Excel export.
+        </p>
+        <p style="margin:0 0 18px 0; line-height:1.55; color:#334155;">
+            The Requests page is now a compact table with building, unit and
+            owner at a glance, and request pages show <strong>live
+            progress</strong> &mdash; no more constant page refreshing.
+        </p>
+        <div style="display:flex; justify-content:flex-end;">
+            <button type="button" id="planner-announcement-ok"
+                    style="background:#0ea5e9; color:#fff; border:none; padding:10px 22px;
+                           border-radius:8px; font-size:14px; font-weight:600; cursor:pointer;">
+                OK, got it
+            </button>
+        </div>
+    </div>
+</div>
+<script>
+    (function () {
+        // Hard cutoff: stop showing this modal once the rollout window closes.
+        var CUTOFF = new Date("2026-06-25T00:00:00Z").getTime();
+        if (Date.now() >= CUTOFF) return;
+
+        function readCookie(name) {
+            var prefix = name + "=";
+            var parts = document.cookie ? document.cookie.split("; ") : [];
+            for (var i = 0; i < parts.length; i++) {
+                if (parts[i].indexOf(prefix) === 0) return parts[i].substring(prefix.length);
+            }
+            return null;
+        }
+        function writeCookie(name, value, days) {
+            var d = new Date();
+            d.setTime(d.getTime() + days * 24 * 60 * 60 * 1000);
+            document.cookie = name + "=" + value + "; expires=" + d.toUTCString() + "; path=/; SameSite=Lax";
+        }
+        if (readCookie("planner_seen") === "1") return;
+
+        function show() {
+            var el = document.getElementById("planner-announcement");
+            if (!el) return;
+            el.style.display = "flex";
+            var btn = document.getElementById("planner-announcement-ok");
+            if (btn) {
+                btn.addEventListener("click", function () {
+                    writeCookie("planner_seen", "1", 365);
+                    el.style.display = "none";
+                });
+            }
+        }
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", show);
+        } else {
+            show();
+        }
+    })();
+</script>
+
+</body>
+</html>

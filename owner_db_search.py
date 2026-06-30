@@ -3,7 +3,7 @@ import re
 import sqlite3
 from pathlib import Path
 
-DB_PATH = Path("/var/data/owners_index.db")
+DB_PATH = Path("owners_index.db")
 
 PHONE_COLUMNS = [
     "mobile",
@@ -151,7 +151,7 @@ def search_owner_everywhere(owner_name, max_results=50):
     seen = set()
 
     for row in rows:
-        row_text = row["row_text"]
+        row_text = str(row["row_text"] or "").lower()
 
         if len(parts) >= 2:
             if not all(p in row_text for p in parts):

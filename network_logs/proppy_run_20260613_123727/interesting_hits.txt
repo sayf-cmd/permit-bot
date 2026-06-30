@@ -1,0 +1,554 @@
+
+REQUEST #0001 GET https://app.proppy.ae/App/Properties/LinkRequests
+HITS: linkrequest, linkrequests
+POST: 
+
+RESPONSE #0001 STATUS 200 GET https://app.proppy.ae/App/Properties/LinkRequests
+HITS: ID:1529335e-30f3-4a25-8533-805d921b22aa, ID:1a98ceae-0f1f-416a-b77d-0bc9a688a140, ID:1eda30f4-b25a-49b9-b16e-f5b02c7754a6, ID:2623359a-21f1-40be-a4c8-97498e2a36e3, ID:3661ed38-4063-429b-b1c8-b908c38d5caf, ID:43d7f9d1-45a0-4764-933e-11215e585f19, ID:46d6ec3b-5315-4399-8470-8b7f46a582ff, ID:4ad4195f-dce7-4c91-95ab-7fe52d20c6fe, ID:5c57be87-17a2-4d0d-99b4-6d37c7d2fe0a, ID:67fd6bec-8460-40a6-aee1-a5b90021ae9f, ID:7c7b00ed-e4cf-4ed3-93db-e83a5d8b48dd, ID:8527cd14-e3f2-4a96-8ea2-1fb49ea6655e, ID:9b70d30e-6d4d-4e81-933a-0295f3567202, ID:b5b8fff1-ec0e-4c18-8900-6c95e1f11e90, ID:b82e9d2e-9c0f-4166-81da-7c245e7f9f0c, ID:bb385455-0e34-4620-9676-bae90ef5e1e4, ID:be666b1a-2cb3-41b2-811f-3832f735654f, ID:d4ce253e-6a04-45e7-a861-504916415cc5, ID:d7edff65-314d-4114-982d-f434b175232a, ID:f134fe7e-df91-4b4e-80f0-0dc9c3bbd4a1, NUMBER:7011003959, NUMBER:7136768480, NUMBER:71524280459, NUMBER:71524281035, NUMBER:71524281323, NUMBER:71524281995, NUMBER:71524282379, NUMBER:71524282667, NUMBER:71524283051, NUMBER:71524284299, NUMBER:71524284491, NUMBER:71524284587, NUMBER:71524287371, NUMBER:71524287467, NUMBER:71524289963, NUMBER:71524290059, NUMBER:71524290635, NUMBER:71524291019, NUMBER:71524291307, building, database, linkcreate, linkdetails, linkrequest, linkrequests, permit, progress, project, records2, success, unit
+FILE: response_0001_200_App_Properties_LinkRequests.html
+PREVIEW: <!doctype html> <html lang="en"> <head> <meta charset="utf-8" /> <title>Proppy - Link Requests</title> <meta name="viewport" content="width=device-width, initial-scale=1.0" /> <!-- ✅ Core Styles --> <link href="/css/style.css?v2.1.2" rel="stylesheet" /> <link href="/css/datepicker.min.css?v2.1.2" rel="stylesheet" /> <!-- ✅ External Libraries --> <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/css/lightbox.min.css" rel="stylesheet" /> <link href="/img/logo.png" rel="icon" sizes="64x64" type="image/png" /> </head> <body> <header class="fixed-top"> <div class="topbar"> <button type="button" class="sidebar-toggle" aria-label="Open menu"> <span></span><span></span><span></span> </button> <div class="logo"> <img src="/img/logo.png" /> <span>Proppy</span> </div> <div class="user-info"> <a href="/App/Profiles/Profile"> <img src="https://randomuser.me/api/portraits/men/32.jpg" /> </a> <span class="user-greeting">Hello, Sayf Nazarov</span> <a class="logout" href="/App/Account/Logout"> <span class="logout-icon">🚪</span><span class="logout-text"> Logout</span> </a> </div> </div> </header> <div class="sidebar-backdrop"></div> <div class="layout"> <div class="sidebar"> <a href="/App/Agents/Dashboard" class="nav-item "> <img src="/img/dashboard.svg" /> Dashboard </a> <div> <div class="nav-item toggleable "> <img src="/img/tasks.svg" /> Tasks </div> <div class="submenu"> <a href="/App/Tasks/List" class="">Tasks</a> <a href="/App/Goals/List" class="">Goals</a> <!--<a href="~/App/Tasks/Calendar" class="(item == MenuItemEnum.Calendar ? "active" : "")">Calendar</a>--> </div> </div> <a href="/App/Calls/List" class="nav-item "> <img src="/img/calls.svg" /> Calls </a> <a href="/App/Leads/List" class="nav-item "> <img src="/img/leads.svg" /> Leads </a> <div> <div class="nav-item toggleable "> <img src="/img/clients.svg" /> Clients </div> <div class="submenu"> <a href="/App/Clients/List" class="">Clients</a> <a href="/App/Deals/List" class="">Deals</a> </div> </div> <div...
+
+BROWSER CONSOLE HIT
+HITS: ID:open-new-link-modal
+TEXT: [USER_CLICK] tag=BUTTON id=open-new-link-modal name= class=upload-button text=➕ New Request
+
+BROWSER CONSOLE HIT
+HITS: ID:link-input
+TEXT: [USER_CLICK] tag=INPUT id=link-input name=link class=client-form-control text=
+
+BROWSER CONSOLE HIT
+HITS: ID:link-input, NUMBER:71495668339, TEST_PERMIT_FOUND:71495668339
+TEXT: [INPUT_CHANGE] tag=INPUT id=link-input name=link class=client-form-control text=71495668339 value=71495668339
+
+BROWSER CONSOLE HIT
+HITS: ID:new-link-form
+TEXT: [FORM_SUBMIT] tag=FORM id=new-link-form name= class= text=Link: Create Cancel
+
+REQUEST #0030 POST https://app.proppy.ae/App/Properties/LinkCreate
+HITS: NUMBER:71495668339, TEST_PERMIT_FOUND:71495668339, linkcreate
+POST: "71495668339"
+
+REQUEST #0031 GET https://app.proppy.ae/App/Properties/LinkDetails?id=f017f95e-4b54-492f-b8ee-e741a852124a
+HITS: ID:f017f95e-4b54-492f-b8ee-e741a852124a, linkdetails
+POST: 
+
+RESPONSE #0030 STATUS 200 POST https://app.proppy.ae/App/Properties/LinkCreate
+HITS: linkcreate
+FILE: response_0030_200_App_Properties_LinkCreate.json
+PREVIEW: RESPONSE_TEXT_READ_ERROR: Error('Response.text: Protocol error (Network.getResponseBody): No resource with given identifier found')
+
+FULL LINKDETAILS SAVED: FULL_LINKDETAILS_0031.html
+URL: https://app.proppy.ae/App/Properties/LinkDetails?id=f017f95e-4b54-492f-b8ee-e741a852124a
+
+RESPONSE #0031 STATUS 200 GET https://app.proppy.ae/App/Properties/LinkDetails?id=f017f95e-4b54-492f-b8ee-e741a852124a
+HITS: ID:aec693a6-2c82-460c-9455-d5eaa1712a7f, ID:f017f95e-4b54-492f-b8ee-e741a852124a, NUMBER:71495668339, TEST_PERMIT_FOUND:71495668339, area, building, database, getlinkprogress, linkdetails, linkrequest, linkrequests, permit, progress, project, records2, requestid, success, unit, unitnumber
+FILE: response_0031_200_App_Properties_LinkDetails.html
+PREVIEW: <!doctype html> <html lang="en"> <head> <meta charset="utf-8" /> <title>Proppy - Request</title> <meta name="viewport" content="width=device-width, initial-scale=1.0" /> <!-- ✅ Core Styles --> <link href="/css/style.css?v2.1.2" rel="stylesheet" /> <link href="/css/datepicker.min.css?v2.1.2" rel="stylesheet" /> <!-- ✅ External Libraries --> <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/css/lightbox.min.css" rel="stylesheet" /> <link href="/img/logo.png" rel="icon" sizes="64x64" type="image/png" /> </head> <body> <header class="fixed-top"> <div class="topbar"> <button type="button" class="sidebar-toggle" aria-label="Open menu"> <span></span><span></span><span></span> </button> <div class="logo"> <img src="/img/logo.png" /> <span>Proppy</span> </div> <div class="user-info"> <a href="/App/Profiles/Profile"> <img src="https://randomuser.me/api/portraits/men/32.jpg" /> </a> <span class="user-greeting">Hello, Sayf Nazarov</span> <a class="logout" href="/App/Account/Logout"> <span class="logout-icon">🚪</span><span class="logout-text"> Logout</span> </a> </div> </div> </header> <div class="sidebar-backdrop"></div> <div class="layout"> <div class="sidebar"> <a href="/App/Agents/Dashboard" class="nav-item "> <img src="/img/dashboard.svg" /> Dashboard </a> <div> <div class="nav-item toggleable "> <img src="/img/tasks.svg" /> Tasks </div> <div class="submenu"> <a href="/App/Tasks/List" class="">Tasks</a> <a href="/App/Goals/List" class="">Goals</a> <!--<a href="~/App/Tasks/Calendar" class="(item == MenuItemEnum.Calendar ? "active" : "")">Calendar</a>--> </div> </div> <a href="/App/Calls/List" class="nav-item "> <img src="/img/calls.svg" /> Calls </a> <a href="/App/Leads/List" class="nav-item "> <img src="/img/leads.svg" /> Leads </a> <div> <div class="nav-item toggleable "> <img src="/img/clients.svg" /> Clients </div> <div class="submenu"> <a href="/App/Clients/List" class="">Clients</a> <a href="/App/Deals/List" class="">Deals</a> </div> </div> <div> <div...
+
+BROWSER CONSOLE HIT
+HITS: database
+TEXT: [USER_CLICK] tag=A id= name= class=upload-button text=🔍 Search more in Database
+
+REQUEST #0060 GET https://app.proppy.ae/App/Properties/LinkRequests
+HITS: linkrequest, linkrequests
+POST: 
+
+RESPONSE #0060 STATUS 200 GET https://app.proppy.ae/App/Properties/LinkRequests
+HITS: ID:1529335e-30f3-4a25-8533-805d921b22aa, ID:1a98ceae-0f1f-416a-b77d-0bc9a688a140, ID:1eda30f4-b25a-49b9-b16e-f5b02c7754a6, ID:2623359a-21f1-40be-a4c8-97498e2a36e3, ID:3661ed38-4063-429b-b1c8-b908c38d5caf, ID:46d6ec3b-5315-4399-8470-8b7f46a582ff, ID:4ad4195f-dce7-4c91-95ab-7fe52d20c6fe, ID:5c57be87-17a2-4d0d-99b4-6d37c7d2fe0a, ID:67fd6bec-8460-40a6-aee1-a5b90021ae9f, ID:7c7b00ed-e4cf-4ed3-93db-e83a5d8b48dd, ID:8527cd14-e3f2-4a96-8ea2-1fb49ea6655e, ID:9b70d30e-6d4d-4e81-933a-0295f3567202, ID:b5b8fff1-ec0e-4c18-8900-6c95e1f11e90, ID:b82e9d2e-9c0f-4166-81da-7c245e7f9f0c, ID:bb385455-0e34-4620-9676-bae90ef5e1e4, ID:be666b1a-2cb3-41b2-811f-3832f735654f, ID:d4ce253e-6a04-45e7-a861-504916415cc5, ID:d7edff65-314d-4114-982d-f434b175232a, ID:f017f95e-4b54-492f-b8ee-e741a852124a, ID:f134fe7e-df91-4b4e-80f0-0dc9c3bbd4a1, NUMBER:7011003959, NUMBER:7136768480, NUMBER:71495668339, NUMBER:71524280459, NUMBER:71524281035, NUMBER:71524281323, NUMBER:71524281995, NUMBER:71524282379, NUMBER:71524282667, NUMBER:71524283051, NUMBER:71524284299, NUMBER:71524284491, NUMBER:71524284587, NUMBER:71524287371, NUMBER:71524287467, NUMBER:71524289963, NUMBER:71524290059, NUMBER:71524290635, NUMBER:71524291307, TEST_PERMIT_FOUND:71495668339, building, database, linkcreate, linkdetails, linkrequest, linkrequests, permit, progress, project, records2, success, unit
+FILE: response_0060_200_App_Properties_LinkRequests.html
+PREVIEW: <!doctype html> <html lang="en"> <head> <meta charset="utf-8" /> <title>Proppy - Link Requests</title> <meta name="viewport" content="width=device-width, initial-scale=1.0" /> <!-- ✅ Core Styles --> <link href="/css/style.css?v2.1.2" rel="stylesheet" /> <link href="/css/datepicker.min.css?v2.1.2" rel="stylesheet" /> <!-- ✅ External Libraries --> <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/css/lightbox.min.css" rel="stylesheet" /> <link href="/img/logo.png" rel="icon" sizes="64x64" type="image/png" /> </head> <body> <header class="fixed-top"> <div class="topbar"> <button type="button" class="sidebar-toggle" aria-label="Open menu"> <span></span><span></span><span></span> </button> <div class="logo"> <img src="/img/logo.png" /> <span>Proppy</span> </div> <div class="user-info"> <a href="/App/Profiles/Profile"> <img src="https://randomuser.me/api/portraits/men/32.jpg" /> </a> <span class="user-greeting">Hello, Sayf Nazarov</span> <a class="logout" href="/App/Account/Logout"> <span class="logout-icon">🚪</span><span class="logout-text"> Logout</span> </a> </div> </div> </header> <div class="sidebar-backdrop"></div> <div class="layout"> <div class="sidebar"> <a href="/App/Agents/Dashboard" class="nav-item "> <img src="/img/dashboard.svg" /> Dashboard </a> <div> <div class="nav-item toggleable "> <img src="/img/tasks.svg" /> Tasks </div> <div class="submenu"> <a href="/App/Tasks/List" class="">Tasks</a> <a href="/App/Goals/List" class="">Goals</a> <!--<a href="~/App/Tasks/Calendar" class="(item == MenuItemEnum.Calendar ? "active" : "")">Calendar</a>--> </div> </div> <a href="/App/Calls/List" class="nav-item "> <img src="/img/calls.svg" /> Calls </a> <a href="/App/Leads/List" class="nav-item "> <img src="/img/leads.svg" /> Leads </a> <div> <div class="nav-item toggleable "> <img src="/img/clients.svg" /> Clients </div> <div class="submenu"> <a href="/App/Clients/List" class="">Clients</a> <a href="/App/Deals/List" class="">Deals</a> </div> </div> <div...
+
+RESPONSE #0089 STATUS 200 GET https://app.proppy.ae/App/Properties/Planner
+HITS: ID:1529335e-30f3-4a25-8533-805d921b22aa, ID:1a98ceae-0f1f-416a-b77d-0bc9a688a140, ID:1eda30f4-b25a-49b9-b16e-f5b02c7754a6, ID:2623359a-21f1-40be-a4c8-97498e2a36e3, ID:3661ed38-4063-429b-b1c8-b908c38d5caf, ID:43d7f9d1-45a0-4764-933e-11215e585f19, ID:46d6ec3b-5315-4399-8470-8b7f46a582ff, ID:5c57be87-17a2-4d0d-99b4-6d37c7d2fe0a, ID:67fd6bec-8460-40a6-aee1-a5b90021ae9f, ID:7c7b00ed-e4cf-4ed3-93db-e83a5d8b48dd, ID:8527cd14-e3f2-4a96-8ea2-1fb49ea6655e, ID:9b70d30e-6d4d-4e81-933a-0295f3567202, ID:b5b8fff1-ec0e-4c18-8900-6c95e1f11e90, ID:b82e9d2e-9c0f-4166-81da-7c245e7f9f0c, ID:be666b1a-2cb3-41b2-811f-3832f735654f, ID:d4ce253e-6a04-45e7-a861-504916415cc5, ID:f134fe7e-df91-4b4e-80f0-0dc9c3bbd4a1, NUMBER:7011003959, NUMBER:71524280459, NUMBER:71524281035, NUMBER:71524281323, NUMBER:71524281995, NUMBER:71524282379, NUMBER:71524282667, NUMBER:71524283051, NUMBER:71524284299, NUMBER:71524284491, NUMBER:71524284587, NUMBER:71524287371, NUMBER:71524287467, NUMBER:71524289963, NUMBER:71524290059, NUMBER:71524290635, NUMBER:71524291019, NUMBER:71524291307, building, database, linkdetails, linkrequest, linkrequests, permit, progress, project, records2, success, unit
+FILE: response_0089_200_App_Properties_Planner.html
+PREVIEW: <!doctype html> <html lang="en"> <head> <meta charset="utf-8" /> <title>Proppy - Planner</title> <meta name="viewport" content="width=device-width, initial-scale=1.0" /> <!-- ✅ Core Styles --> <link href="/css/style.css?v2.1.2" rel="stylesheet" /> <link href="/css/datepicker.min.css?v2.1.2" rel="stylesheet" /> <!-- ✅ External Libraries --> <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/css/lightbox.min.css" rel="stylesheet" /> <link href="/img/logo.png" rel="icon" sizes="64x64" type="image/png" /> </head> <body> <header class="fixed-top"> <div class="topbar"> <button type="button" class="sidebar-toggle" aria-label="Open menu"> <span></span><span></span><span></span> </button> <div class="logo"> <img src="/img/logo.png" /> <span>Proppy</span> </div> <div class="user-info"> <a href="/App/Profiles/Profile"> <img src="https://randomuser.me/api/portraits/men/32.jpg" /> </a> <span class="user-greeting">Hello, Sayf Nazarov</span> <a class="logout" href="/App/Account/Logout"> <span class="logout-icon">🚪</span><span class="logout-text"> Logout</span> </a> </div> </div> </header> <div class="sidebar-backdrop"></div> <div class="layout"> <div class="sidebar"> <a href="/App/Agents/Dashboard" class="nav-item "> <img src="/img/dashboard.svg" /> Dashboard </a> <div> <div class="nav-item toggleable "> <img src="/img/tasks.svg" /> Tasks </div> <div class="submenu"> <a href="/App/Tasks/List" class="">Tasks</a> <a href="/App/Goals/List" class="">Goals</a> <!--<a href="~/App/Tasks/Calendar" class="(item == MenuItemEnum.Calendar ? "active" : "")">Calendar</a>--> </div> </div> <a href="/App/Calls/List" class="nav-item "> <img src="/img/calls.svg" /> Calls </a> <a href="/App/Leads/List" class="nav-item "> <img src="/img/leads.svg" /> Leads </a> <div> <div class="nav-item toggleable "> <img src="/img/clients.svg" /> Clients </div> <div class="submenu"> <a href="/App/Clients/List" class="">Clients</a> <a href="/App/Deals/List" class="">Deals</a> </div> </div> <div> <div...
+
+BROWSER CONSOLE HIT
+HITS: ID:planner-file
+TEXT: [USER_CLICK] tag=INPUT id=planner-file name=file class= text=
+
+REQUEST #0118 GET https://app.proppy.ae/App/Properties/LinkRequests
+HITS: linkrequest, linkrequests
+POST: 
+
+RESPONSE #0118 STATUS 200 GET https://app.proppy.ae/App/Properties/LinkRequests
+HITS: ID:1529335e-30f3-4a25-8533-805d921b22aa, ID:1a98ceae-0f1f-416a-b77d-0bc9a688a140, ID:1eda30f4-b25a-49b9-b16e-f5b02c7754a6, ID:2623359a-21f1-40be-a4c8-97498e2a36e3, ID:3661ed38-4063-429b-b1c8-b908c38d5caf, ID:46d6ec3b-5315-4399-8470-8b7f46a582ff, ID:4ad4195f-dce7-4c91-95ab-7fe52d20c6fe, ID:5c57be87-17a2-4d0d-99b4-6d37c7d2fe0a, ID:67fd6bec-8460-40a6-aee1-a5b90021ae9f, ID:7c7b00ed-e4cf-4ed3-93db-e83a5d8b48dd, ID:8527cd14-e3f2-4a96-8ea2-1fb49ea6655e, ID:9b70d30e-6d4d-4e81-933a-0295f3567202, ID:b5b8fff1-ec0e-4c18-8900-6c95e1f11e90, ID:b82e9d2e-9c0f-4166-81da-7c245e7f9f0c, ID:bb385455-0e34-4620-9676-bae90ef5e1e4, ID:be666b1a-2cb3-41b2-811f-3832f735654f, ID:d4ce253e-6a04-45e7-a861-504916415cc5, ID:d7edff65-314d-4114-982d-f434b175232a, ID:f017f95e-4b54-492f-b8ee-e741a852124a, ID:f134fe7e-df91-4b4e-80f0-0dc9c3bbd4a1, NUMBER:7011003959, NUMBER:7136768480, NUMBER:71495668339, NUMBER:71524280459, NUMBER:71524281035, NUMBER:71524281323, NUMBER:71524281995, NUMBER:71524282379, NUMBER:71524282667, NUMBER:71524283051, NUMBER:71524284299, NUMBER:71524284491, NUMBER:71524284587, NUMBER:71524287371, NUMBER:71524287467, NUMBER:71524289963, NUMBER:71524290059, NUMBER:71524290635, NUMBER:71524291307, TEST_PERMIT_FOUND:71495668339, building, database, linkcreate, linkdetails, linkrequest, linkrequests, permit, progress, project, records2, success, unit
+FILE: response_0118_200_App_Properties_LinkRequests.html
+PREVIEW: <!doctype html> <html lang="en"> <head> <meta charset="utf-8" /> <title>Proppy - Link Requests</title> <meta name="viewport" content="width=device-width, initial-scale=1.0" /> <!-- ✅ Core Styles --> <link href="/css/style.css?v2.1.2" rel="stylesheet" /> <link href="/css/datepicker.min.css?v2.1.2" rel="stylesheet" /> <!-- ✅ External Libraries --> <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/css/lightbox.min.css" rel="stylesheet" /> <link href="/img/logo.png" rel="icon" sizes="64x64" type="image/png" /> </head> <body> <header class="fixed-top"> <div class="topbar"> <button type="button" class="sidebar-toggle" aria-label="Open menu"> <span></span><span></span><span></span> </button> <div class="logo"> <img src="/img/logo.png" /> <span>Proppy</span> </div> <div class="user-info"> <a href="/App/Profiles/Profile"> <img src="https://randomuser.me/api/portraits/men/32.jpg" /> </a> <span class="user-greeting">Hello, Sayf Nazarov</span> <a class="logout" href="/App/Account/Logout"> <span class="logout-icon">🚪</span><span class="logout-text"> Logout</span> </a> </div> </div> </header> <div class="sidebar-backdrop"></div> <div class="layout"> <div class="sidebar"> <a href="/App/Agents/Dashboard" class="nav-item "> <img src="/img/dashboard.svg" /> Dashboard </a> <div> <div class="nav-item toggleable "> <img src="/img/tasks.svg" /> Tasks </div> <div class="submenu"> <a href="/App/Tasks/List" class="">Tasks</a> <a href="/App/Goals/List" class="">Goals</a> <!--<a href="~/App/Tasks/Calendar" class="(item == MenuItemEnum.Calendar ? "active" : "")">Calendar</a>--> </div> </div> <a href="/App/Calls/List" class="nav-item "> <img src="/img/calls.svg" /> Calls </a> <a href="/App/Leads/List" class="nav-item "> <img src="/img/leads.svg" /> Leads </a> <div> <div class="nav-item toggleable "> <img src="/img/clients.svg" /> Clients </div> <div class="submenu"> <a href="/App/Clients/List" class="">Clients</a> <a href="/App/Deals/List" class="">Deals</a> </div> </div> <div...
+
+BROWSER CONSOLE HIT
+HITS: ID:open-new-link-modal
+TEXT: [USER_CLICK] tag=BUTTON id=open-new-link-modal name= class=upload-button text=➕ New Request
+
+BROWSER CONSOLE HIT
+HITS: ID:link-input
+TEXT: [USER_CLICK] tag=INPUT id=link-input name=link class=client-form-control text=
+
+BROWSER CONSOLE HIT
+HITS: ID:link-input, NUMBER:7136760114
+TEXT: [INPUT_CHANGE] tag=INPUT id=link-input name=link class=client-form-control text=7136760114 value=7136760114
+
+BROWSER CONSOLE HIT
+HITS: ID:new-link-form
+TEXT: [FORM_SUBMIT] tag=FORM id=new-link-form name= class= text=Link: Create Cancel
+
+REQUEST #0147 POST https://app.proppy.ae/App/Properties/LinkCreate
+HITS: NUMBER:7136760114, linkcreate
+POST: "7136760114"
+
+REQUEST #0148 GET https://app.proppy.ae/App/Properties/LinkDetails?id=d6a06cdd-3ff1-4ba0-a37a-868c73be1135
+HITS: ID:d6a06cdd-3ff1-4ba0-a37a-868c73be1135, linkdetails
+POST: 
+
+RESPONSE #0147 STATUS 200 POST https://app.proppy.ae/App/Properties/LinkCreate
+HITS: linkcreate
+FILE: response_0147_200_App_Properties_LinkCreate.json
+PREVIEW: RESPONSE_TEXT_READ_ERROR: Error('Response.text: Protocol error (Network.getResponseBody): No resource with given identifier found')
+
+FULL LINKDETAILS SAVED: FULL_LINKDETAILS_0148.html
+URL: https://app.proppy.ae/App/Properties/LinkDetails?id=d6a06cdd-3ff1-4ba0-a37a-868c73be1135
+
+RESPONSE #0148 STATUS 200 GET https://app.proppy.ae/App/Properties/LinkDetails?id=d6a06cdd-3ff1-4ba0-a37a-868c73be1135
+HITS: ID:748e1357-32a4-44f5-a264-f49411584d65, ID:d6a06cdd-3ff1-4ba0-a37a-868c73be1135, NUMBER:7136760114, area, building, database, getlinkprogress, linkdetails, linkrequest, linkrequests, permit, progress, project, records2, requestid, success, unit, unitnumber
+FILE: response_0148_200_App_Properties_LinkDetails.html
+PREVIEW: <!doctype html> <html lang="en"> <head> <meta charset="utf-8" /> <title>Proppy - Request</title> <meta name="viewport" content="width=device-width, initial-scale=1.0" /> <!-- ✅ Core Styles --> <link href="/css/style.css?v2.1.2" rel="stylesheet" /> <link href="/css/datepicker.min.css?v2.1.2" rel="stylesheet" /> <!-- ✅ External Libraries --> <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/css/lightbox.min.css" rel="stylesheet" /> <link href="/img/logo.png" rel="icon" sizes="64x64" type="image/png" /> </head> <body> <header class="fixed-top"> <div class="topbar"> <button type="button" class="sidebar-toggle" aria-label="Open menu"> <span></span><span></span><span></span> </button> <div class="logo"> <img src="/img/logo.png" /> <span>Proppy</span> </div> <div class="user-info"> <a href="/App/Profiles/Profile"> <img src="https://randomuser.me/api/portraits/men/32.jpg" /> </a> <span class="user-greeting">Hello, Sayf Nazarov</span> <a class="logout" href="/App/Account/Logout"> <span class="logout-icon">🚪</span><span class="logout-text"> Logout</span> </a> </div> </div> </header> <div class="sidebar-backdrop"></div> <div class="layout"> <div class="sidebar"> <a href="/App/Agents/Dashboard" class="nav-item "> <img src="/img/dashboard.svg" /> Dashboard </a> <div> <div class="nav-item toggleable "> <img src="/img/tasks.svg" /> Tasks </div> <div class="submenu"> <a href="/App/Tasks/List" class="">Tasks</a> <a href="/App/Goals/List" class="">Goals</a> <!--<a href="~/App/Tasks/Calendar" class="(item == MenuItemEnum.Calendar ? "active" : "")">Calendar</a>--> </div> </div> <a href="/App/Calls/List" class="nav-item "> <img src="/img/calls.svg" /> Calls </a> <a href="/App/Leads/List" class="nav-item "> <img src="/img/leads.svg" /> Leads </a> <div> <div class="nav-item toggleable "> <img src="/img/clients.svg" /> Clients </div> <div class="submenu"> <a href="/App/Clients/List" class="">Clients</a> <a href="/App/Deals/List" class="">Deals</a> </div> </div> <div> <div...
+
+REQUEST #0177 GET https://app.proppy.ae/App/Properties/LinkRequests
+HITS: linkrequest, linkrequests
+POST: 
+
+RESPONSE #0177 STATUS 200 GET https://app.proppy.ae/App/Properties/LinkRequests
+HITS: ID:1529335e-30f3-4a25-8533-805d921b22aa, ID:1a98ceae-0f1f-416a-b77d-0bc9a688a140, ID:1eda30f4-b25a-49b9-b16e-f5b02c7754a6, ID:2623359a-21f1-40be-a4c8-97498e2a36e3, ID:46d6ec3b-5315-4399-8470-8b7f46a582ff, ID:4ad4195f-dce7-4c91-95ab-7fe52d20c6fe, ID:5c57be87-17a2-4d0d-99b4-6d37c7d2fe0a, ID:67fd6bec-8460-40a6-aee1-a5b90021ae9f, ID:7c7b00ed-e4cf-4ed3-93db-e83a5d8b48dd, ID:8527cd14-e3f2-4a96-8ea2-1fb49ea6655e, ID:9b70d30e-6d4d-4e81-933a-0295f3567202, ID:b5b8fff1-ec0e-4c18-8900-6c95e1f11e90, ID:b82e9d2e-9c0f-4166-81da-7c245e7f9f0c, ID:bb385455-0e34-4620-9676-bae90ef5e1e4, ID:be666b1a-2cb3-41b2-811f-3832f735654f, ID:d4ce253e-6a04-45e7-a861-504916415cc5, ID:d6a06cdd-3ff1-4ba0-a37a-868c73be1135, ID:d7edff65-314d-4114-982d-f434b175232a, ID:f017f95e-4b54-492f-b8ee-e741a852124a, ID:f134fe7e-df91-4b4e-80f0-0dc9c3bbd4a1, NUMBER:7011003959, NUMBER:7136760114, NUMBER:7136768480, NUMBER:71495668339, NUMBER:71524280459, NUMBER:71524281035, NUMBER:71524281323, NUMBER:71524281995, NUMBER:71524282667, NUMBER:71524283051, NUMBER:71524284299, NUMBER:71524284491, NUMBER:71524284587, NUMBER:71524287371, NUMBER:71524287467, NUMBER:71524289963, NUMBER:71524290059, NUMBER:71524290635, NUMBER:71524291307, TEST_PERMIT_FOUND:71495668339, building, database, linkcreate, linkdetails, linkrequest, linkrequests, permit, progress, project, records2, success, unit
+FILE: response_0177_200_App_Properties_LinkRequests.html
+PREVIEW: <!doctype html> <html lang="en"> <head> <meta charset="utf-8" /> <title>Proppy - Link Requests</title> <meta name="viewport" content="width=device-width, initial-scale=1.0" /> <!-- ✅ Core Styles --> <link href="/css/style.css?v2.1.2" rel="stylesheet" /> <link href="/css/datepicker.min.css?v2.1.2" rel="stylesheet" /> <!-- ✅ External Libraries --> <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/css/lightbox.min.css" rel="stylesheet" /> <link href="/img/logo.png" rel="icon" sizes="64x64" type="image/png" /> </head> <body> <header class="fixed-top"> <div class="topbar"> <button type="button" class="sidebar-toggle" aria-label="Open menu"> <span></span><span></span><span></span> </button> <div class="logo"> <img src="/img/logo.png" /> <span>Proppy</span> </div> <div class="user-info"> <a href="/App/Profiles/Profile"> <img src="https://randomuser.me/api/portraits/men/32.jpg" /> </a> <span class="user-greeting">Hello, Sayf Nazarov</span> <a class="logout" href="/App/Account/Logout"> <span class="logout-icon">🚪</span><span class="logout-text"> Logout</span> </a> </div> </div> </header> <div class="sidebar-backdrop"></div> <div class="layout"> <div class="sidebar"> <a href="/App/Agents/Dashboard" class="nav-item "> <img src="/img/dashboard.svg" /> Dashboard </a> <div> <div class="nav-item toggleable "> <img src="/img/tasks.svg" /> Tasks </div> <div class="submenu"> <a href="/App/Tasks/List" class="">Tasks</a> <a href="/App/Goals/List" class="">Goals</a> <!--<a href="~/App/Tasks/Calendar" class="(item == MenuItemEnum.Calendar ? "active" : "")">Calendar</a>--> </div> </div> <a href="/App/Calls/List" class="nav-item "> <img src="/img/calls.svg" /> Calls </a> <a href="/App/Leads/List" class="nav-item "> <img src="/img/leads.svg" /> Leads </a> <div> <div class="nav-item toggleable "> <img src="/img/clients.svg" /> Clients </div> <div class="submenu"> <a href="/App/Clients/List" class="">Clients</a> <a href="/App/Deals/List" class="">Deals</a> </div> </div> <div...
+
+BROWSER CONSOLE HIT
+HITS: ID:open-new-link-modal
+TEXT: [USER_CLICK] tag=BUTTON id=open-new-link-modal name= class=upload-button text=➕ New Request
+
+BROWSER CONSOLE HIT
+HITS: ID:link-input
+TEXT: [USER_CLICK] tag=INPUT id=link-input name=link class=client-form-control text=
+
+BROWSER CONSOLE HIT
+HITS: ID:link-input, NUMBER:71246361254
+TEXT: [INPUT_CHANGE] tag=INPUT id=link-input name=link class=client-form-control text=71246361254 value=71246361254
+
+BROWSER CONSOLE HIT
+HITS: ID:new-link-form
+TEXT: [FORM_SUBMIT] tag=FORM id=new-link-form name= class= text=Link: Create Cancel
+
+REQUEST #0206 POST https://app.proppy.ae/App/Properties/LinkCreate
+HITS: NUMBER:71246361254, linkcreate
+POST: "71246361254"
+
+REQUEST #0207 GET https://app.proppy.ae/App/Properties/LinkDetails?id=179f637d-6761-4fd5-a5c8-23bf205ac915
+HITS: ID:179f637d-6761-4fd5-a5c8-23bf205ac915, linkdetails
+POST: 
+
+RESPONSE #0206 STATUS 200 POST https://app.proppy.ae/App/Properties/LinkCreate
+HITS: linkcreate
+FILE: response_0206_200_App_Properties_LinkCreate.json
+PREVIEW: RESPONSE_TEXT_READ_ERROR: Error('Response.text: Protocol error (Network.getResponseBody): No resource with given identifier found')
+
+FULL LINKDETAILS SAVED: FULL_LINKDETAILS_0207.html
+URL: https://app.proppy.ae/App/Properties/LinkDetails?id=179f637d-6761-4fd5-a5c8-23bf205ac915
+
+RESPONSE #0207 STATUS 200 GET https://app.proppy.ae/App/Properties/LinkDetails?id=179f637d-6761-4fd5-a5c8-23bf205ac915
+HITS: ID:179f637d-6761-4fd5-a5c8-23bf205ac915, ID:bb64b475-f4f8-4a0b-8164-97a4dcb54cfb, NUMBER:71246361254, area, building, database, getlinkprogress, linkdetails, linkrequest, linkrequests, permit, progress, project, records2, requestid, success, unit, unitnumber
+FILE: response_0207_200_App_Properties_LinkDetails.html
+PREVIEW: <!doctype html> <html lang="en"> <head> <meta charset="utf-8" /> <title>Proppy - Request</title> <meta name="viewport" content="width=device-width, initial-scale=1.0" /> <!-- ✅ Core Styles --> <link href="/css/style.css?v2.1.2" rel="stylesheet" /> <link href="/css/datepicker.min.css?v2.1.2" rel="stylesheet" /> <!-- ✅ External Libraries --> <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/css/lightbox.min.css" rel="stylesheet" /> <link href="/img/logo.png" rel="icon" sizes="64x64" type="image/png" /> </head> <body> <header class="fixed-top"> <div class="topbar"> <button type="button" class="sidebar-toggle" aria-label="Open menu"> <span></span><span></span><span></span> </button> <div class="logo"> <img src="/img/logo.png" /> <span>Proppy</span> </div> <div class="user-info"> <a href="/App/Profiles/Profile"> <img src="https://randomuser.me/api/portraits/men/32.jpg" /> </a> <span class="user-greeting">Hello, Sayf Nazarov</span> <a class="logout" href="/App/Account/Logout"> <span class="logout-icon">🚪</span><span class="logout-text"> Logout</span> </a> </div> </div> </header> <div class="sidebar-backdrop"></div> <div class="layout"> <div class="sidebar"> <a href="/App/Agents/Dashboard" class="nav-item "> <img src="/img/dashboard.svg" /> Dashboard </a> <div> <div class="nav-item toggleable "> <img src="/img/tasks.svg" /> Tasks </div> <div class="submenu"> <a href="/App/Tasks/List" class="">Tasks</a> <a href="/App/Goals/List" class="">Goals</a> <!--<a href="~/App/Tasks/Calendar" class="(item == MenuItemEnum.Calendar ? "active" : "")">Calendar</a>--> </div> </div> <a href="/App/Calls/List" class="nav-item "> <img src="/img/calls.svg" /> Calls </a> <a href="/App/Leads/List" class="nav-item "> <img src="/img/leads.svg" /> Leads </a> <div> <div class="nav-item toggleable "> <img src="/img/clients.svg" /> Clients </div> <div class="submenu"> <a href="/App/Clients/List" class="">Clients</a> <a href="/App/Deals/List" class="">Deals</a> </div> </div> <div> <div...
+
+REQUEST #0236 GET https://app.proppy.ae/App/Properties/LinkRequests
+HITS: linkrequest, linkrequests
+POST: 
+
+RESPONSE #0236 STATUS 200 GET https://app.proppy.ae/App/Properties/LinkRequests
+HITS: ID:1529335e-30f3-4a25-8533-805d921b22aa, ID:179f637d-6761-4fd5-a5c8-23bf205ac915, ID:1a98ceae-0f1f-416a-b77d-0bc9a688a140, ID:1eda30f4-b25a-49b9-b16e-f5b02c7754a6, ID:2623359a-21f1-40be-a4c8-97498e2a36e3, ID:46d6ec3b-5315-4399-8470-8b7f46a582ff, ID:4ad4195f-dce7-4c91-95ab-7fe52d20c6fe, ID:5c57be87-17a2-4d0d-99b4-6d37c7d2fe0a, ID:67fd6bec-8460-40a6-aee1-a5b90021ae9f, ID:7c7b00ed-e4cf-4ed3-93db-e83a5d8b48dd, ID:8527cd14-e3f2-4a96-8ea2-1fb49ea6655e, ID:9b70d30e-6d4d-4e81-933a-0295f3567202, ID:b5b8fff1-ec0e-4c18-8900-6c95e1f11e90, ID:b82e9d2e-9c0f-4166-81da-7c245e7f9f0c, ID:bb385455-0e34-4620-9676-bae90ef5e1e4, ID:be666b1a-2cb3-41b2-811f-3832f735654f, ID:d4ce253e-6a04-45e7-a861-504916415cc5, ID:d6a06cdd-3ff1-4ba0-a37a-868c73be1135, ID:d7edff65-314d-4114-982d-f434b175232a, ID:f017f95e-4b54-492f-b8ee-e741a852124a, NUMBER:7011003959, NUMBER:71246361254, NUMBER:7136760114, NUMBER:7136768480, NUMBER:71495668339, NUMBER:71524280459, NUMBER:71524281323, NUMBER:71524281995, NUMBER:71524282667, NUMBER:71524283051, NUMBER:71524284299, NUMBER:71524284491, NUMBER:71524284587, NUMBER:71524287371, NUMBER:71524287467, NUMBER:71524289963, NUMBER:71524290059, NUMBER:71524290635, NUMBER:71524291307, TEST_PERMIT_FOUND:71495668339, building, database, linkcreate, linkdetails, linkrequest, linkrequests, permit, progress, project, records2, success, unit
+FILE: response_0236_200_App_Properties_LinkRequests.html
+PREVIEW: <!doctype html> <html lang="en"> <head> <meta charset="utf-8" /> <title>Proppy - Link Requests</title> <meta name="viewport" content="width=device-width, initial-scale=1.0" /> <!-- ✅ Core Styles --> <link href="/css/style.css?v2.1.2" rel="stylesheet" /> <link href="/css/datepicker.min.css?v2.1.2" rel="stylesheet" /> <!-- ✅ External Libraries --> <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/css/lightbox.min.css" rel="stylesheet" /> <link href="/img/logo.png" rel="icon" sizes="64x64" type="image/png" /> </head> <body> <header class="fixed-top"> <div class="topbar"> <button type="button" class="sidebar-toggle" aria-label="Open menu"> <span></span><span></span><span></span> </button> <div class="logo"> <img src="/img/logo.png" /> <span>Proppy</span> </div> <div class="user-info"> <a href="/App/Profiles/Profile"> <img src="https://randomuser.me/api/portraits/men/32.jpg" /> </a> <span class="user-greeting">Hello, Sayf Nazarov</span> <a class="logout" href="/App/Account/Logout"> <span class="logout-icon">🚪</span><span class="logout-text"> Logout</span> </a> </div> </div> </header> <div class="sidebar-backdrop"></div> <div class="layout"> <div class="sidebar"> <a href="/App/Agents/Dashboard" class="nav-item "> <img src="/img/dashboard.svg" /> Dashboard </a> <div> <div class="nav-item toggleable "> <img src="/img/tasks.svg" /> Tasks </div> <div class="submenu"> <a href="/App/Tasks/List" class="">Tasks</a> <a href="/App/Goals/List" class="">Goals</a> <!--<a href="~/App/Tasks/Calendar" class="(item == MenuItemEnum.Calendar ? "active" : "")">Calendar</a>--> </div> </div> <a href="/App/Calls/List" class="nav-item "> <img src="/img/calls.svg" /> Calls </a> <a href="/App/Leads/List" class="nav-item "> <img src="/img/leads.svg" /> Leads </a> <div> <div class="nav-item toggleable "> <img src="/img/clients.svg" /> Clients </div> <div class="submenu"> <a href="/App/Clients/List" class="">Clients</a> <a href="/App/Deals/List" class="">Deals</a> </div> </div> <div...
+
+BROWSER CONSOLE HIT
+HITS: ID:open-new-link-modal
+TEXT: [USER_CLICK] tag=BUTTON id=open-new-link-modal name= class=upload-button text=➕ New Request
+
+BROWSER CONSOLE HIT
+HITS: ID:link-input
+TEXT: [USER_CLICK] tag=INPUT id=link-input name=link class=client-form-control text=
+
+BROWSER CONSOLE HIT
+HITS: ID:link-input, NUMBER:7122516800
+TEXT: [INPUT_CHANGE] tag=INPUT id=link-input name=link class=client-form-control text=7122516800 value=7122516800
+
+BROWSER CONSOLE HIT
+HITS: ID:new-link-form
+TEXT: [FORM_SUBMIT] tag=FORM id=new-link-form name= class= text=Link: Create Cancel
+
+REQUEST #0265 POST https://app.proppy.ae/App/Properties/LinkCreate
+HITS: NUMBER:7122516800, linkcreate
+POST: "7122516800"
+
+REQUEST #0266 GET https://app.proppy.ae/App/Properties/LinkDetails?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+HITS: ID:29a43ebf-ce9e-4107-92d2-e7f071925c60, linkdetails
+POST: 
+
+RESPONSE #0265 STATUS 200 POST https://app.proppy.ae/App/Properties/LinkCreate
+HITS: linkcreate
+FILE: response_0265_200_App_Properties_LinkCreate.json
+PREVIEW: RESPONSE_TEXT_READ_ERROR: Error('Response.text: Protocol error (Network.getResponseBody): No resource with given identifier found')
+
+REQUEST #0291 GET https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+HITS: ID:29a43ebf-ce9e-4107-92d2-e7f071925c60, getlinkprogress, progress
+POST: 
+
+FULL LINKDETAILS SAVED: FULL_LINKDETAILS_0266.html
+URL: https://app.proppy.ae/App/Properties/LinkDetails?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+
+RESPONSE #0266 STATUS 200 GET https://app.proppy.ae/App/Properties/LinkDetails?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+HITS: ID:29a43ebf-ce9e-4107-92d2-e7f071925c60, NUMBER:7122516800, building, database, getlinkprogress, linkdetails, linkrequest, linkrequests, permit, progress, project, records2, requestid, success, unit
+FILE: response_0266_200_App_Properties_LinkDetails.html
+PREVIEW: <!doctype html> <html lang="en"> <head> <meta charset="utf-8" /> <title>Proppy - Request</title> <meta name="viewport" content="width=device-width, initial-scale=1.0" /> <!-- ✅ Core Styles --> <link href="/css/style.css?v2.1.2" rel="stylesheet" /> <link href="/css/datepicker.min.css?v2.1.2" rel="stylesheet" /> <!-- ✅ External Libraries --> <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/css/lightbox.min.css" rel="stylesheet" /> <link href="/img/logo.png" rel="icon" sizes="64x64" type="image/png" /> </head> <body> <header class="fixed-top"> <div class="topbar"> <button type="button" class="sidebar-toggle" aria-label="Open menu"> <span></span><span></span><span></span> </button> <div class="logo"> <img src="/img/logo.png" /> <span>Proppy</span> </div> <div class="user-info"> <a href="/App/Profiles/Profile"> <img src="https://randomuser.me/api/portraits/men/32.jpg" /> </a> <span class="user-greeting">Hello, Sayf Nazarov</span> <a class="logout" href="/App/Account/Logout"> <span class="logout-icon">🚪</span><span class="logout-text"> Logout</span> </a> </div> </div> </header> <div class="sidebar-backdrop"></div> <div class="layout"> <div class="sidebar"> <a href="/App/Agents/Dashboard" class="nav-item "> <img src="/img/dashboard.svg" /> Dashboard </a> <div> <div class="nav-item toggleable "> <img src="/img/tasks.svg" /> Tasks </div> <div class="submenu"> <a href="/App/Tasks/List" class="">Tasks</a> <a href="/App/Goals/List" class="">Goals</a> <!--<a href="~/App/Tasks/Calendar" class="(item == MenuItemEnum.Calendar ? "active" : "")">Calendar</a>--> </div> </div> <a href="/App/Calls/List" class="nav-item "> <img src="/img/calls.svg" /> Calls </a> <a href="/App/Leads/List" class="nav-item "> <img src="/img/leads.svg" /> Leads </a> <div> <div class="nav-item toggleable "> <img src="/img/clients.svg" /> Clients </div> <div class="submenu"> <a href="/App/Clients/List" class="">Clients</a> <a href="/App/Deals/List" class="">Deals</a> </div> </div> <div> <div...
+
+JSON FIELDS #0291 GET https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+[
+  {
+    "path": "$.status",
+    "value": "New"
+  },
+  {
+    "path": "$.loadStatus",
+    "value": "Medium"
+  }
+]
+
+RESPONSE #0291 STATUS 200 GET https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+HITS: ID:29a43ebf-ce9e-4107-92d2-e7f071925c60, getlinkprogress, progress
+FILE: response_0291_200_App_Properties_GetLinkProgress.json
+PREVIEW: {"status":"New","delaySeconds":15,"queueAhead":0,"loadStatus":"Medium"}
+
+REQUEST #0296 GET https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+HITS: ID:29a43ebf-ce9e-4107-92d2-e7f071925c60, getlinkprogress, progress
+POST: 
+
+JSON FIELDS #0296 GET https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+[
+  {
+    "path": "$.status",
+    "value": "New"
+  },
+  {
+    "path": "$.loadStatus",
+    "value": "Medium"
+  }
+]
+
+RESPONSE #0296 STATUS 200 GET https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+HITS: ID:29a43ebf-ce9e-4107-92d2-e7f071925c60, getlinkprogress, progress
+FILE: response_0296_200_App_Properties_GetLinkProgress.json
+PREVIEW: {"status":"New","delaySeconds":15,"queueAhead":0,"loadStatus":"Medium"}
+
+REQUEST #0297 GET https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+HITS: ID:29a43ebf-ce9e-4107-92d2-e7f071925c60, getlinkprogress, progress
+POST: 
+
+JSON FIELDS #0297 GET https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+[
+  {
+    "path": "$.status",
+    "value": "New"
+  },
+  {
+    "path": "$.loadStatus",
+    "value": "Medium"
+  }
+]
+
+RESPONSE #0297 STATUS 200 GET https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+HITS: ID:29a43ebf-ce9e-4107-92d2-e7f071925c60, getlinkprogress, progress
+FILE: response_0297_200_App_Properties_GetLinkProgress.json
+PREVIEW: {"status":"New","delaySeconds":15,"queueAhead":0,"loadStatus":"Medium"}
+
+REQUEST #0298 GET https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+HITS: ID:29a43ebf-ce9e-4107-92d2-e7f071925c60, getlinkprogress, progress
+POST: 
+
+JSON FIELDS #0298 GET https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+[
+  {
+    "path": "$.status",
+    "value": "New"
+  },
+  {
+    "path": "$.loadStatus",
+    "value": "Medium"
+  }
+]
+
+RESPONSE #0298 STATUS 200 GET https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+HITS: ID:29a43ebf-ce9e-4107-92d2-e7f071925c60, getlinkprogress, progress
+FILE: response_0298_200_App_Properties_GetLinkProgress.json
+PREVIEW: {"status":"New","delaySeconds":10,"queueAhead":0,"loadStatus":"Medium"}
+
+REQUEST #0299 GET https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+HITS: ID:29a43ebf-ce9e-4107-92d2-e7f071925c60, getlinkprogress, progress
+POST: 
+
+JSON FIELDS #0299 GET https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+[
+  {
+    "path": "$.status",
+    "value": "New"
+  },
+  {
+    "path": "$.loadStatus",
+    "value": "Medium"
+  }
+]
+
+RESPONSE #0299 STATUS 200 GET https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+HITS: ID:29a43ebf-ce9e-4107-92d2-e7f071925c60, getlinkprogress, progress
+FILE: response_0299_200_App_Properties_GetLinkProgress.json
+PREVIEW: {"status":"New","delaySeconds":10,"queueAhead":0,"loadStatus":"Medium"}
+
+REQUEST #0300 GET https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+HITS: ID:29a43ebf-ce9e-4107-92d2-e7f071925c60, getlinkprogress, progress
+POST: 
+
+JSON FIELDS #0300 GET https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+[
+  {
+    "path": "$.status",
+    "value": "New"
+  },
+  {
+    "path": "$.loadStatus",
+    "value": "Medium"
+  }
+]
+
+RESPONSE #0300 STATUS 200 GET https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+HITS: ID:29a43ebf-ce9e-4107-92d2-e7f071925c60, getlinkprogress, progress
+FILE: response_0300_200_App_Properties_GetLinkProgress.json
+PREVIEW: {"status":"New","delaySeconds":10,"queueAhead":0,"loadStatus":"Medium"}
+
+REQUEST #0301 GET https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+HITS: ID:29a43ebf-ce9e-4107-92d2-e7f071925c60, getlinkprogress, progress
+POST: 
+
+JSON FIELDS #0301 GET https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+[
+  {
+    "path": "$.status",
+    "value": "New"
+  },
+  {
+    "path": "$.loadStatus",
+    "value": "Medium"
+  }
+]
+
+RESPONSE #0301 STATUS 200 GET https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+HITS: ID:29a43ebf-ce9e-4107-92d2-e7f071925c60, getlinkprogress, progress
+FILE: response_0301_200_App_Properties_GetLinkProgress.json
+PREVIEW: {"status":"New","delaySeconds":5,"queueAhead":0,"loadStatus":"Medium"}
+
+REQUEST #0302 GET https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+HITS: ID:29a43ebf-ce9e-4107-92d2-e7f071925c60, getlinkprogress, progress
+POST: 
+
+JSON FIELDS #0302 GET https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+[
+  {
+    "path": "$.status",
+    "value": "New"
+  },
+  {
+    "path": "$.loadStatus",
+    "value": "Medium"
+  }
+]
+
+RESPONSE #0302 STATUS 200 GET https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+HITS: ID:29a43ebf-ce9e-4107-92d2-e7f071925c60, getlinkprogress, progress
+FILE: response_0302_200_App_Properties_GetLinkProgress.json
+PREVIEW: {"status":"New","delaySeconds":5,"queueAhead":0,"loadStatus":"Medium"}
+
+REQUEST #0303 GET https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+HITS: ID:29a43ebf-ce9e-4107-92d2-e7f071925c60, getlinkprogress, progress
+POST: 
+
+JSON FIELDS #0303 GET https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+[
+  {
+    "path": "$.status",
+    "value": "InProgress"
+  },
+  {
+    "path": "$.loadStatus",
+    "value": "Medium"
+  }
+]
+
+RESPONSE #0303 STATUS 200 GET https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+HITS: ID:29a43ebf-ce9e-4107-92d2-e7f071925c60, getlinkprogress, progress
+FILE: response_0303_200_App_Properties_GetLinkProgress.json
+PREVIEW: {"status":"InProgress","delaySeconds":0,"queueAhead":0,"loadStatus":"Medium"}
+
+REQUEST #0304 GET https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+HITS: ID:29a43ebf-ce9e-4107-92d2-e7f071925c60, getlinkprogress, progress
+POST: 
+
+JSON FIELDS #0304 GET https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+[
+  {
+    "path": "$.status",
+    "value": "InProgress"
+  },
+  {
+    "path": "$.loadStatus",
+    "value": "Medium"
+  }
+]
+
+RESPONSE #0304 STATUS 200 GET https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+HITS: ID:29a43ebf-ce9e-4107-92d2-e7f071925c60, getlinkprogress, progress
+FILE: response_0304_200_App_Properties_GetLinkProgress.json
+PREVIEW: {"status":"InProgress","delaySeconds":0,"queueAhead":0,"loadStatus":"Medium"}
+
+REQUEST #0305 GET https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+HITS: ID:29a43ebf-ce9e-4107-92d2-e7f071925c60, getlinkprogress, progress
+POST: 
+
+JSON FIELDS #0305 GET https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+[
+  {
+    "path": "$.status",
+    "value": "InProgress"
+  },
+  {
+    "path": "$.loadStatus",
+    "value": "Medium"
+  }
+]
+
+RESPONSE #0305 STATUS 200 GET https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+HITS: ID:29a43ebf-ce9e-4107-92d2-e7f071925c60, getlinkprogress, progress
+FILE: response_0305_200_App_Properties_GetLinkProgress.json
+PREVIEW: {"status":"InProgress","delaySeconds":0,"queueAhead":0,"loadStatus":"Medium"}
+
+REQUEST #0306 GET https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+HITS: ID:29a43ebf-ce9e-4107-92d2-e7f071925c60, getlinkprogress, progress
+POST: 
+
+JSON FIELDS #0306 GET https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+[
+  {
+    "path": "$.status",
+    "value": "InProgress"
+  },
+  {
+    "path": "$.loadStatus",
+    "value": "Medium"
+  }
+]
+
+RESPONSE #0306 STATUS 200 GET https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+HITS: ID:29a43ebf-ce9e-4107-92d2-e7f071925c60, getlinkprogress, progress
+FILE: response_0306_200_App_Properties_GetLinkProgress.json
+PREVIEW: {"status":"InProgress","delaySeconds":0,"queueAhead":0,"loadStatus":"Medium"}
+
+REQUEST #0307 GET https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+HITS: ID:29a43ebf-ce9e-4107-92d2-e7f071925c60, getlinkprogress, progress
+POST: 
+
+JSON FIELDS #0307 GET https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+[
+  {
+    "path": "$.status",
+    "value": "InProgress"
+  },
+  {
+    "path": "$.loadStatus",
+    "value": "Medium"
+  }
+]
+
+RESPONSE #0307 STATUS 200 GET https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+HITS: ID:29a43ebf-ce9e-4107-92d2-e7f071925c60, getlinkprogress, progress
+FILE: response_0307_200_App_Properties_GetLinkProgress.json
+PREVIEW: {"status":"InProgress","delaySeconds":0,"queueAhead":0,"loadStatus":"Medium"}
+
+REQUEST #0308 GET https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+HITS: ID:29a43ebf-ce9e-4107-92d2-e7f071925c60, getlinkprogress, progress
+POST: 
+
+JSON FIELDS #0308 GET https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+[
+  {
+    "path": "$.status",
+    "value": "InProgress"
+  },
+  {
+    "path": "$.loadStatus",
+    "value": "Medium"
+  }
+]
+
+RESPONSE #0308 STATUS 200 GET https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+HITS: ID:29a43ebf-ce9e-4107-92d2-e7f071925c60, getlinkprogress, progress
+FILE: response_0308_200_App_Properties_GetLinkProgress.json
+PREVIEW: {"status":"InProgress","delaySeconds":0,"queueAhead":0,"loadStatus":"Medium"}
+
+REQUEST #0309 GET https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+HITS: ID:29a43ebf-ce9e-4107-92d2-e7f071925c60, getlinkprogress, progress
+POST: 
+
+JSON FIELDS #0309 GET https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+[
+  {
+    "path": "$.status",
+    "value": "InProgress"
+  },
+  {
+    "path": "$.loadStatus",
+    "value": "Medium"
+  }
+]
+
+RESPONSE #0309 STATUS 200 GET https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+HITS: ID:29a43ebf-ce9e-4107-92d2-e7f071925c60, getlinkprogress, progress
+FILE: response_0309_200_App_Properties_GetLinkProgress.json
+PREVIEW: {"status":"InProgress","delaySeconds":0,"queueAhead":0,"loadStatus":"Medium"}
+
+REQUEST #0310 GET https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+HITS: ID:29a43ebf-ce9e-4107-92d2-e7f071925c60, getlinkprogress, progress
+POST: 
+
+JSON FIELDS #0310 GET https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+[
+  {
+    "path": "$.status",
+    "value": "Success"
+  },
+  {
+    "path": "$.loadStatus",
+    "value": "Medium"
+  }
+]
+
+RESPONSE #0310 STATUS 200 GET https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+HITS: ID:29a43ebf-ce9e-4107-92d2-e7f071925c60, getlinkprogress, progress, success
+FILE: response_0310_200_App_Properties_GetLinkProgress.json
+PREVIEW: {"status":"Success","delaySeconds":0,"queueAhead":0,"loadStatus":"Medium"}
+
+REQUEST #0311 GET https://app.proppy.ae/App/Properties/LinkDetails?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+HITS: ID:29a43ebf-ce9e-4107-92d2-e7f071925c60, linkdetails
+POST: 
+
+FULL LINKDETAILS SAVED: FULL_LINKDETAILS_0311.html
+URL: https://app.proppy.ae/App/Properties/LinkDetails?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+
+RESPONSE #0311 STATUS 200 GET https://app.proppy.ae/App/Properties/LinkDetails?id=29a43ebf-ce9e-4107-92d2-e7f071925c60
+HITS: ID:149085eb-9af9-4a31-961c-54239c686d6c, ID:29a43ebf-ce9e-4107-92d2-e7f071925c60, NUMBER:7122516800, area, building, database, getlinkprogress, linkdetails, linkrequest, linkrequests, permit, progress, project, records2, requestid, success, unit, unitnumber
+FILE: response_0311_200_App_Properties_LinkDetails.html
+PREVIEW: <!doctype html> <html lang="en"> <head> <meta charset="utf-8" /> <title>Proppy - Request</title> <meta name="viewport" content="width=device-width, initial-scale=1.0" /> <!-- ✅ Core Styles --> <link href="/css/style.css?v2.1.2" rel="stylesheet" /> <link href="/css/datepicker.min.css?v2.1.2" rel="stylesheet" /> <!-- ✅ External Libraries --> <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/css/lightbox.min.css" rel="stylesheet" /> <link href="/img/logo.png" rel="icon" sizes="64x64" type="image/png" /> </head> <body> <header class="fixed-top"> <div class="topbar"> <button type="button" class="sidebar-toggle" aria-label="Open menu"> <span></span><span></span><span></span> </button> <div class="logo"> <img src="/img/logo.png" /> <span>Proppy</span> </div> <div class="user-info"> <a href="/App/Profiles/Profile"> <img src="https://randomuser.me/api/portraits/men/32.jpg" /> </a> <span class="user-greeting">Hello, Sayf Nazarov</span> <a class="logout" href="/App/Account/Logout"> <span class="logout-icon">🚪</span><span class="logout-text"> Logout</span> </a> </div> </div> </header> <div class="sidebar-backdrop"></div> <div class="layout"> <div class="sidebar"> <a href="/App/Agents/Dashboard" class="nav-item "> <img src="/img/dashboard.svg" /> Dashboard </a> <div> <div class="nav-item toggleable "> <img src="/img/tasks.svg" /> Tasks </div> <div class="submenu"> <a href="/App/Tasks/List" class="">Tasks</a> <a href="/App/Goals/List" class="">Goals</a> <!--<a href="~/App/Tasks/Calendar" class="(item == MenuItemEnum.Calendar ? "active" : "")">Calendar</a>--> </div> </div> <a href="/App/Calls/List" class="nav-item "> <img src="/img/calls.svg" /> Calls </a> <a href="/App/Leads/List" class="nav-item "> <img src="/img/leads.svg" /> Leads </a> <div> <div class="nav-item toggleable "> <img src="/img/clients.svg" /> Clients </div> <div class="submenu"> <a href="/App/Clients/List" class="">Clients</a> <a href="/App/Deals/List" class="">Deals</a> </div> </div> <div> <div...

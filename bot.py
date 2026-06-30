@@ -1,15 +1,26 @@
+from bulk_permit_bot import handle_bulk_permits
+from telegram.ext import CallbackQueryHandler
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 import os
+from dotenv import load_dotenv
+
+
+
+
+load_dotenv()
+
 import re
 import json
 import uuid
 import inspect
 from datetime import datetime
-from listing_link_parser import extract_permit_from_listing_url
-from supabase import create_client
 
 import pandas as pd
 import gspread
 from google.oauth2.service_account import Credentials
+from proppy_sheet_logger import append_proppy_result
+
+from listing_link_parser import extract_permit_from_listing_url
 
 from owner_db_search import (
     search_owner_everywhere,
@@ -19,12 +30,19 @@ from owner_db_search import (
 )
 
 from dxb_interact_api import search_dxb_unit_api
+
+from proppy_link_request_api import (
+    search_proppy_link_request_data,
+    format_proppy_data,
+)
+
 from telegram import (
     Update,
     ReplyKeyboardMarkup,
     InlineKeyboardMarkup,
     InlineKeyboardButton,
 )
+
 from telegram.ext import (
     ApplicationBuilder,
     CommandHandler,
@@ -35,15 +53,21 @@ from telegram.ext import (
 
 
 TOKEN = os.environ["TELEGRAM_TOKEN"]
+DXB_ENABLED = os.environ.get("DXB_ENABLED", "false").lower() == "true"
 
 SHEET_CSV_URL = os.environ.get("SHEET_CSV_URL", "")
 GOOGLE_SHEET_URL = os.environ.get("GOOGLE_SHEET_URL", "")
 GOOGLE_SERVICE_ACCOUNT_JSON = os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON", "")
-SUPABASE_URL = os.environ["SUPABASE_URL"]
-SUPABASE_KEY = os.environ["SUPABASE_KEY"]
-supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-
 ADMIN_USERNAME = "@Sayf_Jr"
+OWNER_LOOKUP_START_DESCRIPTION = (
+    "Send permit number, Property Finder/Bayut link, or use commands:\n"
+    "/name OWNER NAME\n"
+    "/phone PHONE NUMBER\n"
+    "/project BUILDING UNIT\n"
+    "/d PERMIT\n"
+    "/dxb BUILDING UNIT"
+)
+
 
 SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
@@ -82,10 +106,6 @@ def get_history_sheet():
     return get_spreadsheet().worksheet("SearchHistory")
 
 
-def get_summary_sheet():
-    return get_spreadsheet().worksheet("summary")
-
-
 def clean_phone(value):
     if pd.isna(value):
         return ""
@@ -103,18 +123,83 @@ def clean_phone(value):
     return digits
 
 
+def pick_column(df, candidates, required=True):
+    columns = {str(col).strip().lower(): col for col in df.columns}
+
+    for candidate in candidates:
+        key = str(candidate).strip().lower()
+        if key in columns:
+            return columns[key]
+
+    if required:
+        raise KeyError(
+            f"Missing column. Tried {candidates}. Available: {list(df.columns)}"
+        )
+
+    return ""
+
+
+def ensure_column(df, name):
+    if name not in df.columns:
+        df[name] = ""
+    return name
+
+
 def load_data():
-    df = pd.read_csv(SHEET_CSV_URL, low_memory=False)
+    df = pd.read_csv(SHEET_CSV_URL, dtype=str, low_memory=False)
     df.columns = [str(col).strip() for col in df.columns]
+    print("CSV COLUMNS:", list(df.columns), flush=True)
 
-    permit_col = "Permit_number"
-    building_col = "Building_name"
-    unit_col = "Unit_number"
+    permit_col = pick_column(
+        df,
+        ["Permit", "Permit_number", "Permit Number", "TRAKHESSI"],
+    )
 
-    latest_phone_1_col = "Latest_phone_1"
-    latest_phone_2_col = "Latest_phone_2"
-    latest_phone_3_col = "Latest_phone_3"
-    latest_phone_4_col = "Latest_phone_4"
+    building_col = pick_column(
+        df,
+        ["Building No", "Building_name", "Building Name", "BUILDING"],
+    )
+
+    unit_col = pick_column(
+        df,
+        ["Unit No", "Unit_number", "Unit Number", "UNIT"],
+    )
+
+    area_col = pick_column(
+        df,
+        ["Area", "Area_name", "Area Name", "Zone"],
+        required=False,
+    ) or ensure_column(df, "Area")
+
+    latest_owner_col = pick_column(
+        df,
+        ["Latest_Owner", "Latest_owner", "Owner 2024", "Owner Name", "Owner"],
+        required=False,
+    ) or ensure_column(df, "Latest_Owner")
+
+    latest_phone_1_col = pick_column(
+        df,
+        ["Latest_Phone_1", "Latest_phone_1", "Mobile_2024_1", "Mobile 1"],
+        required=False,
+    ) or ensure_column(df, "Latest_Phone_1")
+
+    latest_phone_2_col = pick_column(
+        df,
+        ["Latest_Phone_2", "Latest_phone_2", "Mobile_2024_2", "Mobile 2"],
+        required=False,
+    ) or ensure_column(df, "Latest_Phone_2")
+
+    latest_phone_3_col = pick_column(
+        df,
+        ["Latest_Phone_3", "Latest_phone_3", "Mobile_2024_3", "Mobile 3"],
+        required=False,
+    ) or ensure_column(df, "Latest_Phone_3")
+
+    latest_phone_4_col = pick_column(
+        df,
+        ["Latest_Phone_4", "Latest_phone_4", "Mobile_2024_4", "Mobile 4"],
+        required=False,
+    ) or ensure_column(df, "Latest_Phone_4")
 
     df[permit_col] = (
         df[permit_col]
@@ -137,6 +222,8 @@ def load_data():
         permit_col,
         building_col,
         unit_col,
+        area_col,
+        latest_owner_col,
         latest_phone_1_col,
         latest_phone_2_col,
         latest_phone_3_col,
@@ -151,22 +238,37 @@ try:
             permit_col,
             building_col,
             unit_col,
+            area_col,
+            latest_owner_col,
             latest_phone_1_col,
             latest_phone_2_col,
             latest_phone_3_col,
             latest_phone_4_col,
         ) = load_data()
     else:
-        raise Exception("Permit CSV disabled locally")
+        print("Permit CSV disabled locally — skipped", flush=True)
+        df = None
+        permit_col = ""
+        building_col = ""
+        unit_col = ""
+        area_col = ""
+        latest_owner_col = ""
+        latest_phone_1_col = ""
+        latest_phone_2_col = ""
+        latest_phone_3_col = ""
+        latest_phone_4_col = ""
+
 except Exception as e:
     import traceback
-    traceback.print_exc()
-    print("DXB ERROR:", e)
 
+    traceback.print_exc()
+    print("PERMIT CSV LOAD ERROR:", e, flush=True)
     df = None
     permit_col = ""
     building_col = ""
     unit_col = ""
+    area_col = ""
+    latest_owner_col = ""
     latest_phone_1_col = ""
     latest_phone_2_col = ""
     latest_phone_3_col = ""
@@ -213,7 +315,7 @@ def find_or_create_user(user_id, username):
         "",
     ]
 
-    sheet.update(f"A{next_row}:F{next_row}", [new_row])
+    sheet.update(values=[new_row], range_name=f"A{next_row}:F{next_row}")
 
     return get_user_record(user_id)
 
@@ -240,23 +342,7 @@ def has_special_access(record):
 
 
 async def require_special_access(update: Update):
-    tg_user = update.effective_user
-
-    _, row_number, record = find_or_create_user(
-        tg_user.id,
-        tg_user.username or "",
-    )
-
-    update_last_used(row_number)
-
-    if not has_special_access(record):
-        await update.message.reply_text(
-            "🔒 This feature is available only for premium users.\n\n"
-            "Please contact admin to unlock advanced owner search.",
-            reply_markup=MENU_KEYBOARD,
-        )
-        return False
-
+    # Owner search is open locally for now.
     return True
 
 
@@ -275,11 +361,6 @@ def normalize_permit(value):
 
 
 async def extract_permit_safe(listing_url):
-    """Extract permit from a listing URL without crashing the whole bot.
-
-    Supports both async and sync implementations of
-    extract_permit_from_listing_url, and also tries a simple numeric fallback.
-    """
     try:
         result = extract_permit_from_listing_url(listing_url)
 
@@ -288,26 +369,22 @@ async def extract_permit_safe(listing_url):
 
         permit = normalize_permit(result)
 
-        if len(permit) == 11 and permit.startswith("71"):
-            permit = permit[2:]
-
         if permit:
             return permit
 
     except Exception as e:
         import traceback
+
         traceback.print_exc()
         print(f"LINK EXTRACTOR ERROR: {e}", flush=True)
 
-    # Fallback: sometimes a user sends a URL/text that already contains
-    # the Trakheesi / permit number. Prefer numbers with the Dubai prefix 71.
     candidates = re.findall(r"\d{8,15}", str(listing_url or ""))
 
     for candidate in candidates:
         candidate = normalize_permit(candidate)
 
         if len(candidate) == 11 and candidate.startswith("71"):
-            return candidate[2:]
+            return candidate
 
     for candidate in candidates:
         candidate = normalize_permit(candidate)
@@ -319,42 +396,51 @@ async def extract_permit_safe(listing_url):
 
 
 def already_searched(user_id, permit_number):
-    sheet = get_history_sheet()
-    rows = sheet.get_all_values()
+    try:
+        sheet = get_history_sheet()
+        rows = sheet.get_all_values()
 
-    user_id = str(user_id).strip()
-    permit_number = normalize_permit(permit_number)
+        user_id = str(user_id).strip()
+        permit_number = normalize_permit(permit_number)
 
-    for row in rows[1:]:
-        if len(row) < 4:
-            continue
+        for row in rows[1:]:
+            if len(row) < 4:
+                continue
 
-        history_user_id = str(row[1]).strip()
-        history_permit = normalize_permit(row[3])
+            history_user_id = str(row[1]).strip()
+            history_permit = normalize_permit(row[3])
 
-        if history_user_id == user_id and history_permit == permit_number:
-            return True
+            if history_user_id == user_id and history_permit == permit_number:
+                return True
+
+    except Exception:
+        return False
 
     return False
 
 
 def add_search_history(user_id, username, permit_number, result, charged):
-    sheet = get_history_sheet()
+    try:
+        sheet = get_history_sheet()
 
-    sheet.append_row(
-        [
-            now_text(),
-            str(user_id),
-            username or "",
-            str(permit_number),
-            result,
-            "yes" if charged else "no",
-        ],
-        value_input_option="USER_ENTERED",
-    )
+        sheet.append_row(
+            [
+                now_text(),
+                str(user_id),
+                username or "",
+                str(permit_number),
+                result,
+                "yes" if charged else "no",
+            ],
+            value_input_option="USER_ENTERED",
+        )
+
+    except Exception as e:
+        print("ADD HISTORY ERROR:", e, flush=True)
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(OWNER_LOOKUP_START_DESCRIPTION)
     text = (
         "👋 Welcome to Rockstar Property Intelligence Bot\n\n"
         "💎 You currently have 5 free requests available.\n\n"
@@ -367,10 +453,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "⚡ Dubai Secondary Market Intelligence Tool"
     )
 
-    await update.message.reply_text(
-        text,
-        reply_markup=MENU_KEYBOARD,
-    )
+    await update.message.reply_text(text, reply_markup=MENU_KEYBOARD)
 
 
 async def reload_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -395,7 +478,6 @@ async def profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
         remaining = max(request_limit - requests_used, 0)
 
         username_text = f"@{tg_user.username}" if tg_user.username else "Not set"
-
         access_text = "Premium" if status in ["premium", "admin"] else "Basic"
 
         text = (
@@ -410,9 +492,9 @@ async def profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         await update.message.reply_text(text, reply_markup=MENU_KEYBOARD)
 
-    except Exception:
+    except Exception as e:
         await update.message.reply_text(
-            "Profile is unavailable in local test mode.",
+            f"Profile error:\n{e}",
             reply_markup=MENU_KEYBOARD,
         )
 
@@ -439,9 +521,9 @@ async def tariffs(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     text = (
         "💳 Tariffs\n\n"
-        "🔹 50 Searches — 200 AED\n"
-        "🔹 100 Searches — 300 AED\n"
-        "🔹 300 Searches — 500 AED\n\n"
+        "🔹 30 Searches — 150 AED\n"
+        "🔹 30 Searches — 150 AED\n"
+        "🔹 100 Searches — 400 AED\n\n"
         "📩 To purchase access, contact the administrator."
     )
 
@@ -450,55 +532,105 @@ async def tariffs(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def available_areas(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
-        sheet = get_summary_sheet()
-        rows = sheet.get_all_values()
+        if df is None or df.empty:
+            await update.message.reply_text(
+                "Property database is unavailable.",
+                reply_markup=MENU_KEYBOARD,
+            )
+            return
 
-        lines = []
-        total_line = ""
+        local_area_col = None
+        local_building_col = None
 
-        for row in rows:
-            if len(row) < 2:
-                continue
+        for col in df.columns:
+            key = str(col).strip().lower()
 
-            area = str(row[0]).strip()
-            count_raw = str(row[1]).replace(",", "").strip()
+            if key in ["area", "area_name", "zone"]:
+                local_area_col = col
 
-            if not area or not count_raw.isdigit():
-                continue
+            if key in ["building no", "building_name", "building name", "building"]:
+                local_building_col = col
 
-            count = int(count_raw)
+        if not local_area_col:
+            await update.message.reply_text(
+                f"AREA ERROR:\nArea column not found.\nColumns: {list(df.columns)}",
+                reply_markup=MENU_KEYBOARD,
+            )
+            return
 
-            if area.upper() == "TOTAL":
-                total_line = f"\n📊 Total — {count:,} units"
-                continue
+        if not local_building_col:
+            await update.message.reply_text(
+                f"AREA ERROR:\nBuilding column not found.\nColumns: {list(df.columns)}",
+                reply_markup=MENU_KEYBOARD,
+            )
+            return
 
-            if count >= 80000:
+        temp = df[[local_area_col, local_building_col]].copy()
+        temp[local_area_col] = temp[local_area_col].astype(str).str.strip()
+        temp[local_building_col] = temp[local_building_col].astype(str).str.strip()
+
+        temp = temp[
+            (temp[local_area_col] != "")
+            & (temp[local_area_col].str.lower() != "nan")
+            & (temp[local_building_col] != "")
+            & (temp[local_building_col].str.lower() != "nan")
+        ]
+
+        area_counts = temp[local_area_col].value_counts()
+
+        text_parts = ["📍 <b>Available Areas</b>\n"]
+
+        for area, total_count in area_counts.items():
+            if total_count >= 80000:
                 indicator = "🟩"
-            elif count >= 30000:
+            elif total_count >= 30000:
                 indicator = "🟨"
-            elif count >= 10000:
+            elif total_count >= 10000:
                 indicator = "🟧"
             else:
                 indicator = "🟥"
 
-            lines.append(f"{indicator} {area} — {count:,} units")
+            text_parts.append(f"{indicator} <b>{area}</b> · {total_count:,}")
 
-        text = "📍 Available Areas\n\n" + "\n".join(lines) + total_line
+            buildings = (
+                temp[temp[local_area_col] == area][local_building_col]
+                .value_counts()
+                .head(15)
+            )
 
-        await update.message.reply_text(text, reply_markup=MENU_KEYBOARD)
+            for building, count in buildings.items():
+                short_name = str(building).strip()
 
-    except Exception:
+                if len(short_name) > 32:
+                    short_name = short_name[:32] + "..."
+
+                text_parts.append(f"   • {short_name} · {count:,}")
+
+            text_parts.append("")
+
+        total = int(area_counts.sum())
+        text_parts.append(f"📊 <b>Total</b> · {total:,}")
+
+        text = "\n".join(text_parts)
+
+        if len(text) > 3900:
+            text = text[:3900] + "\n\n...too long, showing first results only."
+
         await update.message.reply_text(
-            "Areas are unavailable in local test mode.",
+            text,
+            parse_mode="HTML",
+            reply_markup=MENU_KEYBOARD,
+        )
+
+    except Exception as e:
+        await update.message.reply_text(
+            f"AREA ERROR:\n{e}",
             reply_markup=MENU_KEYBOARD,
         )
 
 
 async def handle_name_search(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
-        # if not await require_special_access(update):
-        #     return
-
         owner_name = " ".join(context.args).strip()
 
         if not owner_name:
@@ -520,7 +652,7 @@ async def handle_name_search(update: Update, context: ContextTypes.DEFAULT_TYPE)
             await update.message.reply_text(text)
 
     except Exception as e:
-        print("NAME SEARCH ERROR:", e)
+        print("NAME SEARCH ERROR:", e, flush=True)
 
         await update.message.reply_text(
             "Name search error.",
@@ -554,7 +686,7 @@ async def handle_phone_search(update: Update, context: ContextTypes.DEFAULT_TYPE
             await update.message.reply_text(text)
 
     except Exception as e:
-        print("PHONE SEARCH ERROR:", e)
+        print("PHONE SEARCH ERROR:", e, flush=True)
 
         await update.message.reply_text(
             "Phone search error.",
@@ -580,9 +712,6 @@ async def handle_project_search(update: Update, context: ContextTypes.DEFAULT_TY
 
         results = search_project_unit(query)
 
-        # Strictly filter by the last argument as unit number.
-        # Example: /project Grande 4702 should only show unit 4702,
-        # not every record in Grande.
         unit_number = context.args[-1].strip()
         unit_clean = re.sub(r"\.0$", "", unit_number)
 
@@ -606,7 +735,7 @@ async def handle_project_search(update: Update, context: ContextTypes.DEFAULT_TY
             await update.message.reply_text(text)
 
     except Exception as e:
-        print("PROJECT SEARCH ERROR:", e)
+        print("PROJECT SEARCH ERROR:", e, flush=True)
 
         await update.message.reply_text(
             "Project search error.",
@@ -687,7 +816,7 @@ async def handle_export(update: Update, context: ContextTypes.DEFAULT_TYPE):
         os.remove(temp_file_name)
 
     except Exception as e:
-        print("EXPORT ERROR:", e)
+        print("EXPORT ERROR:", e, flush=True)
 
         await update.message.reply_text(
             "Export error.",
@@ -695,7 +824,60 @@ async def handle_export(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 
+async def handle_proppy_d(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        permit = " ".join(context.args).strip()
+        permit = normalize_permit(permit)
 
+        if not permit:
+            await update.message.reply_text(
+                "Send permit number:\n/d 71495697794",
+                reply_markup=MENU_KEYBOARD,
+            )
+            return
+
+        msg = await update.message.reply_text("⏳ Searching...")
+
+        if "get_proppy_d_free_limit_status" in globals():
+            limit_ok, used_count, limit_total = get_proppy_d_free_limit_status(update)
+
+            if not limit_ok:
+                await msg.edit_text(
+                    f"❌ Free /d limit finished: {used_count}/{limit_total}.\n"
+                    "Please contact the administrator."
+                )
+                return
+
+        data = await search_proppy_link_request_data(permit)
+
+        if "add_proppy_d_free_usage" in globals():
+            add_proppy_d_free_usage(update, permit)
+
+        result_text = format_proppy_data(data)
+
+        try:
+            spreadsheet = get_spreadsheet()
+            append_proppy_result(spreadsheet, permit, data)
+        except Exception as e:
+            print("OWNER LOOKUP SHEET SAVE ERROR:", e, flush=True)
+
+        if len(result_text) > 3900:
+            await msg.delete()
+            chunks = [result_text[i:i + 3900] for i in range(0, len(result_text), 3900)]
+            for chunk in chunks:
+                await update.message.reply_text(chunk)
+        else:
+            await msg.edit_text(result_text)
+
+    except Exception as e:
+        import traceback
+
+        traceback.print_exc()
+
+        await update.message.reply_text(
+            f"❌ Search error:\n{e}",
+            reply_markup=MENU_KEYBOARD,
+        )
 
 async def handle_dxb(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
@@ -706,21 +888,19 @@ async def handle_dxb(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
             return
 
-        unit_number = context.args[-1]
+        if not DXB_ENABLED:
+            await update.message.reply_text(
+                "DXB search is currently available only in local mode.",
+                reply_markup=MENU_KEYBOARD,
+            )
+            return
+
+        unit_number = context.args[-1].strip()
         building_name = " ".join(context.args[:-1]).strip()
 
-        supabase.table("dxb_jobs").insert({
-            "chat_id": str(update.effective_chat.id),
-            "building": building_name,
-            "unit": unit_number,
-            "status": "pending",
-        }).execute()
+        msg = await update.message.reply_text("⏳ Searching DXB...")
 
-        await update.message.reply_text("⏳ DXB request added to queue...")
-
-    except Exception as e:
-        print("DXB ERROR:", e)
-        await update.message.reply_text("❌ DXB error. Try again later.")
+        result = await search_dxb_unit_api(building_name, unit_number)
 
         if len(result) > 3900:
             await msg.delete()
@@ -731,30 +911,35 @@ async def handle_dxb(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     except Exception as e:
         import traceback
+
         traceback.print_exc()
         print("DXB ERROR:", e, flush=True)
 
         await update.message.reply_text(
-            "DXB search error.",
+            "❌ DXB search error. Try again later.",
             reply_markup=MENU_KEYBOARD,
         )
 
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
-        user_text = update.message.text.strip()
+        if not update.message or not update.message.text:
+            return
 
-        if "propertyfinder.ae" in user_text or "bayut.com" in user_text:
+        user_text = update.message.text.strip()
+        urls = re.findall(r"https?://\S+", user_text)
+        listing_url = urls[0] if urls else ""
+
+        if listing_url and ("propertyfinder.ae" in listing_url or "bayut.com" in listing_url):
             await update.message.reply_text("🔎 Extracting permit from listing link...")
 
-            permit_from_link = await extract_permit_safe(user_text)
+            permit_from_link = await extract_permit_safe(listing_url)
 
             if not permit_from_link:
                 await update.message.reply_text(
                     "❌ Could not find permit number in this listing.\n\n"
                     "Send the Permit / Trakheesi number manually, or try another listing link.",
-                    reply_markup=MENU_KEYBOARD,
-                )
+                    )
                 return
 
             user_text = permit_from_link
@@ -762,6 +947,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if user_text == "👤 My Profile":
             await profile(update, context)
             return
+
         if user_text == "📩 Contact Admin":
             await contact_admin(update, context)
             return
@@ -784,12 +970,20 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         tg_user = update.effective_user
 
-        _, row_number, record = find_or_create_user(
-            tg_user.id,
-            tg_user.username or "",
-        )
-
-        update_last_used(row_number)
+        try:
+            _, row_number, record = find_or_create_user(
+                tg_user.id,
+                tg_user.username or "",
+            )
+            update_last_used(row_number)
+        except Exception as e:
+            print("USER LIMIT SHEET ERROR:", e, flush=True)
+            row_number = None
+            record = {
+                "status": "admin",
+                "requests_used": 0,
+                "request_limit": 999999,
+            }
 
         status, requests_used, request_limit = normalize_user_record(record)
 
@@ -813,14 +1007,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         if requests_used >= request_limit and not is_duplicate:
             keyboard = InlineKeyboardMarkup(
-                [
-                    [
-                        InlineKeyboardButton(
-                            "Contact Admin",
-                            url=f"https://t.me/{ADMIN_USERNAME.lstrip('@')}",
-                        )
-                    ]
-                ]
+                [[InlineKeyboardButton("Contact Admin", url=f"https://t.me/{ADMIN_USERNAME.lstrip('@')}")]]
             )
 
             await update.message.reply_text(
@@ -871,39 +1058,39 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             row.get(latest_phone_4_col, ""),
         ]
 
-        phones = [
-            str(phone).strip()
-            for phone in phones
-            if str(phone).strip()
-        ]
+        phones = [str(phone).strip() for phone in phones if str(phone).strip()]
 
         charged = not is_duplicate
 
         if charged:
-            increment_user_usage(row_number, requests_used)
+            if row_number:
+                increment_user_usage(row_number, requests_used)
+
+            add_search_history(
+                tg_user.id,
+                tg_user.username or "",
+                digits,
+                "found",
+                True,
+            )
+
             remaining_after_search = max(request_limit - requests_used - 1, 0)
+
         else:
             remaining_after_search = max(request_limit - requests_used, 0)
 
-        add_search_history(
-            tg_user.id,
-            tg_user.username or "",
-            digits,
-            "found",
-            charged,
-        )
-
         duplicate_note = ""
+
         if is_duplicate:
             duplicate_note = "\n♻️ Repeated search — no search was charged.\n"
 
         reply = (
             "🏠 Property Overview\n\n"
-            f"🏢 Unit Number: {row[unit_col]}\n"
-            f"🏛️ Building: {row[building_col]}\n"
-            f"📍 Zone: {row['Area_name']}\n\n"
+            f"🏢 Unit Number: {row.get(unit_col, '-')}\n"
+            f"🏛️ Building: {row.get(building_col, '-')}\n"
+            f"📍 Zone: {row.get(area_col, '-')}\n\n"
             "👤 Public Owner Information\n"
-            f"🧑 Name: {str(row['Latest_owner']).title()}\n"
+            f"🧑 Name: {str(row.get(latest_owner_col, '-')).title()}\n"
             f"📞 Phone: {', '.join(phones) if phones else 'Not available'}\n"
             f"{duplicate_note}\n"
             f"❗ You have {remaining_after_search} free searches left."
@@ -913,6 +1100,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     except Exception as e:
         import traceback
+
         traceback.print_exc()
         print(f"ERROR in handle_message: {e}", flush=True)
 
@@ -921,7 +1109,14 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup=MENU_KEYBOARD,
         )
 
-app = ApplicationBuilder().token(TOKEN).build()
+
+
+
+async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE):
+    print(f"BOT ERROR: {context.error}", flush=True)
+
+app = ApplicationBuilder().token(TOKEN).connect_timeout(120).read_timeout(120).write_timeout(120).pool_timeout(120).build()
+app.add_error_handler(error_handler)
 
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("reload", reload_data))
@@ -933,6 +1128,7 @@ app.add_handler(CommandHandler("name", handle_name_search))
 app.add_handler(CommandHandler("phone", handle_phone_search))
 app.add_handler(CommandHandler("project", handle_project_search))
 app.add_handler(CommandHandler("export", handle_export))
+app.add_handler(CommandHandler("d", handle_proppy_d))
 app.add_handler(CommandHandler("dxb", handle_dxb))
 
 app.add_handler(
@@ -945,4 +1141,5 @@ app.add_handler(
 
 if __name__ == "__main__":
     print("BOT STARTED IN LOCAL POLLING MODE")
-    app.run_polling()
+    app.add_handler(CommandHandler("bulk", handle_bulk_permits))
+    app.run_polling(drop_pending_updates=True, bootstrap_retries=-1)

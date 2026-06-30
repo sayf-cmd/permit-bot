@@ -1,0 +1,5 @@
+[2026-06-13T12:37:08.701] verbose: [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o
+[2026-06-13T12:37:15.099] log: [USER_CLICK] tag=INPUT id=Login name=Login class= text=
+[2026-06-13T12:37:17.993] log: [INPUT_CHANGE] tag=INPUT id=Login name=Login class= text=Sayf.Nazarov2003991@gmail.com
+[2026-06-13T12:37:19.381] log: [USER_CLICK] tag=BUTTON id= name= class= text=Login
+[2026-06-13T12:37:19.390] log: [FORM_SUBMIT] tag=FORM id= name= class= text=Proppy Login

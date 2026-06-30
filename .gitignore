@@ -23,3 +23,10 @@ owners_index.db
 dxb_profile/
 .DS_Store
 credentials.json
+proppy_profile/
+__pycache__/
+*.pyc
+.env
+.env.*
+.DS_Store
+*.log

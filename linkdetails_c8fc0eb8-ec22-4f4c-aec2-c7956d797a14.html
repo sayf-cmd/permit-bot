@@ -1,0 +1,644 @@
+
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Proppy - Request</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- ✅ Core Styles -->
+    <link href="/css/style.css?v2.1.2" rel="stylesheet" />
+    <link href="/css/datepicker.min.css?v2.1.2" rel="stylesheet" />
+
+    <!-- ✅ External Libraries -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/css/lightbox.min.css" rel="stylesheet" />
+    <link href="/img/logo.png" rel="icon" sizes="64x64" type="image/png" />
+</head>
+
+<body>
+    <header class="fixed-top">
+        
+<div class="topbar">
+    <button type="button" class="sidebar-toggle" aria-label="Open menu">
+        <span></span><span></span><span></span>
+    </button>
+    <div class="logo">
+        <img src="/img/logo.png" />
+        <span>Proppy</span>
+    </div>
+    <div class="user-info">
+        <a href="/App/Profiles/Profile">
+                <img src="https://randomuser.me/api/portraits/men/32.jpg" />
+        </a>
+        <span class="user-greeting">Hello, Sayf Nazarov</span>
+        <a class="logout" href="/App/Account/Logout">
+            <span class="logout-icon">🚪</span><span class="logout-text"> Logout</span>
+        </a>
+    </div>
+</div>
+    </header>
+
+    <div class="sidebar-backdrop"></div>
+
+    <div class="layout">
+        
+<div class="sidebar">
+
+
+<a href="/App/Agents/Dashboard" class="nav-item ">
+    <img src="/img/dashboard.svg" /> Dashboard
+</a>
+
+<div>
+    <div class="nav-item toggleable ">
+        <img src="/img/tasks.svg" /> Tasks
+    </div>
+    <div class="submenu">
+        <a href="/App/Tasks/List" class="">Tasks</a>
+        <a href="/App/Goals/List" class="">Goals</a>
+        <!--<a href="~/App/Tasks/Calendar" class="(item == MenuItemEnum.Calendar ? "active" : "")">Calendar</a>-->
+    </div>
+</div>
+
+<a href="/App/Calls/List" class="nav-item ">
+    <img src="/img/calls.svg" /> Calls
+</a>
+
+<a href="/App/Leads/List" class="nav-item ">
+    <img src="/img/leads.svg" /> Leads
+</a>
+
+<div>
+    <div class="nav-item toggleable ">
+        <img src="/img/clients.svg" /> Clients
+    </div>
+    <div class="submenu">
+        <a href="/App/Clients/List" class="">Clients</a>
+        <a href="/App/Deals/List" class="">Deals</a>
+    </div>
+</div>
+
+<div>
+    <div class="nav-item toggleable active open">
+        <img src="/img/properties.svg" /> Properties
+    </div>
+    <div class="submenu">
+        <a href="/App/Properties/List" class="">Properties</a>
+        <a href="/App/Viewings/List" class="">Viewings</a>
+        <a href="/App/Postings/List" class="">Postings</a>
+        <a href="/App/Projects/List" class="">Projects</a>
+        <a href="/App/Properties/Records2" class="">Database 2.0</a>
+        <a href="/App/Properties/LinkRequests" class="active">Link requests</a>
+        <a href="/App/Properties/Planner" class="">Planner</a>
+    </div>
+</div>
+
+<div>
+    <div class="nav-item toggleable ">
+        <img src="/img/admin.svg" /> Information
+    </div>
+    <div class="submenu">
+        <a href="/App/Information/Documents" class="">Documents</a>
+        <a href="/App/Information/Resources" class="">Resources</a>
+    </div>
+</div>
+<!--
+<a href="~/App/Docs/Generator" class="nav-item (item == MenuItemEnum.Docs ? "active" : "")">
+<img src="~/img/docs_generator.svg" /> Docs Generator
+</a>-->
+</div>
+
+
+        
+
+<style>
+    .actual-owner-card {
+        border: 1px solid #bae6fd;
+        border-radius: 12px;
+        padding: 14px;
+        background: #f0f9ff;
+        margin: 10px 0 18px 0;
+        box-shadow: 0 1px 2px rgba(0,0,0,.04);
+    }
+
+    .section-header {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        font-size: 16px;
+        margin: 12px 0;
+        color: #111827;
+    }
+
+    .section-badge {
+        display: inline-block;
+        font-size: 12px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        background: #e0f2fe;
+        color: #0c4a6e;
+        border: 1px solid #bae6fd;
+    }
+
+    .actual-owner-card tbody tr {
+        background-color: #f0f9ff;
+    }
+
+    .suggestions-card {
+        border: 1px solid #fde68a;
+        background: #fffbeb;
+        border-radius: 12px;
+        padding: 14px;
+        margin: 10px 0 18px 0;
+        box-shadow: 0 1px 2px rgba(0,0,0,.04);
+    }
+    .suggestions-card .section-badge {
+        background: #fef3c7;
+        color: #92400e;
+        border-color: #fcd34d;
+    }
+    .suggestions-card tbody tr { background-color: #fffbeb; }
+    .suggestions-card .hint {
+        margin: 0 0 10px 0;
+        font-size: 13px;
+        color: #78350f;
+    }
+
+    /* Compact Details button shared between the actual-owner card and
+       each suggestion row — same look as the row-action used on the
+       Database 2.0 list page. */
+    .row-action {
+        display: inline-block;
+        padding: 4px 10px;
+        font-size: 12px;
+        border-radius: 6px;
+        background: #2563eb;
+        color: #fff;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+    .row-action:hover { background: #1d4ed8; color: #fff; }
+</style>
+
+
+<div class="main-content">
+    <div class="client-info-card" style="flex-direction: column; align-items: flex-start; max-width: 100%; box-sizing: border-box;">
+        <h3 style="margin-top: 0;">Link Request</h3>
+        <p style="word-break: break-word;">
+            <strong>Link:</strong> <a href="65343335996" target="_blank">65343335996</a><br />
+            <strong>Status:</strong> Success<br />
+
+        </p>
+
+    </div>
+
+    <div class="client-info-docs" style="max-width: 100%; box-sizing: border-box;">
+            <div style="margin-bottom: 32px;">
+                <h3>📍 Location</h3>
+                <p>
+                        <strong>Area:</strong> Nad Al Shiba Third                        <br />
+                </p>
+
+                <h3>🏗️ Property Info</h3>
+                <p>
+                        <strong>Type:</strong> Land                        <br />
+                        <strong>Area:</strong> 1589.57 sqm                        <br />
+                        <strong>Land Number:</strong> 3400                        <br />
+                        <strong>Land Sub Number:</strong> 0                        <br />
+                        <strong>Freehold:</strong> No                        <br />
+                        <strong>Municipality Code:</strong> 616                        <br />
+                        <strong>Municipality Number:</strong> 2846                        <br />
+                </p>
+
+            </div>
+    </div>
+</div>
+
+<style>
+    .reaction-cell {
+        display: inline-flex;
+        gap: 4px;
+        align-items: center;
+    }
+    .reaction-btn {
+        border: 1px solid #d1d5db;
+        background: #fff;
+        border-radius: 6px;
+        padding: 2px 8px;
+        font-size: 14px;
+        line-height: 18px;
+        cursor: pointer;
+        transition: background .12s ease, border-color .12s ease;
+    }
+    .reaction-btn:hover         { background: #f3f4f6; }
+    .reaction-btn.reaction-up:hover   { border-color: #16a34a; }
+    .reaction-btn.reaction-down:hover { border-color: #dc2626; }
+    .reaction-btn[disabled]     { opacity: .5; cursor: progress; }
+
+    .reaction-badge {
+        display: inline-block;
+        padding: 2px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+        border: 1px solid transparent;
+        white-space: nowrap;
+    }
+    .reaction-badge.reaction-good {
+        background: #dcfce7;
+        color: #166534;
+        border-color: #86efac;
+    }
+    .reaction-badge.reaction-bad {
+        background: #fee2e2;
+        color: #991b1b;
+        border-color: #fca5a5;
+    }
+</style>
+<script>
+    (function () {
+        // One handler for every .reaction-cell on the page. Click on a
+        // .reaction-btn inside a cell submits the choice; the cell is
+        // then replaced with a frozen badge in place. We don't reload
+        // the page so the rest of the table stays as the user left it.
+        document.addEventListener('click', async function (ev) {
+            var btn = ev.target.closest('.reaction-btn');
+            if (!btn) return;
+            var cell = btn.closest('.reaction-cell');
+            if (!cell) return;
+
+            var recordId   = cell.getAttribute('data-record-id');
+            var endpoint   = cell.getAttribute('data-endpoint');
+            var isPositive = btn.getAttribute('data-positive') === 'true';
+            if (!recordId || !endpoint) return;
+
+            cell.querySelectorAll('.reaction-btn').forEach(function (b) { b.disabled = true; });
+
+            try {
+                var res = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: recordId, isPositive: isPositive })
+                });
+                if (!res.ok) throw new Error('reaction POST failed: ' + res.status);
+                var data = await res.json();
+
+                var stored = !!data.isPositive;
+                var badge  = document.createElement('span');
+                badge.className = 'reaction-badge ' + (stored ? 'reaction-good' : 'reaction-bad');
+                badge.title = stored
+                    ? 'You marked this owner as good'
+                    : 'You marked this owner as bad';
+                badge.textContent = stored ? '👍 Good' : '👎 Bad';
+                cell.replaceWith(badge);
+            } catch (e) {
+                cell.querySelectorAll('.reaction-btn').forEach(function (b) { b.disabled = false; });
+                console.error(e);
+                alert('Could not save your reaction. Please try again.');
+            }
+        });
+    })();
+</script>
+
+
+
+
+        
+    </div>
+
+    <!-- ✅ Scripts in Correct Order -->
+    <script src="/js/jquery-3.6.0.min.js"></script>
+    <script src="/js/bootstrap.bundle.min.js"></script>
+
+    <!-- ✅ Plugins -->
+    <script src="/js/datepicker.min.js?v2.1.2"></script>
+    <script src="/js/virtual-select.min.js"></script>
+    <script src="/js/slick.js"></script>
+    <script src="/js/swiper-bundle.min.js"></script>
+    <script src="/js/wow.min.js"></script>
+    <script src="/js/tooltip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/js/lightbox.min.js"></script>
+
+    <!-- ✅ Validation -->
+    <script src="/js/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="/js/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+
+    <!-- ✅ YouTube Embed -->
+    <script src="/js/lite-yt-embed.js"></script>
+
+    <!-- ✅ Menu toggle logic -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            document.querySelectorAll(".nav-item.toggleable").forEach(function (item) {
+                item.addEventListener("click", function () {
+                    item.classList.toggle("open");
+                    let submenu = item.nextElementSibling;
+                    if (submenu && submenu.classList.contains("submenu")) {
+                        submenu.style.display = submenu.style.display === "flex" ? "none" : "flex";
+                    }
+                });
+            });
+
+            // Mobile sidebar toggle
+            var toggleBtn = document.querySelector(".sidebar-toggle");
+            var sidebar = document.querySelector(".sidebar");
+            var backdrop = document.querySelector(".sidebar-backdrop");
+
+            function closeSidebar() {
+                if (sidebar) sidebar.classList.remove("open");
+                if (backdrop) backdrop.classList.remove("open");
+                document.body.classList.remove("sidebar-open");
+            }
+
+            if (toggleBtn && sidebar) {
+                toggleBtn.addEventListener("click", function (e) {
+                    e.stopPropagation();
+                    var isOpen = sidebar.classList.toggle("open");
+                    if (backdrop) backdrop.classList.toggle("open", isOpen);
+                    document.body.classList.toggle("sidebar-open", isOpen);
+                });
+            }
+
+            if (backdrop) {
+                backdrop.addEventListener("click", closeSidebar);
+            }
+
+            // Close on nav item click (mobile UX)
+            if (sidebar) {
+                sidebar.querySelectorAll("a").forEach(function (a) {
+                    a.addEventListener("click", function () {
+                        if (window.innerWidth <= 768) closeSidebar();
+                    });
+                });
+            }
+
+            // Close on resize to desktop
+            window.addEventListener("resize", function () {
+                if (window.innerWidth > 768) closeSidebar();
+            });
+        });
+    </script>
+
+    <!-- ✅ Page Specific Scripts -->
+    
+    <script>
+        // Live progress: instead of reloading the page every second we poll
+        // a light endpoint and animate the ring. The only full reload happens
+        // once, when the request reaches a final status (to render results).
+        (function () {
+            const currentStatus = 'Success';
+            const requestId = 'c8fc0eb8-ec22-4f4c-aec2-c7956d797a14';
+
+            if (!['New', 'InProgress', 'Deferred'].includes(currentStatus)) return;
+
+            const CIRC = 2 * Math.PI * 36;
+            const arc = document.getElementById('progress-arc');
+            const pct = document.getElementById('progress-pct');
+            const phaseEl = document.getElementById('progress-phase');
+            const detailEl = document.getElementById('progress-detail');
+            const deferredNote = document.getElementById('deferred-note');
+
+            // Phase ranges of the ring: queue 0–35%, start timer 35–70%,
+            // processing 70–97%, done 100%.
+            const QUEUE_END = 0.35, DELAY_END = 0.70, PROC_END = 0.97;
+
+            let initialQueue = null;
+            let initialDelay = null;
+            let processingStart = null;
+            let failures = 0;
+
+            function render(frac, color, phase, detail) {
+                frac = Math.max(0.02, Math.min(frac, 1));
+                arc.setAttribute('stroke-dashoffset', (CIRC * (1 - frac)).toFixed(1));
+                arc.setAttribute('stroke', color);
+                pct.textContent = Math.round(frac * 100) + '%';
+                phaseEl.textContent = phase;
+                detailEl.textContent = detail || '';
+            }
+
+            function schedule(ms) { setTimeout(tick, ms); }
+
+            function finish() {
+                render(1, '#16a34a', 'Finished', 'Loading results…');
+                setTimeout(() => location.reload(), 700);
+            }
+
+            async function tick() {
+                let data;
+                try {
+                    const r = await fetch(`/App/Properties/GetLinkProgress?id=${requestId}`);
+                    if (!r.ok) throw new Error(r.status);
+                    data = await r.json();
+                    failures = 0;
+                } catch (e) {
+                    // Transient hiccup — back off a little and retry.
+                    if (++failures > 30) return;
+                    schedule(5000);
+                    return;
+                }
+
+                if (['Success', 'Failed', 'Timeout'].includes(data.status)) { finish(); return; }
+
+                if (data.status === 'Deferred') {
+                    if (deferredNote) deferredNote.style.display = 'block';
+                    render(0.04, '#d97706', 'Deferred — waiting for low load',
+                        'Your request will start automatically when the system frees up.');
+                    schedule(8000);
+                    return;
+                }
+
+                if (deferredNote) deferredNote.style.display = 'none';
+
+                if (data.status === 'InProgress') {
+                    if (!processingStart) processingStart = Date.now();
+                    // Creep from 70% toward 97% over ~90s while the bot works.
+                    const t = Math.min((Date.now() - processingStart) / 90000, 1);
+                    render(DELAY_END + (PROC_END - DELAY_END) * t, '#2563eb',
+                        'Processing…', 'The bot is fetching property info. Usually under 2 minutes.');
+                    schedule(2000);
+                    return;
+                }
+
+                // status === 'New': either waiting in queue or counting down.
+                if (data.queueAhead > 0) {
+                    if (initialQueue === null || data.queueAhead > initialQueue) initialQueue = data.queueAhead;
+                    const done = 1 - data.queueAhead / (initialQueue + 1);
+                    render(QUEUE_END * done, '#6366f1',
+                        'In queue', `${data.queueAhead} request(s) ahead of yours`);
+                } else {
+                    if (initialDelay === null || data.delaySeconds > initialDelay) initialDelay = data.delaySeconds;
+                    const total = Math.max(initialDelay, 1);
+                    const done = 1 - data.delaySeconds / total;
+                    render(QUEUE_END + (DELAY_END - QUEUE_END) * done, '#0ea5e9',
+                        'Starting soon', `Processing starts in ~${data.delaySeconds}s (system load: ${data.loadStatus})`);
+                }
+                schedule(2000);
+            }
+
+            tick();
+        })();
+    </script>
+
+
+    <div id="db2-live-announcement"
+     style="display:none; position:fixed; inset:0; z-index:10000;
+            background:rgba(15,23,42,.55); align-items:center; justify-content:center;
+            padding:16px;">
+    <div style="background:#fff; border-radius:14px; max-width:520px; width:100%;
+                padding:28px 28px 22px 28px; box-shadow:0 18px 48px rgba(0,0,0,.18);
+                font-family:inherit; color:#0f172a;">
+        <div style="font-size:22px; font-weight:700; margin:0 0 12px 0; display:flex; align-items:center; gap:8px;">
+            <span style="display:inline-block; padding:2px 10px; font-size:12px; border-radius:999px;
+                         background:#dcfce7; color:#166534; border:1px solid #bbf7d0;
+                         font-weight:600; letter-spacing:.5px;">LIVE</span>
+            Database 2.0 is fully production-ready
+        </div>
+        <p style="margin:0 0 10px 0; line-height:1.55; color:#334155;">
+            Ingestion is complete &mdash; the new database is <strong>about four
+            times larger</strong> than the previous one and includes a large
+            batch of <strong>fresh records</strong> that weren&rsquo;t in the
+            old store at all.
+        </p>
+        <p style="margin:0 0 18px 0; line-height:1.55; color:#334155;">
+            Use the <strong>Database 2.0</strong> entry in the menu, or the
+            <strong>Search in Database</strong> button on the link request
+            page &mdash; it now points at the new store by default.
+        </p>
+        <div style="display:flex; justify-content:flex-end;">
+            <button type="button" id="db2-live-announcement-ok"
+                    style="background:#0ea5e9; color:#fff; border:none; padding:10px 22px;
+                           border-radius:8px; font-size:14px; font-weight:600; cursor:pointer;">
+                OK, got it
+            </button>
+        </div>
+    </div>
+</div>
+<script>
+    (function () {
+        // Hard cutoff: stop showing this modal once the rollout window closes.
+        // Compare against the *date* (UTC midnight) — once we cross over,
+        // even users who never dismissed it stop seeing the banner.
+        var CUTOFF = new Date("2026-06-10T00:00:00Z").getTime();
+        if (Date.now() >= CUTOFF) return;
+
+        function readCookie(name) {
+            var prefix = name + "=";
+            var parts = document.cookie ? document.cookie.split("; ") : [];
+            for (var i = 0; i < parts.length; i++) {
+                if (parts[i].indexOf(prefix) === 0) return parts[i].substring(prefix.length);
+            }
+            return null;
+        }
+        function writeCookie(name, value, days) {
+            var d = new Date();
+            d.setTime(d.getTime() + days * 24 * 60 * 60 * 1000);
+            // SameSite=Lax so it survives normal navigation but stays out of
+            // cross-site iframes; path=/ so it covers the whole app.
+            document.cookie = name + "=" + value + "; expires=" + d.toUTCString() + "; path=/; SameSite=Lax";
+        }
+        // NEW cookie name — users who dismissed the previous "we're filling
+        // it up" modal (db2_seen) must still see this go-live announcement
+        // once. Keep the suffix descriptive so it's grep-able in DevTools.
+        if (readCookie("db2_live_seen") === "1") return;
+
+        function show() {
+            var el = document.getElementById("db2-live-announcement");
+            if (!el) return;
+            el.style.display = "flex";
+            var btn = document.getElementById("db2-live-announcement-ok");
+            if (btn) {
+                btn.addEventListener("click", function () {
+                    writeCookie("db2_live_seen", "1", 365);
+                    el.style.display = "none";
+                });
+            }
+        }
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", show);
+        } else {
+            show();
+        }
+    })();
+</script>
+
+
+    <div id="planner-announcement"
+     style="display:none; position:fixed; inset:0; z-index:10000;
+            background:rgba(15,23,42,.55); align-items:center; justify-content:center;
+            padding:16px;">
+    <div style="background:#fff; border-radius:14px; max-width:520px; width:100%;
+                padding:28px 28px 22px 28px; box-shadow:0 18px 48px rgba(0,0,0,.18);
+                font-family:inherit; color:#0f172a;">
+        <div style="font-size:22px; font-weight:700; margin:0 0 12px 0; display:flex; align-items:center; gap:8px;">
+            <span style="display:inline-block; padding:2px 10px; font-size:12px; border-radius:999px;
+                         background:#e0f2fe; color:#0c4a6e; border:1px solid #bae6fd;
+                         font-weight:600; letter-spacing:.5px;">NEW</span>
+            Request Planner &amp; live progress
+        </div>
+        <p style="margin:0 0 10px 0; line-height:1.55; color:#334155;">
+            <strong>Tired of waiting for each request?</strong> Add your links
+            to the plan and get all the results by morning: upload an Excel
+            list of links or permit numbers on the new
+            <strong>Planner</strong> page &mdash; they are processed overnight
+            and all results (building, unit, owner) are ready by the morning,
+            with a one-click Excel export.
+        </p>
+        <p style="margin:0 0 18px 0; line-height:1.55; color:#334155;">
+            The Requests page is now a compact table with building, unit and
+            owner at a glance, and request pages show <strong>live
+            progress</strong> &mdash; no more constant page refreshing.
+        </p>
+        <div style="display:flex; justify-content:flex-end;">
+            <button type="button" id="planner-announcement-ok"
+                    style="background:#0ea5e9; color:#fff; border:none; padding:10px 22px;
+                           border-radius:8px; font-size:14px; font-weight:600; cursor:pointer;">
+                OK, got it
+            </button>
+        </div>
+    </div>
+</div>
+<script>
+    (function () {
+        // Hard cutoff: stop showing this modal once the rollout window closes.
+        var CUTOFF = new Date("2026-06-25T00:00:00Z").getTime();
+        if (Date.now() >= CUTOFF) return;
+
+        function readCookie(name) {
+            var prefix = name + "=";
+            var parts = document.cookie ? document.cookie.split("; ") : [];
+            for (var i = 0; i < parts.length; i++) {
+                if (parts[i].indexOf(prefix) === 0) return parts[i].substring(prefix.length);
+            }
+            return null;
+        }
+        function writeCookie(name, value, days) {
+            var d = new Date();
+            d.setTime(d.getTime() + days * 24 * 60 * 60 * 1000);
+            document.cookie = name + "=" + value + "; expires=" + d.toUTCString() + "; path=/; SameSite=Lax";
+        }
+        if (readCookie("planner_seen") === "1") return;
+
+        function show() {
+            var el = document.getElementById("planner-announcement");
+            if (!el) return;
+            el.style.display = "flex";
+            var btn = document.getElementById("planner-announcement-ok");
+            if (btn) {
+                btn.addEventListener("click", function () {
+                    writeCookie("planner_seen", "1", 365);
+                    el.style.display = "none";
+                });
+            }
+        }
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", show);
+        } else {
+            show();
+        }
+    })();
+</script>
+
+</body>
+</html>

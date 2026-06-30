@@ -11,10 +11,16 @@ def find_permits(text: str) -> list[str]:
     text = text or ""
 
     patterns = [
+        r"Permit Number\s+([0-9]{7,15})",
+        r"Permit Number\s*\n\s*([0-9]{7,15})",
+        r"Regulatory Information.*?Permit Number\s+([0-9]{7,15})",
+
         r"\b71\d{7,13}\b",
+
         r'"permitNumber"\s*:\s*"?(71?\d{7,13})"?',
         r'"permit_number"\s*:\s*"?(71?\d{7,13})"?',
         r'"trakheesi"\s*:\s*"?(71?\d{7,13})"?',
+
         r"Permit Number[:\s#]*([0-9]{7,15})",
         r"Permit No\.?[:\s#]*([0-9]{7,15})",
         r"Trakheesi[:\s#]*([0-9]{7,15})",
@@ -27,7 +33,9 @@ def find_permits(text: str) -> list[str]:
         for match in re.findall(pattern, text, flags=re.IGNORECASE):
             if isinstance(match, tuple):
                 match = next((x for x in match if x), "")
+
             digits = re.sub(r"\D", "", str(match))
+
             if 7 <= len(digits) <= 15:
                 found.append(digits)
 
@@ -36,10 +44,70 @@ def find_permits(text: str) -> list[str]:
 
     return found
 
-
 def extract_from_html(html: str) -> str:
     permits = find_permits(html)
     return permits[0] if permits else ""
+
+
+def extract_bayut_listing_id(url: str) -> str:
+    """Extract Bayut listing ID from common Bayut URL formats."""
+    url = str(url or "")
+
+    patterns = [
+        r"details-(\d+)",
+        r"/property/details-(\d+)\.html",
+        r"/property/details/(\d+)",
+        r"(?:^|[?&])listing_id=(\d+)",
+    ]
+
+    for pattern in patterns:
+        match = re.search(pattern, url, flags=re.IGNORECASE)
+        if match:
+            return match.group(1)
+
+    return ""
+
+
+def extract_bayut_permit_api(url: str) -> str:
+    """Use Bayut's permitNumber endpoint when a Bayut listing ID is available."""
+    listing_id = extract_bayut_listing_id(url)
+
+    if not listing_id:
+        return ""
+
+    api_url = f"https://www.bayut.com/api/listing/{listing_id}/permitNumber"
+
+    try:
+        response = requests.get(
+            api_url,
+            timeout=30,
+            headers={
+                "User-Agent": (
+                    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+                    "AppleWebKit/537.36 (KHTML, like Gecko) "
+                    "Chrome/136.0 Safari/537.36"
+                ),
+                "Accept": "application/json,text/plain,*/*",
+                "Accept-Language": "en-US,en;q=0.9",
+                "Referer": url,
+            },
+        )
+
+        if response.status_code != 200:
+            print("BAYUT API STATUS:", response.status_code, flush=True)
+            return ""
+
+        data = response.json()
+        permit = str(data.get("permit_number") or data.get("permitNumber") or "").strip()
+        permit = re.sub(r"\D", "", permit)
+
+        if 7 <= len(permit) <= 15:
+            return permit
+
+    except Exception as e:
+        print("BAYUT API EXTRACT ERROR:", repr(e), flush=True)
+
+    return ""
 
 
 def extract_with_requests(url: str) -> str:
@@ -96,6 +164,7 @@ async def extract_with_playwright(url: str) -> str:
 
             try:
                 body = await page.locator("body").inner_text(timeout=10000)
+                print(body[:5000], flush=True)
             except Exception:
                 pass
 
@@ -116,6 +185,12 @@ async def extract_with_playwright(url: str) -> str:
 
 
 async def extract_permit_from_listing_url(url: str) -> str:
+    if "bayut.com" in str(url).lower():
+        permit = extract_bayut_permit_api(url)
+
+        if permit:
+            return permit
+
     permit = extract_with_requests(url)
 
     if permit:

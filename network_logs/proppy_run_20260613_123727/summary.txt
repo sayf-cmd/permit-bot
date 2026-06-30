@@ -1,0 +1,1228 @@
+{
+  "created_at": "2026-06-13T12:52:31",
+  "test_permit": "71495668339",
+  "total_requests_captured": 53,
+  "total_responses_captured": 53,
+  "interesting_items_count": 61,
+  "interesting_items": [
+    {
+      "seq": 1,
+      "event": "request",
+      "method": "GET",
+      "status": null,
+      "url": "https://app.proppy.ae/App/Properties/LinkRequests",
+      "hits": [
+        "linkrequest",
+        "linkrequests"
+      ],
+      "response_file": null,
+      "post_data_file": "",
+      "interesting_json_fields": []
+    },
+    {
+      "seq": 1,
+      "event": "response",
+      "method": "GET",
+      "status": 200,
+      "url": "https://app.proppy.ae/App/Properties/LinkRequests",
+      "hits": [
+        "ID:1529335e-30f3-4a25-8533-805d921b22aa",
+        "ID:1a98ceae-0f1f-416a-b77d-0bc9a688a140",
+        "ID:1eda30f4-b25a-49b9-b16e-f5b02c7754a6",
+        "ID:2623359a-21f1-40be-a4c8-97498e2a36e3",
+        "ID:3661ed38-4063-429b-b1c8-b908c38d5caf",
+        "ID:43d7f9d1-45a0-4764-933e-11215e585f19",
+        "ID:46d6ec3b-5315-4399-8470-8b7f46a582ff",
+        "ID:4ad4195f-dce7-4c91-95ab-7fe52d20c6fe",
+        "ID:5c57be87-17a2-4d0d-99b4-6d37c7d2fe0a",
+        "ID:67fd6bec-8460-40a6-aee1-a5b90021ae9f",
+        "ID:7c7b00ed-e4cf-4ed3-93db-e83a5d8b48dd",
+        "ID:8527cd14-e3f2-4a96-8ea2-1fb49ea6655e",
+        "ID:9b70d30e-6d4d-4e81-933a-0295f3567202",
+        "ID:b5b8fff1-ec0e-4c18-8900-6c95e1f11e90",
+        "ID:b82e9d2e-9c0f-4166-81da-7c245e7f9f0c",
+        "ID:bb385455-0e34-4620-9676-bae90ef5e1e4",
+        "ID:be666b1a-2cb3-41b2-811f-3832f735654f",
+        "ID:d4ce253e-6a04-45e7-a861-504916415cc5",
+        "ID:d7edff65-314d-4114-982d-f434b175232a",
+        "ID:f134fe7e-df91-4b4e-80f0-0dc9c3bbd4a1"
+      ],
+      "response_file": "response_0001_200_App_Properties_LinkRequests.html",
+      "post_data_file": null,
+      "interesting_json_fields": []
+    },
+    {
+      "seq": 30,
+      "event": "request",
+      "method": "POST",
+      "status": null,
+      "url": "https://app.proppy.ae/App/Properties/LinkCreate",
+      "hits": [
+        "NUMBER:71495668339",
+        "TEST_PERMIT_FOUND:71495668339",
+        "linkcreate"
+      ],
+      "response_file": null,
+      "post_data_file": "request_0030_App_Properties_LinkCreate.txt",
+      "interesting_json_fields": []
+    },
+    {
+      "seq": 31,
+      "event": "request",
+      "method": "GET",
+      "status": null,
+      "url": "https://app.proppy.ae/App/Properties/LinkDetails?id=f017f95e-4b54-492f-b8ee-e741a852124a",
+      "hits": [
+        "ID:f017f95e-4b54-492f-b8ee-e741a852124a",
+        "linkdetails"
+      ],
+      "response_file": null,
+      "post_data_file": "",
+      "interesting_json_fields": []
+    },
+    {
+      "seq": 30,
+      "event": "response",
+      "method": "POST",
+      "status": 200,
+      "url": "https://app.proppy.ae/App/Properties/LinkCreate",
+      "hits": [
+        "linkcreate"
+      ],
+      "response_file": "response_0030_200_App_Properties_LinkCreate.json",
+      "post_data_file": null,
+      "interesting_json_fields": []
+    },
+    {
+      "seq": 31,
+      "event": "response",
+      "method": "GET",
+      "status": 200,
+      "url": "https://app.proppy.ae/App/Properties/LinkDetails?id=f017f95e-4b54-492f-b8ee-e741a852124a",
+      "hits": [
+        "ID:aec693a6-2c82-460c-9455-d5eaa1712a7f",
+        "ID:f017f95e-4b54-492f-b8ee-e741a852124a",
+        "NUMBER:71495668339",
+        "TEST_PERMIT_FOUND:71495668339",
+        "area",
+        "building",
+        "database",
+        "getlinkprogress",
+        "linkdetails",
+        "linkrequest",
+        "linkrequests",
+        "permit",
+        "progress",
+        "project",
+        "records2",
+        "requestid",
+        "success",
+        "unit",
+        "unitnumber"
+      ],
+      "response_file": "response_0031_200_App_Properties_LinkDetails.html",
+      "post_data_file": null,
+      "interesting_json_fields": []
+    },
+    {
+      "seq": 60,
+      "event": "request",
+      "method": "GET",
+      "status": null,
+      "url": "https://app.proppy.ae/App/Properties/LinkRequests",
+      "hits": [
+        "linkrequest",
+        "linkrequests"
+      ],
+      "response_file": null,
+      "post_data_file": "",
+      "interesting_json_fields": []
+    },
+    {
+      "seq": 60,
+      "event": "response",
+      "method": "GET",
+      "status": 200,
+      "url": "https://app.proppy.ae/App/Properties/LinkRequests",
+      "hits": [
+        "ID:1529335e-30f3-4a25-8533-805d921b22aa",
+        "ID:1a98ceae-0f1f-416a-b77d-0bc9a688a140",
+        "ID:1eda30f4-b25a-49b9-b16e-f5b02c7754a6",
+        "ID:2623359a-21f1-40be-a4c8-97498e2a36e3",
+        "ID:3661ed38-4063-429b-b1c8-b908c38d5caf",
+        "ID:46d6ec3b-5315-4399-8470-8b7f46a582ff",
+        "ID:4ad4195f-dce7-4c91-95ab-7fe52d20c6fe",
+        "ID:5c57be87-17a2-4d0d-99b4-6d37c7d2fe0a",
+        "ID:67fd6bec-8460-40a6-aee1-a5b90021ae9f",
+        "ID:7c7b00ed-e4cf-4ed3-93db-e83a5d8b48dd",
+        "ID:8527cd14-e3f2-4a96-8ea2-1fb49ea6655e",
+        "ID:9b70d30e-6d4d-4e81-933a-0295f3567202",
+        "ID:b5b8fff1-ec0e-4c18-8900-6c95e1f11e90",
+        "ID:b82e9d2e-9c0f-4166-81da-7c245e7f9f0c",
+        "ID:bb385455-0e34-4620-9676-bae90ef5e1e4",
+        "ID:be666b1a-2cb3-41b2-811f-3832f735654f",
+        "ID:d4ce253e-6a04-45e7-a861-504916415cc5",
+        "ID:d7edff65-314d-4114-982d-f434b175232a",
+        "ID:f017f95e-4b54-492f-b8ee-e741a852124a",
+        "ID:f134fe7e-df91-4b4e-80f0-0dc9c3bbd4a1"
+      ],
+      "response_file": "response_0060_200_App_Properties_LinkRequests.html",
+      "post_data_file": null,
+      "interesting_json_fields": []
+    },
+    {
+      "seq": 89,
+      "event": "response",
+      "method": "GET",
+      "status": 200,
+      "url": "https://app.proppy.ae/App/Properties/Planner",
+      "hits": [
+        "ID:1529335e-30f3-4a25-8533-805d921b22aa",
+        "ID:1a98ceae-0f1f-416a-b77d-0bc9a688a140",
+        "ID:1eda30f4-b25a-49b9-b16e-f5b02c7754a6",
+        "ID:2623359a-21f1-40be-a4c8-97498e2a36e3",
+        "ID:3661ed38-4063-429b-b1c8-b908c38d5caf",
+        "ID:43d7f9d1-45a0-4764-933e-11215e585f19",
+        "ID:46d6ec3b-5315-4399-8470-8b7f46a582ff",
+        "ID:5c57be87-17a2-4d0d-99b4-6d37c7d2fe0a",
+        "ID:67fd6bec-8460-40a6-aee1-a5b90021ae9f",
+        "ID:7c7b00ed-e4cf-4ed3-93db-e83a5d8b48dd",
+        "ID:8527cd14-e3f2-4a96-8ea2-1fb49ea6655e",
+        "ID:9b70d30e-6d4d-4e81-933a-0295f3567202",
+        "ID:b5b8fff1-ec0e-4c18-8900-6c95e1f11e90",
+        "ID:b82e9d2e-9c0f-4166-81da-7c245e7f9f0c",
+        "ID:be666b1a-2cb3-41b2-811f-3832f735654f",
+        "ID:d4ce253e-6a04-45e7-a861-504916415cc5",
+        "ID:f134fe7e-df91-4b4e-80f0-0dc9c3bbd4a1",
+        "NUMBER:7011003959",
+        "NUMBER:71524280459",
+        "NUMBER:71524281035"
+      ],
+      "response_file": "response_0089_200_App_Properties_Planner.html",
+      "post_data_file": null,
+      "interesting_json_fields": []
+    },
+    {
+      "seq": 118,
+      "event": "request",
+      "method": "GET",
+      "status": null,
+      "url": "https://app.proppy.ae/App/Properties/LinkRequests",
+      "hits": [
+        "linkrequest",
+        "linkrequests"
+      ],
+      "response_file": null,
+      "post_data_file": "",
+      "interesting_json_fields": []
+    },
+    {
+      "seq": 118,
+      "event": "response",
+      "method": "GET",
+      "status": 200,
+      "url": "https://app.proppy.ae/App/Properties/LinkRequests",
+      "hits": [
+        "ID:1529335e-30f3-4a25-8533-805d921b22aa",
+        "ID:1a98ceae-0f1f-416a-b77d-0bc9a688a140",
+        "ID:1eda30f4-b25a-49b9-b16e-f5b02c7754a6",
+        "ID:2623359a-21f1-40be-a4c8-97498e2a36e3",
+        "ID:3661ed38-4063-429b-b1c8-b908c38d5caf",
+        "ID:46d6ec3b-5315-4399-8470-8b7f46a582ff",
+        "ID:4ad4195f-dce7-4c91-95ab-7fe52d20c6fe",
+        "ID:5c57be87-17a2-4d0d-99b4-6d37c7d2fe0a",
+        "ID:67fd6bec-8460-40a6-aee1-a5b90021ae9f",
+        "ID:7c7b00ed-e4cf-4ed3-93db-e83a5d8b48dd",
+        "ID:8527cd14-e3f2-4a96-8ea2-1fb49ea6655e",
+        "ID:9b70d30e-6d4d-4e81-933a-0295f3567202",
+        "ID:b5b8fff1-ec0e-4c18-8900-6c95e1f11e90",
+        "ID:b82e9d2e-9c0f-4166-81da-7c245e7f9f0c",
+        "ID:bb385455-0e34-4620-9676-bae90ef5e1e4",
+        "ID:be666b1a-2cb3-41b2-811f-3832f735654f",
+        "ID:d4ce253e-6a04-45e7-a861-504916415cc5",
+        "ID:d7edff65-314d-4114-982d-f434b175232a",
+        "ID:f017f95e-4b54-492f-b8ee-e741a852124a",
+        "ID:f134fe7e-df91-4b4e-80f0-0dc9c3bbd4a1"
+      ],
+      "response_file": "response_0118_200_App_Properties_LinkRequests.html",
+      "post_data_file": null,
+      "interesting_json_fields": []
+    },
+    {
+      "seq": 147,
+      "event": "request",
+      "method": "POST",
+      "status": null,
+      "url": "https://app.proppy.ae/App/Properties/LinkCreate",
+      "hits": [
+        "NUMBER:7136760114",
+        "linkcreate"
+      ],
+      "response_file": null,
+      "post_data_file": "request_0147_App_Properties_LinkCreate.txt",
+      "interesting_json_fields": []
+    },
+    {
+      "seq": 148,
+      "event": "request",
+      "method": "GET",
+      "status": null,
+      "url": "https://app.proppy.ae/App/Properties/LinkDetails?id=d6a06cdd-3ff1-4ba0-a37a-868c73be1135",
+      "hits": [
+        "ID:d6a06cdd-3ff1-4ba0-a37a-868c73be1135",
+        "linkdetails"
+      ],
+      "response_file": null,
+      "post_data_file": "",
+      "interesting_json_fields": []
+    },
+    {
+      "seq": 147,
+      "event": "response",
+      "method": "POST",
+      "status": 200,
+      "url": "https://app.proppy.ae/App/Properties/LinkCreate",
+      "hits": [
+        "linkcreate"
+      ],
+      "response_file": "response_0147_200_App_Properties_LinkCreate.json",
+      "post_data_file": null,
+      "interesting_json_fields": []
+    },
+    {
+      "seq": 148,
+      "event": "response",
+      "method": "GET",
+      "status": 200,
+      "url": "https://app.proppy.ae/App/Properties/LinkDetails?id=d6a06cdd-3ff1-4ba0-a37a-868c73be1135",
+      "hits": [
+        "ID:748e1357-32a4-44f5-a264-f49411584d65",
+        "ID:d6a06cdd-3ff1-4ba0-a37a-868c73be1135",
+        "NUMBER:7136760114",
+        "area",
+        "building",
+        "database",
+        "getlinkprogress",
+        "linkdetails",
+        "linkrequest",
+        "linkrequests",
+        "permit",
+        "progress",
+        "project",
+        "records2",
+        "requestid",
+        "success",
+        "unit",
+        "unitnumber"
+      ],
+      "response_file": "response_0148_200_App_Properties_LinkDetails.html",
+      "post_data_file": null,
+      "interesting_json_fields": []
+    },
+    {
+      "seq": 177,
+      "event": "request",
+      "method": "GET",
+      "status": null,
+      "url": "https://app.proppy.ae/App/Properties/LinkRequests",
+      "hits": [
+        "linkrequest",
+        "linkrequests"
+      ],
+      "response_file": null,
+      "post_data_file": "",
+      "interesting_json_fields": []
+    },
+    {
+      "seq": 177,
+      "event": "response",
+      "method": "GET",
+      "status": 200,
+      "url": "https://app.proppy.ae/App/Properties/LinkRequests",
+      "hits": [
+        "ID:1529335e-30f3-4a25-8533-805d921b22aa",
+        "ID:1a98ceae-0f1f-416a-b77d-0bc9a688a140",
+        "ID:1eda30f4-b25a-49b9-b16e-f5b02c7754a6",
+        "ID:2623359a-21f1-40be-a4c8-97498e2a36e3",
+        "ID:46d6ec3b-5315-4399-8470-8b7f46a582ff",
+        "ID:4ad4195f-dce7-4c91-95ab-7fe52d20c6fe",
+        "ID:5c57be87-17a2-4d0d-99b4-6d37c7d2fe0a",
+        "ID:67fd6bec-8460-40a6-aee1-a5b90021ae9f",
+        "ID:7c7b00ed-e4cf-4ed3-93db-e83a5d8b48dd",
+        "ID:8527cd14-e3f2-4a96-8ea2-1fb49ea6655e",
+        "ID:9b70d30e-6d4d-4e81-933a-0295f3567202",
+        "ID:b5b8fff1-ec0e-4c18-8900-6c95e1f11e90",
+        "ID:b82e9d2e-9c0f-4166-81da-7c245e7f9f0c",
+        "ID:bb385455-0e34-4620-9676-bae90ef5e1e4",
+        "ID:be666b1a-2cb3-41b2-811f-3832f735654f",
+        "ID:d4ce253e-6a04-45e7-a861-504916415cc5",
+        "ID:d6a06cdd-3ff1-4ba0-a37a-868c73be1135",
+        "ID:d7edff65-314d-4114-982d-f434b175232a",
+        "ID:f017f95e-4b54-492f-b8ee-e741a852124a",
+        "ID:f134fe7e-df91-4b4e-80f0-0dc9c3bbd4a1"
+      ],
+      "response_file": "response_0177_200_App_Properties_LinkRequests.html",
+      "post_data_file": null,
+      "interesting_json_fields": []
+    },
+    {
+      "seq": 206,
+      "event": "request",
+      "method": "POST",
+      "status": null,
+      "url": "https://app.proppy.ae/App/Properties/LinkCreate",
+      "hits": [
+        "NUMBER:71246361254",
+        "linkcreate"
+      ],
+      "response_file": null,
+      "post_data_file": "request_0206_App_Properties_LinkCreate.txt",
+      "interesting_json_fields": []
+    },
+    {
+      "seq": 207,
+      "event": "request",
+      "method": "GET",
+      "status": null,
+      "url": "https://app.proppy.ae/App/Properties/LinkDetails?id=179f637d-6761-4fd5-a5c8-23bf205ac915",
+      "hits": [
+        "ID:179f637d-6761-4fd5-a5c8-23bf205ac915",
+        "linkdetails"
+      ],
+      "response_file": null,
+      "post_data_file": "",
+      "interesting_json_fields": []
+    },
+    {
+      "seq": 206,
+      "event": "response",
+      "method": "POST",
+      "status": 200,
+      "url": "https://app.proppy.ae/App/Properties/LinkCreate",
+      "hits": [
+        "linkcreate"
+      ],
+      "response_file": "response_0206_200_App_Properties_LinkCreate.json",
+      "post_data_file": null,
+      "interesting_json_fields": []
+    },
+    {
+      "seq": 207,
+      "event": "response",
+      "method": "GET",
+      "status": 200,
+      "url": "https://app.proppy.ae/App/Properties/LinkDetails?id=179f637d-6761-4fd5-a5c8-23bf205ac915",
+      "hits": [
+        "ID:179f637d-6761-4fd5-a5c8-23bf205ac915",
+        "ID:bb64b475-f4f8-4a0b-8164-97a4dcb54cfb",
+        "NUMBER:71246361254",
+        "area",
+        "building",
+        "database",
+        "getlinkprogress",
+        "linkdetails",
+        "linkrequest",
+        "linkrequests",
+        "permit",
+        "progress",
+        "project",
+        "records2",
+        "requestid",
+        "success",
+        "unit",
+        "unitnumber"
+      ],
+      "response_file": "response_0207_200_App_Properties_LinkDetails.html",
+      "post_data_file": null,
+      "interesting_json_fields": []
+    },
+    {
+      "seq": 236,
+      "event": "request",
+      "method": "GET",
+      "status": null,
+      "url": "https://app.proppy.ae/App/Properties/LinkRequests",
+      "hits": [
+        "linkrequest",
+        "linkrequests"
+      ],
+      "response_file": null,
+      "post_data_file": "",
+      "interesting_json_fields": []
+    },
+    {
+      "seq": 236,
+      "event": "response",
+      "method": "GET",
+      "status": 200,
+      "url": "https://app.proppy.ae/App/Properties/LinkRequests",
+      "hits": [
+        "ID:1529335e-30f3-4a25-8533-805d921b22aa",
+        "ID:179f637d-6761-4fd5-a5c8-23bf205ac915",
+        "ID:1a98ceae-0f1f-416a-b77d-0bc9a688a140",
+        "ID:1eda30f4-b25a-49b9-b16e-f5b02c7754a6",
+        "ID:2623359a-21f1-40be-a4c8-97498e2a36e3",
+        "ID:46d6ec3b-5315-4399-8470-8b7f46a582ff",
+        "ID:4ad4195f-dce7-4c91-95ab-7fe52d20c6fe",
+        "ID:5c57be87-17a2-4d0d-99b4-6d37c7d2fe0a",
+        "ID:67fd6bec-8460-40a6-aee1-a5b90021ae9f",
+        "ID:7c7b00ed-e4cf-4ed3-93db-e83a5d8b48dd",
+        "ID:8527cd14-e3f2-4a96-8ea2-1fb49ea6655e",
+        "ID:9b70d30e-6d4d-4e81-933a-0295f3567202",
+        "ID:b5b8fff1-ec0e-4c18-8900-6c95e1f11e90",
+        "ID:b82e9d2e-9c0f-4166-81da-7c245e7f9f0c",
+        "ID:bb385455-0e34-4620-9676-bae90ef5e1e4",
+        "ID:be666b1a-2cb3-41b2-811f-3832f735654f",
+        "ID:d4ce253e-6a04-45e7-a861-504916415cc5",
+        "ID:d6a06cdd-3ff1-4ba0-a37a-868c73be1135",
+        "ID:d7edff65-314d-4114-982d-f434b175232a",
+        "ID:f017f95e-4b54-492f-b8ee-e741a852124a"
+      ],
+      "response_file": "response_0236_200_App_Properties_LinkRequests.html",
+      "post_data_file": null,
+      "interesting_json_fields": []
+    },
+    {
+      "seq": 265,
+      "event": "request",
+      "method": "POST",
+      "status": null,
+      "url": "https://app.proppy.ae/App/Properties/LinkCreate",
+      "hits": [
+        "NUMBER:7122516800",
+        "linkcreate"
+      ],
+      "response_file": null,
+      "post_data_file": "request_0265_App_Properties_LinkCreate.txt",
+      "interesting_json_fields": []
+    },
+    {
+      "seq": 266,
+      "event": "request",
+      "method": "GET",
+      "status": null,
+      "url": "https://app.proppy.ae/App/Properties/LinkDetails?id=29a43ebf-ce9e-4107-92d2-e7f071925c60",
+      "hits": [
+        "ID:29a43ebf-ce9e-4107-92d2-e7f071925c60",
+        "linkdetails"
+      ],
+      "response_file": null,
+      "post_data_file": "",
+      "interesting_json_fields": []
+    },
+    {
+      "seq": 265,
+      "event": "response",
+      "method": "POST",
+      "status": 200,
+      "url": "https://app.proppy.ae/App/Properties/LinkCreate",
+      "hits": [
+        "linkcreate"
+      ],
+      "response_file": "response_0265_200_App_Properties_LinkCreate.json",
+      "post_data_file": null,
+      "interesting_json_fields": []
+    },
+    {
+      "seq": 291,
+      "event": "request",
+      "method": "GET",
+      "status": null,
+      "url": "https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60",
+      "hits": [
+        "ID:29a43ebf-ce9e-4107-92d2-e7f071925c60",
+        "getlinkprogress",
+        "progress"
+      ],
+      "response_file": null,
+      "post_data_file": "",
+      "interesting_json_fields": []
+    },
+    {
+      "seq": 266,
+      "event": "response",
+      "method": "GET",
+      "status": 200,
+      "url": "https://app.proppy.ae/App/Properties/LinkDetails?id=29a43ebf-ce9e-4107-92d2-e7f071925c60",
+      "hits": [
+        "ID:29a43ebf-ce9e-4107-92d2-e7f071925c60",
+        "NUMBER:7122516800",
+        "building",
+        "database",
+        "getlinkprogress",
+        "linkdetails",
+        "linkrequest",
+        "linkrequests",
+        "permit",
+        "progress",
+        "project",
+        "records2",
+        "requestid",
+        "success",
+        "unit"
+      ],
+      "response_file": "response_0266_200_App_Properties_LinkDetails.html",
+      "post_data_file": null,
+      "interesting_json_fields": []
+    },
+    {
+      "seq": 291,
+      "event": "response",
+      "method": "GET",
+      "status": 200,
+      "url": "https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60",
+      "hits": [
+        "ID:29a43ebf-ce9e-4107-92d2-e7f071925c60",
+        "getlinkprogress",
+        "progress"
+      ],
+      "response_file": "response_0291_200_App_Properties_GetLinkProgress.json",
+      "post_data_file": null,
+      "interesting_json_fields": [
+        {
+          "path": "$.status",
+          "value": "New"
+        },
+        {
+          "path": "$.loadStatus",
+          "value": "Medium"
+        }
+      ]
+    },
+    {
+      "seq": 296,
+      "event": "request",
+      "method": "GET",
+      "status": null,
+      "url": "https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60",
+      "hits": [
+        "ID:29a43ebf-ce9e-4107-92d2-e7f071925c60",
+        "getlinkprogress",
+        "progress"
+      ],
+      "response_file": null,
+      "post_data_file": "",
+      "interesting_json_fields": []
+    },
+    {
+      "seq": 296,
+      "event": "response",
+      "method": "GET",
+      "status": 200,
+      "url": "https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60",
+      "hits": [
+        "ID:29a43ebf-ce9e-4107-92d2-e7f071925c60",
+        "getlinkprogress",
+        "progress"
+      ],
+      "response_file": "response_0296_200_App_Properties_GetLinkProgress.json",
+      "post_data_file": null,
+      "interesting_json_fields": [
+        {
+          "path": "$.status",
+          "value": "New"
+        },
+        {
+          "path": "$.loadStatus",
+          "value": "Medium"
+        }
+      ]
+    },
+    {
+      "seq": 297,
+      "event": "request",
+      "method": "GET",
+      "status": null,
+      "url": "https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60",
+      "hits": [
+        "ID:29a43ebf-ce9e-4107-92d2-e7f071925c60",
+        "getlinkprogress",
+        "progress"
+      ],
+      "response_file": null,
+      "post_data_file": "",
+      "interesting_json_fields": []
+    },
+    {
+      "seq": 297,
+      "event": "response",
+      "method": "GET",
+      "status": 200,
+      "url": "https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60",
+      "hits": [
+        "ID:29a43ebf-ce9e-4107-92d2-e7f071925c60",
+        "getlinkprogress",
+        "progress"
+      ],
+      "response_file": "response_0297_200_App_Properties_GetLinkProgress.json",
+      "post_data_file": null,
+      "interesting_json_fields": [
+        {
+          "path": "$.status",
+          "value": "New"
+        },
+        {
+          "path": "$.loadStatus",
+          "value": "Medium"
+        }
+      ]
+    },
+    {
+      "seq": 298,
+      "event": "request",
+      "method": "GET",
+      "status": null,
+      "url": "https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60",
+      "hits": [
+        "ID:29a43ebf-ce9e-4107-92d2-e7f071925c60",
+        "getlinkprogress",
+        "progress"
+      ],
+      "response_file": null,
+      "post_data_file": "",
+      "interesting_json_fields": []
+    },
+    {
+      "seq": 298,
+      "event": "response",
+      "method": "GET",
+      "status": 200,
+      "url": "https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60",
+      "hits": [
+        "ID:29a43ebf-ce9e-4107-92d2-e7f071925c60",
+        "getlinkprogress",
+        "progress"
+      ],
+      "response_file": "response_0298_200_App_Properties_GetLinkProgress.json",
+      "post_data_file": null,
+      "interesting_json_fields": [
+        {
+          "path": "$.status",
+          "value": "New"
+        },
+        {
+          "path": "$.loadStatus",
+          "value": "Medium"
+        }
+      ]
+    },
+    {
+      "seq": 299,
+      "event": "request",
+      "method": "GET",
+      "status": null,
+      "url": "https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60",
+      "hits": [
+        "ID:29a43ebf-ce9e-4107-92d2-e7f071925c60",
+        "getlinkprogress",
+        "progress"
+      ],
+      "response_file": null,
+      "post_data_file": "",
+      "interesting_json_fields": []
+    },
+    {
+      "seq": 299,
+      "event": "response",
+      "method": "GET",
+      "status": 200,
+      "url": "https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60",
+      "hits": [
+        "ID:29a43ebf-ce9e-4107-92d2-e7f071925c60",
+        "getlinkprogress",
+        "progress"
+      ],
+      "response_file": "response_0299_200_App_Properties_GetLinkProgress.json",
+      "post_data_file": null,
+      "interesting_json_fields": [
+        {
+          "path": "$.status",
+          "value": "New"
+        },
+        {
+          "path": "$.loadStatus",
+          "value": "Medium"
+        }
+      ]
+    },
+    {
+      "seq": 300,
+      "event": "request",
+      "method": "GET",
+      "status": null,
+      "url": "https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60",
+      "hits": [
+        "ID:29a43ebf-ce9e-4107-92d2-e7f071925c60",
+        "getlinkprogress",
+        "progress"
+      ],
+      "response_file": null,
+      "post_data_file": "",
+      "interesting_json_fields": []
+    },
+    {
+      "seq": 300,
+      "event": "response",
+      "method": "GET",
+      "status": 200,
+      "url": "https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60",
+      "hits": [
+        "ID:29a43ebf-ce9e-4107-92d2-e7f071925c60",
+        "getlinkprogress",
+        "progress"
+      ],
+      "response_file": "response_0300_200_App_Properties_GetLinkProgress.json",
+      "post_data_file": null,
+      "interesting_json_fields": [
+        {
+          "path": "$.status",
+          "value": "New"
+        },
+        {
+          "path": "$.loadStatus",
+          "value": "Medium"
+        }
+      ]
+    },
+    {
+      "seq": 301,
+      "event": "request",
+      "method": "GET",
+      "status": null,
+      "url": "https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60",
+      "hits": [
+        "ID:29a43ebf-ce9e-4107-92d2-e7f071925c60",
+        "getlinkprogress",
+        "progress"
+      ],
+      "response_file": null,
+      "post_data_file": "",
+      "interesting_json_fields": []
+    },
+    {
+      "seq": 301,
+      "event": "response",
+      "method": "GET",
+      "status": 200,
+      "url": "https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60",
+      "hits": [
+        "ID:29a43ebf-ce9e-4107-92d2-e7f071925c60",
+        "getlinkprogress",
+        "progress"
+      ],
+      "response_file": "response_0301_200_App_Properties_GetLinkProgress.json",
+      "post_data_file": null,
+      "interesting_json_fields": [
+        {
+          "path": "$.status",
+          "value": "New"
+        },
+        {
+          "path": "$.loadStatus",
+          "value": "Medium"
+        }
+      ]
+    },
+    {
+      "seq": 302,
+      "event": "request",
+      "method": "GET",
+      "status": null,
+      "url": "https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60",
+      "hits": [
+        "ID:29a43ebf-ce9e-4107-92d2-e7f071925c60",
+        "getlinkprogress",
+        "progress"
+      ],
+      "response_file": null,
+      "post_data_file": "",
+      "interesting_json_fields": []
+    },
+    {
+      "seq": 302,
+      "event": "response",
+      "method": "GET",
+      "status": 200,
+      "url": "https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60",
+      "hits": [
+        "ID:29a43ebf-ce9e-4107-92d2-e7f071925c60",
+        "getlinkprogress",
+        "progress"
+      ],
+      "response_file": "response_0302_200_App_Properties_GetLinkProgress.json",
+      "post_data_file": null,
+      "interesting_json_fields": [
+        {
+          "path": "$.status",
+          "value": "New"
+        },
+        {
+          "path": "$.loadStatus",
+          "value": "Medium"
+        }
+      ]
+    },
+    {
+      "seq": 303,
+      "event": "request",
+      "method": "GET",
+      "status": null,
+      "url": "https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60",
+      "hits": [
+        "ID:29a43ebf-ce9e-4107-92d2-e7f071925c60",
+        "getlinkprogress",
+        "progress"
+      ],
+      "response_file": null,
+      "post_data_file": "",
+      "interesting_json_fields": []
+    },
+    {
+      "seq": 303,
+      "event": "response",
+      "method": "GET",
+      "status": 200,
+      "url": "https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60",
+      "hits": [
+        "ID:29a43ebf-ce9e-4107-92d2-e7f071925c60",
+        "getlinkprogress",
+        "progress"
+      ],
+      "response_file": "response_0303_200_App_Properties_GetLinkProgress.json",
+      "post_data_file": null,
+      "interesting_json_fields": [
+        {
+          "path": "$.status",
+          "value": "InProgress"
+        },
+        {
+          "path": "$.loadStatus",
+          "value": "Medium"
+        }
+      ]
+    },
+    {
+      "seq": 304,
+      "event": "request",
+      "method": "GET",
+      "status": null,
+      "url": "https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60",
+      "hits": [
+        "ID:29a43ebf-ce9e-4107-92d2-e7f071925c60",
+        "getlinkprogress",
+        "progress"
+      ],
+      "response_file": null,
+      "post_data_file": "",
+      "interesting_json_fields": []
+    },
+    {
+      "seq": 304,
+      "event": "response",
+      "method": "GET",
+      "status": 200,
+      "url": "https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60",
+      "hits": [
+        "ID:29a43ebf-ce9e-4107-92d2-e7f071925c60",
+        "getlinkprogress",
+        "progress"
+      ],
+      "response_file": "response_0304_200_App_Properties_GetLinkProgress.json",
+      "post_data_file": null,
+      "interesting_json_fields": [
+        {
+          "path": "$.status",
+          "value": "InProgress"
+        },
+        {
+          "path": "$.loadStatus",
+          "value": "Medium"
+        }
+      ]
+    },
+    {
+      "seq": 305,
+      "event": "request",
+      "method": "GET",
+      "status": null,
+      "url": "https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60",
+      "hits": [
+        "ID:29a43ebf-ce9e-4107-92d2-e7f071925c60",
+        "getlinkprogress",
+        "progress"
+      ],
+      "response_file": null,
+      "post_data_file": "",
+      "interesting_json_fields": []
+    },
+    {
+      "seq": 305,
+      "event": "response",
+      "method": "GET",
+      "status": 200,
+      "url": "https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60",
+      "hits": [
+        "ID:29a43ebf-ce9e-4107-92d2-e7f071925c60",
+        "getlinkprogress",
+        "progress"
+      ],
+      "response_file": "response_0305_200_App_Properties_GetLinkProgress.json",
+      "post_data_file": null,
+      "interesting_json_fields": [
+        {
+          "path": "$.status",
+          "value": "InProgress"
+        },
+        {
+          "path": "$.loadStatus",
+          "value": "Medium"
+        }
+      ]
+    },
+    {
+      "seq": 306,
+      "event": "request",
+      "method": "GET",
+      "status": null,
+      "url": "https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60",
+      "hits": [
+        "ID:29a43ebf-ce9e-4107-92d2-e7f071925c60",
+        "getlinkprogress",
+        "progress"
+      ],
+      "response_file": null,
+      "post_data_file": "",
+      "interesting_json_fields": []
+    },
+    {
+      "seq": 306,
+      "event": "response",
+      "method": "GET",
+      "status": 200,
+      "url": "https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60",
+      "hits": [
+        "ID:29a43ebf-ce9e-4107-92d2-e7f071925c60",
+        "getlinkprogress",
+        "progress"
+      ],
+      "response_file": "response_0306_200_App_Properties_GetLinkProgress.json",
+      "post_data_file": null,
+      "interesting_json_fields": [
+        {
+          "path": "$.status",
+          "value": "InProgress"
+        },
+        {
+          "path": "$.loadStatus",
+          "value": "Medium"
+        }
+      ]
+    },
+    {
+      "seq": 307,
+      "event": "request",
+      "method": "GET",
+      "status": null,
+      "url": "https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60",
+      "hits": [
+        "ID:29a43ebf-ce9e-4107-92d2-e7f071925c60",
+        "getlinkprogress",
+        "progress"
+      ],
+      "response_file": null,
+      "post_data_file": "",
+      "interesting_json_fields": []
+    },
+    {
+      "seq": 307,
+      "event": "response",
+      "method": "GET",
+      "status": 200,
+      "url": "https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60",
+      "hits": [
+        "ID:29a43ebf-ce9e-4107-92d2-e7f071925c60",
+        "getlinkprogress",
+        "progress"
+      ],
+      "response_file": "response_0307_200_App_Properties_GetLinkProgress.json",
+      "post_data_file": null,
+      "interesting_json_fields": [
+        {
+          "path": "$.status",
+          "value": "InProgress"
+        },
+        {
+          "path": "$.loadStatus",
+          "value": "Medium"
+        }
+      ]
+    },
+    {
+      "seq": 308,
+      "event": "request",
+      "method": "GET",
+      "status": null,
+      "url": "https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60",
+      "hits": [
+        "ID:29a43ebf-ce9e-4107-92d2-e7f071925c60",
+        "getlinkprogress",
+        "progress"
+      ],
+      "response_file": null,
+      "post_data_file": "",
+      "interesting_json_fields": []
+    },
+    {
+      "seq": 308,
+      "event": "response",
+      "method": "GET",
+      "status": 200,
+      "url": "https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60",
+      "hits": [
+        "ID:29a43ebf-ce9e-4107-92d2-e7f071925c60",
+        "getlinkprogress",
+        "progress"
+      ],
+      "response_file": "response_0308_200_App_Properties_GetLinkProgress.json",
+      "post_data_file": null,
+      "interesting_json_fields": [
+        {
+          "path": "$.status",
+          "value": "InProgress"
+        },
+        {
+          "path": "$.loadStatus",
+          "value": "Medium"
+        }
+      ]
+    },
+    {
+      "seq": 309,
+      "event": "request",
+      "method": "GET",
+      "status": null,
+      "url": "https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60",
+      "hits": [
+        "ID:29a43ebf-ce9e-4107-92d2-e7f071925c60",
+        "getlinkprogress",
+        "progress"
+      ],
+      "response_file": null,
+      "post_data_file": "",
+      "interesting_json_fields": []
+    },
+    {
+      "seq": 309,
+      "event": "response",
+      "method": "GET",
+      "status": 200,
+      "url": "https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60",
+      "hits": [
+        "ID:29a43ebf-ce9e-4107-92d2-e7f071925c60",
+        "getlinkprogress",
+        "progress"
+      ],
+      "response_file": "response_0309_200_App_Properties_GetLinkProgress.json",
+      "post_data_file": null,
+      "interesting_json_fields": [
+        {
+          "path": "$.status",
+          "value": "InProgress"
+        },
+        {
+          "path": "$.loadStatus",
+          "value": "Medium"
+        }
+      ]
+    },
+    {
+      "seq": 310,
+      "event": "request",
+      "method": "GET",
+      "status": null,
+      "url": "https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60",
+      "hits": [
+        "ID:29a43ebf-ce9e-4107-92d2-e7f071925c60",
+        "getlinkprogress",
+        "progress"
+      ],
+      "response_file": null,
+      "post_data_file": "",
+      "interesting_json_fields": []
+    },
+    {
+      "seq": 310,
+      "event": "response",
+      "method": "GET",
+      "status": 200,
+      "url": "https://app.proppy.ae/App/Properties/GetLinkProgress?id=29a43ebf-ce9e-4107-92d2-e7f071925c60",
+      "hits": [
+        "ID:29a43ebf-ce9e-4107-92d2-e7f071925c60",
+        "getlinkprogress",
+        "progress",
+        "success"
+      ],
+      "response_file": "response_0310_200_App_Properties_GetLinkProgress.json",
+      "post_data_file": null,
+      "interesting_json_fields": [
+        {
+          "path": "$.status",
+          "value": "Success"
+        },
+        {
+          "path": "$.loadStatus",
+          "value": "Medium"
+        }
+      ]
+    },
+    {
+      "seq": 311,
+      "event": "request",
+      "method": "GET",
+      "status": null,
+      "url": "https://app.proppy.ae/App/Properties/LinkDetails?id=29a43ebf-ce9e-4107-92d2-e7f071925c60",
+      "hits": [
+        "ID:29a43ebf-ce9e-4107-92d2-e7f071925c60",
+        "linkdetails"
+      ],
+      "response_file": null,
+      "post_data_file": "",
+      "interesting_json_fields": []
+    },
+    {
+      "seq": 311,
+      "event": "response",
+      "method": "GET",
+      "status": 200,
+      "url": "https://app.proppy.ae/App/Properties/LinkDetails?id=29a43ebf-ce9e-4107-92d2-e7f071925c60",
+      "hits": [
+        "ID:149085eb-9af9-4a31-961c-54239c686d6c",
+        "ID:29a43ebf-ce9e-4107-92d2-e7f071925c60",
+        "NUMBER:7122516800",
+        "area",
+        "building",
+        "database",
+        "getlinkprogress",
+        "linkdetails",
+        "linkrequest",
+        "linkrequests",
+        "permit",
+        "progress",
+        "project",
+        "records2",
+        "requestid",
+        "success",
+        "unit",
+        "unitnumber"
+      ],
+      "response_file": "response_0311_200_App_Properties_LinkDetails.html",
+      "post_data_file": null,
+      "interesting_json_fields": []
+    }
+  ],
+  "files_to_check_first": [
+    "interesting_hits.txt",
+    "timeline.txt",
+    "network_entries.jsonl"
+  ]
+}

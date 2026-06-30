@@ -1,0 +1,34 @@
+[2026-06-13T12:38:07.414] log: [USER_CLICK] tag=DIV id= name= class=main-container text=Link Requests 🗓 Planner ➕ New Request
+[2026-06-13T12:39:35.499] log: [USER_CLICK] tag=BUTTON id=open-new-link-modal name= class=upload-button text=➕ New Request
+[2026-06-13T12:39:36.547] log: [USER_CLICK] tag=INPUT id=link-input name=link class=client-form-control text=
+[2026-06-13T12:39:38.765] log: [INPUT_CHANGE] tag=INPUT id=link-input name=link class=client-form-control text=71495668339 value=71495668339
+[2026-06-13T12:39:38.848] log: [USER_CLICK] tag=BUTTON id= name= class=upload-button text=Create
+[2026-06-13T12:39:38.851] log: [FORM_SUBMIT] tag=FORM id=new-link-form name= class= text=Link: Create Cancel
+[2026-06-13T12:40:22.015] log: [USER_CLICK] tag=TD id= name= class= text=A3108
+[2026-06-13T12:40:23.749] log: [USER_CLICK] tag=A id= name= class=row-action text=Details
+[2026-06-13T12:40:33.416] log: [USER_CLICK] tag=A id= name= class=upload-button text=🔍 Search more in Database
+[2026-06-13T12:41:18.500] log: [USER_CLICK] tag=A id= name= class=active text=Link requests
+[2026-06-13T12:41:20.283] log: [USER_CLICK] tag=A id= name= class=upload-button text=🗓 Planner
+[2026-06-13T12:41:26.382] log: [USER_CLICK] tag=DIV id= name= class=client-info-card text=Schedule for today Planned today: 0 / 30 ⬇️ Download template ⬆️ Schedule for today
+[2026-06-13T12:41:36.683] log: [USER_CLICK] tag=BUTTON id= name= class=upload-button text=⬆️ Schedule for today
+[2026-06-13T12:41:36.684] log: [USER_CLICK] tag=INPUT id=planner-file name=file class= text=
+[2026-06-13T12:41:41.049] log: [USER_CLICK] tag=DIV id= name= class=client-info-card text=Schedule for today Planned today: 0 / 30 ⬇️ Download template ⬆️ Schedule for today
+[2026-06-13T12:41:42.082] log: [USER_CLICK] tag=A id= name= class=upload-button text=← Back to Requests
+[2026-06-13T12:41:43.882] log: [USER_CLICK] tag=BUTTON id=open-new-link-modal name= class=upload-button text=➕ New Request
+[2026-06-13T12:41:45.068] log: [USER_CLICK] tag=INPUT id=link-input name=link class=client-form-control text=
+[2026-06-13T12:41:46.668] log: [INPUT_CHANGE] tag=INPUT id=link-input name=link class=client-form-control text=7136760114 value=7136760114
+[2026-06-13T12:41:46.733] log: [USER_CLICK] tag=BUTTON id= name= class=upload-button text=Create
+[2026-06-13T12:41:46.734] log: [FORM_SUBMIT] tag=FORM id=new-link-form name= class= text=Link: Create Cancel
+[2026-06-13T12:41:52.450] log: [USER_CLICK] tag=A id= name= class=active text=Link requests
+[2026-06-13T12:42:44.876] log: [USER_CLICK] tag=BUTTON id=open-new-link-modal name= class=upload-button text=➕ New Request
+[2026-06-13T12:42:45.833] log: [USER_CLICK] tag=INPUT id=link-input name=link class=client-form-control text=
+[2026-06-13T12:42:47.167] log: [INPUT_CHANGE] tag=INPUT id=link-input name=link class=client-form-control text=71246361254 value=71246361254
+[2026-06-13T12:42:47.251] log: [USER_CLICK] tag=BUTTON id= name= class=upload-button text=Create
+[2026-06-13T12:42:47.252] log: [FORM_SUBMIT] tag=FORM id=new-link-form name= class= text=Link: Create Cancel
+[2026-06-13T12:43:07.917] log: [USER_CLICK] tag=A id= name= class=active text=Link requests
+[2026-06-13T12:43:09.667] log: [USER_CLICK] tag=BUTTON id=open-new-link-modal name= class=upload-button text=➕ New Request
+[2026-06-13T12:43:10.449] log: [USER_CLICK] tag=INPUT id=link-input name=link class=client-form-control text=
+[2026-06-13T12:43:11.567] log: [INPUT_CHANGE] tag=INPUT id=link-input name=link class=client-form-control text=7122516800 value=7122516800
+[2026-06-13T12:43:11.651] log: [USER_CLICK] tag=BUTTON id= name= class=upload-button text=Create
+[2026-06-13T12:43:11.651] log: [FORM_SUBMIT] tag=FORM id=new-link-form name= class= text=Link: Create Cancel
+[2026-06-13T12:44:07.067] log: [USER_CLICK] tag=TD id= name= class= text=1204

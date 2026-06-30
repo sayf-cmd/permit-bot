@@ -1,0 +1,10 @@
+[12:37:07.803] #0001 REQUEST GET https://app.proppy.ae/App/Properties/LinkRequests | hits: linkrequest, linkrequests
+[12:37:08.483] #0001 RESPONSE 302 GET https://app.proppy.ae/App/Properties/LinkRequests | hits: linkrequest, linkrequests
+[12:37:08.484] #0002 REQUEST GET https://app.proppy.ae/App/Account/Login?ReturnUrl=%2FApp%2FProperties%2FLinkRequests | hits: linkrequest, linkrequests
+[12:37:08.702] #0002 RESPONSE 200 GET https://app.proppy.ae/App/Account/Login?ReturnUrl=%2FApp%2FProperties%2FLinkRequests | hits: linkrequest, linkrequests
+[12:37:20.035] #0012 REQUEST GET https://randomuser.me/api/portraits/men/32.jpg
+[12:37:20.038] #0018 REQUEST GET https://app.proppy.ae/img/properties.svg
+[12:37:20.039] #0020 REQUEST GET https://randomuser.me/api/portraits/women/51.jpg
+[12:37:20.041] #0012 RESPONSE 200 GET https://randomuser.me/api/portraits/men/32.jpg
+[12:37:20.041] #0020 RESPONSE 200 GET https://randomuser.me/api/portraits/women/51.jpg
+[12:37:20.602] #0018 RESPONSE 200 GET https://app.proppy.ae/img/properties.svg

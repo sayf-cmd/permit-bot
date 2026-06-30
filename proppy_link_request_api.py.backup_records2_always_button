@@ -1,0 +1,639 @@
+import asyncio
+import json
+import re
+from typing import Any, Dict, List
+from urllib.parse import unquote, urljoin
+
+from bs4 import BeautifulSoup
+from playwright.async_api import async_playwright
+
+
+PROFILE_DIR = "proppy_profile"
+BASE_URL = "https://app.proppy.ae"
+LINK_REQUESTS_URL = f"{BASE_URL}/App/Properties/LinkRequests"
+
+
+def _clean(value: Any) -> str:
+    if value is None:
+        return ""
+    return re.sub(r"\s+", " ", str(value)).strip()
+
+
+def _normalize_key(value: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "_", _clean(value).lower()).strip("_")
+
+
+def _absolute_url(href: str) -> str:
+    href = _clean(href)
+    if not href:
+        return ""
+    if href.startswith("http://") or href.startswith("https://"):
+        return href
+    return urljoin(BASE_URL, href)
+
+
+def _first_non_empty(*values: Any) -> str:
+    for value in values:
+        value = _clean(value)
+        if value:
+            return value
+    return ""
+
+
+def _extract_label_values_from_html(html: str) -> Dict[str, str]:
+    soup = BeautifulSoup(html, "html.parser")
+    values: Dict[str, str] = {}
+
+    for strong in soup.find_all("strong"):
+        label = _clean(strong.get_text(" ", strip=True)).rstrip(":")
+        if not label:
+            continue
+
+        chunks: List[str] = []
+        for sibling in strong.next_siblings:
+            name = getattr(sibling, "name", None)
+            if name in ["br", "div", "p", "table", "ul", "ol"]:
+                break
+            if name == "strong":
+                break
+            if hasattr(sibling, "get_text"):
+                chunks.append(sibling.get_text(" ", strip=True))
+            else:
+                chunks.append(str(sibling))
+
+        value = _clean(" ".join(chunks))
+        key = _normalize_key(label)
+
+        if value and key:
+            values.setdefault(key, value)
+
+    return values
+
+
+def _extract_all_areas(html: str) -> List[str]:
+    soup = BeautifulSoup(html, "html.parser")
+    found: List[str] = []
+
+    for strong in soup.find_all("strong"):
+        label = _clean(strong.get_text(" ", strip=True)).rstrip(":")
+        if label.lower() != "area":
+            continue
+
+        chunks: List[str] = []
+        for sibling in strong.next_siblings:
+            name = getattr(sibling, "name", None)
+            if name in ["br", "div", "p", "table", "ul", "ol"]:
+                break
+            if hasattr(sibling, "get_text"):
+                chunks.append(sibling.get_text(" ", strip=True))
+            else:
+                chunks.append(str(sibling))
+
+        value = _clean(" ".join(chunks))
+        if value:
+            found.append(value)
+
+    return found
+
+
+def _parse_tables(html: str) -> Dict[str, Any]:
+    soup = BeautifulSoup(html, "html.parser")
+
+    data: Dict[str, Any] = {
+        "dld_owners": [],
+        "actual_owners": [],
+    }
+
+    for table in soup.find_all("table"):
+        headers = [_clean(th.get_text(" ", strip=True)) for th in table.find_all("th")]
+        headers_norm = [_normalize_key(h) for h in headers]
+
+        if not headers:
+            continue
+
+        section_text = ""
+        prev = table.find_previous(["span", "h1", "h2", "h3", "h4", "h5", "strong"])
+        if prev:
+            section_text = _clean(prev.get_text(" ", strip=True)).lower()
+
+        for tr in table.find_all("tr")[1:]:
+            cells = [_clean(td.get_text(" ", strip=True)) for td in tr.find_all("td")]
+            if not cells:
+                continue
+
+            row = {}
+            for idx, cell in enumerate(cells):
+                if idx < len(headers_norm):
+                    row[headers_norm[idx]] = cell
+                    row[headers[idx]] = cell
+
+            row["_raw_cells"] = cells
+            row["_headers"] = headers
+
+            hset = set(headers_norm)
+
+            if (
+                "mobile" in hset
+                and "email" in hset
+                and (
+                    "name" in hset
+                    or "owner" in hset
+                    or "dld" in section_text
+                    or "owner_dld" in section_text.replace(" ", "_")
+                )
+                and "building" not in hset
+            ):
+                data["dld_owners"].append(row)
+                continue
+
+            if "building" in hset and "unit" in hset and "owner" in hset:
+                data["actual_owners"].append(row)
+                continue
+
+            if "owner" in hset and ("phone" in hset or "mobile" in hset):
+                data["actual_owners"].append(row)
+
+    return data
+
+
+def parse_linkdetails_html(html: str, final_url: str = "") -> Dict[str, Any]:
+    soup = BeautifulSoup(html, "html.parser")
+    labels = _extract_label_values_from_html(html)
+    tables = _parse_tables(html)
+    all_areas = _extract_all_areas(html)
+
+    records2_link = ""
+    records2_a = soup.find("a", href=re.compile(r"/App/Properties/Records2", re.I))
+    if records2_a:
+        records2_link = _absolute_url(unquote(records2_a.get("href", "")))
+
+    permit = labels.get("link", "")
+    if not permit:
+        m = re.search(r">\s*(\d{8,20})\s*</a>", html)
+        if m:
+            permit = m.group(1)
+
+    dld_owners = tables.get("dld_owners", [])
+    actual_owners = tables.get("actual_owners", [])
+
+    first_dld = dld_owners[0] if dld_owners else {}
+    first_actual = actual_owners[0] if actual_owners else {}
+
+    dld_owner = _first_non_empty(
+        first_dld.get("name"),
+        first_dld.get("owner"),
+        first_dld.get("Name"),
+        first_dld.get("Owner"),
+    )
+    dld_mobile = _first_non_empty(
+        first_dld.get("mobile"),
+        first_dld.get("phone"),
+        first_dld.get("Mobile"),
+        first_dld.get("Phone"),
+    )
+    dld_email = _first_non_empty(
+        first_dld.get("email"),
+        first_dld.get("Email"),
+    )
+
+    actual_owner = _first_non_empty(
+        first_actual.get("owner"),
+        first_actual.get("Owner"),
+        first_actual.get("name"),
+        first_actual.get("Name"),
+    )
+    actual_mobile = _first_non_empty(
+        first_actual.get("phone"),
+        first_actual.get("mobile"),
+        first_actual.get("Phone"),
+        first_actual.get("Mobile"),
+    )
+
+    data: Dict[str, Any] = {
+        "permit": permit,
+        "link": permit,
+        "status": labels.get("status", ""),
+        "area": all_areas[0] if len(all_areas) >= 1 else labels.get("area", ""),
+        "location_area": all_areas[0] if len(all_areas) >= 1 else labels.get("area", ""),
+        "project": labels.get("project", ""),
+        "master_project": labels.get("master_project", ""),
+        "property_number": labels.get("property_number", ""),
+        "unit_number": labels.get("property_number", ""),
+        "property_type": labels.get("property_type", labels.get("type", "")),
+        "rooms": labels.get("rooms", ""),
+        "property_area": all_areas[1] if len(all_areas) >= 2 else "",
+        "size": all_areas[1] if len(all_areas) >= 2 else "",
+        "dld_owner": dld_owner,
+        "dld_mobile": dld_mobile,
+        "dld_email": dld_email,
+        "dld_owners": dld_owners,
+        "actual_owner": actual_owner,
+        "actual_mobile": actual_mobile,
+        "actual_phone": actual_mobile,
+        "actual_owners": actual_owners,
+        "database_building": _first_non_empty(first_actual.get("building"), first_actual.get("Building"), labels.get("building", "")),
+        "database_unit": _first_non_empty(first_actual.get("unit"), first_actual.get("Unit"), labels.get("property_number", "")),
+        "price": _first_non_empty(first_actual.get("price"), first_actual.get("Price")),
+        "description": _first_non_empty(first_actual.get("description"), first_actual.get("Description")),
+        "records2_link": records2_link,
+        "linkdetails_url": final_url,
+        "raw_label_values": labels,
+    }
+
+    data["proppy_dld_owners"] = ", ".join(
+        sorted(set(_clean(_first_non_empty(r.get("name"), r.get("owner"), r.get("Name"), r.get("Owner"))) for r in dld_owners if _first_non_empty(r.get("name"), r.get("owner"), r.get("Name"), r.get("Owner"))))
+    )
+    data["proppy_dld_mobiles"] = ", ".join(
+        sorted(set(_clean(_first_non_empty(r.get("mobile"), r.get("phone"), r.get("Mobile"), r.get("Phone"))) for r in dld_owners if _first_non_empty(r.get("mobile"), r.get("phone"), r.get("Mobile"), r.get("Phone"))))
+    )
+    data["proppy_actual_owners"] = ", ".join(
+        sorted(set(_clean(_first_non_empty(r.get("owner"), r.get("Owner"), r.get("name"), r.get("Name"))) for r in actual_owners if _first_non_empty(r.get("owner"), r.get("Owner"), r.get("name"), r.get("Name"))))
+    )
+    data["proppy_actual_mobiles"] = ", ".join(
+        sorted(set(_clean(_first_non_empty(r.get("phone"), r.get("mobile"), r.get("Phone"), r.get("Mobile"))) for r in actual_owners if _first_non_empty(r.get("phone"), r.get("mobile"), r.get("Phone"), r.get("Mobile"))))
+    )
+
+    return data
+
+
+async def _create_link_request_and_get_details_url(page, permit: str) -> str:
+    permit = _clean(permit)
+
+    await page.goto(LINK_REQUESTS_URL, wait_until="domcontentloaded", timeout=90000)
+
+    result = await page.evaluate(
+        """async (permit) => {
+            const response = await fetch('/App/Properties/LinkCreate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json; charset=utf-8'
+                },
+                body: JSON.stringify(permit)
+            });
+
+            const text = await response.text();
+
+            let parsed = null;
+            try { parsed = JSON.parse(text); } catch (e) {}
+
+            return {
+                ok: response.ok,
+                status: response.status,
+                url: response.url,
+                text: text,
+                parsed: parsed
+            };
+        }""",
+        permit,
+    )
+
+    if not result.get("ok"):
+        raise RuntimeError(f"LinkCreate failed: HTTP {result.get('status')} {result.get('text')}")
+
+    text = result.get("text") or ""
+    parsed = result.get("parsed")
+
+    request_id = ""
+
+    if isinstance(parsed, dict):
+        for key in ["id", "Id", "requestId", "RequestId", "request_id", "linkRequestId"]:
+            if parsed.get(key):
+                request_id = str(parsed.get(key)).strip()
+                break
+        if not request_id:
+            for key in ["url", "Url", "link", "Link", "redirectUrl", "RedirectUrl"]:
+                value = str(parsed.get(key, "")).strip()
+                if "LinkDetails" in value:
+                    return _absolute_url(value)
+
+    if not request_id:
+        m = re.search(r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}", text)
+        if m:
+            request_id = m.group(0)
+
+    if not request_id:
+        try:
+            await page.wait_for_url(re.compile(r".*/App/Properties/LinkDetails\?id=.*"), timeout=15000)
+            return page.url
+        except Exception:
+            pass
+
+    if not request_id:
+        raise RuntimeError(f"Could not extract LinkDetails id from LinkCreate response: {text[:500]}")
+
+    return f"{BASE_URL}/App/Properties/LinkDetails?id={request_id}"
+
+
+async def _wait_until_success(page, details_url: str, timeout_seconds: int = 180) -> Dict[str, Any]:
+    m = re.search(r"id=([0-9a-fA-F-]{36})", details_url)
+    if not m:
+        return {"status": "Unknown", "error": "No id in LinkDetails URL"}
+
+    request_id = m.group(1)
+    progress_url = f"{BASE_URL}/App/Properties/GetLinkProgress?id={request_id}"
+
+    started = asyncio.get_event_loop().time()
+    last: Dict[str, Any] = {}
+
+    while True:
+        if asyncio.get_event_loop().time() - started > timeout_seconds:
+            last["error"] = "Timeout waiting for Proppy Success"
+            return last
+
+        try:
+            last = await page.evaluate(
+                """async (url) => {
+                    const response = await fetch(url, { method: 'GET' });
+                    const text = await response.text();
+
+                    try {
+                        return JSON.parse(text);
+                    } catch (e) {
+                        return { status: 'Unknown', text: text };
+                    }
+                }""",
+                progress_url,
+            )
+        except Exception as e:
+            last = {"status": "Unknown", "error": str(e)}
+
+        status = str(last.get("status", "")).lower()
+
+        if status in ["success", "failed", "error", "completed", "complete"]:
+            return last
+
+        delay = last.get("delaySeconds")
+        try:
+            delay = int(delay)
+        except Exception:
+            delay = 5
+
+        if delay <= 0:
+            delay = 3
+        if delay > 20:
+            delay = 20
+
+        await asyncio.sleep(delay)
+
+
+
+def _unit_match(a: Any, b: Any) -> bool:
+    a = _clean(a).upper()
+    b = _clean(b).upper()
+
+    a = re.sub(r"\.0$", "", a)
+    b = re.sub(r"\.0$", "", b)
+
+    a = re.sub(r"\s+", "", a)
+    b = re.sub(r"\s+", "", b)
+
+    return bool(a and b and a == b)
+
+
+def parse_records2_html(html: str, expected_unit: str = "") -> Dict[str, Any]:
+    """
+    Parses Proppy Database 2.0 / Records2 page.
+    Used as fallback when LinkDetails has no Actual owner table.
+    """
+    tables = _parse_tables(html)
+    rows = tables.get("actual_owners", [])
+
+    if not rows:
+        return {
+            "records2_found": False,
+            "records2_rows_count": 0,
+        }
+
+    selected = None
+
+    if expected_unit:
+        for row in rows:
+            row_unit = _first_non_empty(
+                row.get("unit"),
+                row.get("Unit"),
+                row.get("unit_number"),
+                row.get("Unit Number"),
+            )
+            if _unit_match(row_unit, expected_unit):
+                selected = row
+                break
+
+    if selected is None:
+        selected = rows[0]
+
+    actual_owner = _first_non_empty(
+        selected.get("owner"),
+        selected.get("Owner"),
+        selected.get("name"),
+        selected.get("Name"),
+    )
+
+    actual_mobile = _first_non_empty(
+        selected.get("phone"),
+        selected.get("Phone"),
+        selected.get("mobile"),
+        selected.get("Mobile"),
+    )
+
+    return {
+        "records2_found": True,
+        "records2_rows_count": len(rows),
+        "actual_owners": rows,
+        "actual_owner": actual_owner,
+        "actual_mobile": actual_mobile,
+        "actual_phone": actual_mobile,
+        "database_building": _first_non_empty(
+            selected.get("building"),
+            selected.get("Building"),
+        ),
+        "database_unit": _first_non_empty(
+            selected.get("unit"),
+            selected.get("Unit"),
+            selected.get("unit_number"),
+            selected.get("Unit Number"),
+        ),
+        "price": _first_non_empty(
+            selected.get("price"),
+            selected.get("Price"),
+        ),
+        "description": _first_non_empty(
+            selected.get("description"),
+            selected.get("Description"),
+        ),
+    }
+
+
+async def search_proppy_link_request_data(permit: str) -> Dict[str, Any]:
+    permit = _clean(permit)
+
+    async with async_playwright() as p:
+        context = await p.chromium.launch_persistent_context(
+            user_data_dir=PROFILE_DIR,
+            headless=False,
+            args=[
+                "--disable-blink-features=AutomationControlled",
+                "--disable-dev-shm-usage",
+            ],
+        )
+
+        page = context.pages[0] if context.pages else await context.new_page()
+
+        try:
+            details_url = await _create_link_request_and_get_details_url(page, permit)
+
+            await page.goto(details_url, wait_until="domcontentloaded", timeout=90000)
+
+            progress = await _wait_until_success(page, details_url, timeout_seconds=180)
+
+            await page.goto(details_url, wait_until="networkidle", timeout=90000)
+            html = await page.content()
+
+            data = parse_linkdetails_html(html, final_url=details_url)
+
+            # Fallback: if LinkDetails does not contain Actual owner,
+            # open the "Search more in Database" / Records2 page.
+            if not data.get("actual_owner") and data.get("records2_link"):
+                try:
+                    await page.goto(
+                        data["records2_link"],
+                        wait_until="networkidle",
+                        timeout=90000,
+                    )
+                    records2_html = await page.content()
+
+                    records2_data = parse_records2_html(
+                        records2_html,
+                        expected_unit=data.get("property_number") or data.get("unit_number") or "",
+                    )
+
+                    for key, value in records2_data.items():
+                        if key == "actual_owners":
+                            data[key] = value
+                        elif value not in [None, "", []]:
+                            if not data.get(key):
+                                data[key] = value
+
+                    data["records2_opened"] = True
+
+                except Exception as e:
+                    data["records2_opened"] = False
+                    data["records2_error"] = str(e)
+
+            data["permit"] = data.get("permit") or permit
+            data["link"] = data.get("link") or permit
+            data["progress"] = progress
+
+            if not data.get("status"):
+                data["status"] = progress.get("status", "")
+
+            return data
+
+        finally:
+            await context.close()
+
+
+def format_proppy_data(data: Dict[str, Any]) -> str:
+    permit = _first_non_empty(data.get("permit"), data.get("link"))
+    status = _clean(data.get("status"))
+
+    area = _clean(data.get("location_area") or data.get("area"))
+    project = _clean(data.get("project"))
+    unit = _clean(data.get("property_number") or data.get("unit_number"))
+    property_type = _clean(data.get("property_type"))
+    rooms = _clean(data.get("rooms"))
+    size = _clean(data.get("property_area") or data.get("size"))
+
+    dld_owner = _clean(data.get("dld_owner"))
+    dld_mobile = _clean(data.get("dld_mobile"))
+    dld_email = _clean(data.get("dld_email"))
+
+    actual_owner = _clean(data.get("actual_owner"))
+    actual_mobile = _clean(data.get("actual_mobile") or data.get("actual_phone"))
+    actual_building = _clean(data.get("database_building"))
+    actual_unit = _clean(data.get("database_unit"))
+    actual_price = _clean(data.get("price"))
+    actual_description = _clean(data.get("description"))
+
+    lines = []
+
+    if str(status).lower() == "success":
+        lines.append("🏢 Property Found")
+    else:
+        lines.append("🏢 Proppy Link Request")
+
+    if area:
+        lines.append(f"\n📍 {area}")
+    if project:
+        lines.append(f"🏗 {project}")
+
+    if unit or property_type or rooms or size:
+        lines.append("")
+    if unit:
+        lines.append(f"▫️ Unit: {unit}")
+    if property_type:
+        lines.append(f"▫️ Type: {property_type}")
+    if rooms:
+        lines.append(f"▫️ Rooms: {rooms}")
+    if size:
+        lines.append(f"▫️ Size: {size}")
+
+    if status:
+        if str(status).lower() == "success":
+            lines.append("\n🟢 Verified")
+        else:
+            lines.append(f"\nStatus: {status}")
+
+    if permit:
+        lines.append(f"🔗 Permit: {permit}")
+
+    lines.append(
+        "\n\n━━━━━━━━━━━━━━━\n"
+        "👤 OWNER INFORMATION\n"
+        "━━━━━━━━━━━━━━━"
+    )
+
+    if dld_owner or dld_mobile or dld_email:
+        lines.append("\n🏛 Owner (DLD)")
+        if dld_owner:
+            lines.append(f"👤 Owner: {dld_owner}")
+        if dld_mobile:
+            lines.append(f"📞 Mobile: {dld_mobile}")
+        if dld_email:
+            lines.append(f"📧 Email: {dld_email}")
+
+    if actual_owner or actual_mobile or actual_building:
+        lines.append("\n🟢 Actual owner")
+        if actual_building:
+            lines.append(f"🏢 Building: {actual_building}")
+        if actual_unit:
+            lines.append(f"🏠 Unit: {actual_unit}")
+        if actual_owner:
+            lines.append(f"👤 Owner: {actual_owner}")
+        if actual_mobile:
+            lines.append(f"📞 Phone: {actual_mobile}")
+        if actual_price:
+            lines.append(f"💰 Price: {actual_price}")
+        if actual_description:
+            lines.append(f"📝 {actual_description}")
+
+    if not (dld_owner or dld_mobile or dld_email or actual_owner or actual_mobile or actual_building):
+        lines.append("\nNo owner data found.")
+
+    return "\n".join(lines)
+
+
+async def main():
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("permit", help="Permit/link number")
+    args = parser.parse_args()
+
+    data = await search_proppy_link_request_data(args.permit)
+    print(json.dumps(data, ensure_ascii=False, indent=2))
+    print()
+    print(format_proppy_data(data))
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
